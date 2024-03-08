@@ -10,7 +10,7 @@ export const searchNodes = async (query: string) => {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}` ?? "",
+      Authorization: token ? `Bearer ${token}` : "",
     },
   });
 
@@ -34,7 +34,7 @@ export const rootNodes = async (id: string) => {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}` ?? "",
+      Authorization: token ? `Bearer ${token}` : "",
     },
   });
 
