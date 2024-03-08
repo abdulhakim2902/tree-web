@@ -82,11 +82,13 @@ export const nodeFamilies = async (id: string) => {
   };
 };
 
-export const familyNodes = async () => {
+export const familyNodes = async (token?: string) => {
+  if (!token) token = getCookie(TOKEN_KEY)?.toString();
   const response = await fetch(`${API_URL}/nodes/families`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
+      Authorization: token ? `Bearer ${token}` : "",
     },
   });
 

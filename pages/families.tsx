@@ -1,9 +1,11 @@
 import FamilyLink from "@/components/FamilyLink/FamilyLink";
+import { TOKEN_KEY } from "@/constants/storage-key";
 import { familyNodes } from "@/services/node";
 import ballS from "@/styles/Ball.module.css";
 import s from "@/styles/FamilyPage.module.css";
 import classNames from "classnames";
-import type { NextPage } from "next";
+import { getCookie } from "cookies-next";
+import type { GetServerSidePropsContext, NextPage } from "next";
 import Image from "next/image";
 
 export type Family = {
@@ -46,10 +48,12 @@ const FamiliesPage: NextPage<FamiliesPageProps> = ({ families }) => {
 
 export default FamiliesPage;
 
-export async function getServerSideProps() {
+export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   const families = [] as Family[];
+  const token = getCookie(TOKEN_KEY, ctx)?.toString();
+
   try {
-    const { data } = await familyNodes();
+    const { data } = await familyNodes(token);
     families.push(...data);
   } catch {
     // ignore
