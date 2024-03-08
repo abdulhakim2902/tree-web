@@ -1,6 +1,6 @@
 import { TreeNodeDataWithRelations } from "@/types/tree";
 import classNames from "classnames";
-import { FC } from "react";
+import React, { FC } from "react";
 import BioRelationButtons, { RelationType } from "../BioRelationButtons/BioRelationButtons";
 import { getAge, getDate } from "@/helper/date";
 import s from "./TreeNodeDetailsBio.module.css";
@@ -43,10 +43,20 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
             {birthDate}/{age} {info} old
           </span>
         </ShowIf>
-        <ShowIf condition={Boolean(birth?.place)}>
+        <ShowIf condition={Boolean(birth?.place?.country) || Boolean(birth?.place?.city)}>
           <span className={s.gridItemTitle}>Birth Place</span>
           <span className={s.gridItemValue}>
-            {startCase(birth?.place?.country ?? "")}, {startCase(birth?.place?.city ?? "")}
+            {birth?.place?.country && birth?.place?.city && (
+              <React.Fragment>
+                {startCase(birth?.place?.country ?? "")}, {startCase(birth?.place?.city ?? "")}
+              </React.Fragment>
+            )}
+            {birth?.place?.country && !birth?.place?.city && (
+              <React.Fragment>{startCase(birth?.place?.country ?? "")}</React.Fragment>
+            )}
+            {birth?.place?.city && !birth?.place?.country && (
+              <React.Fragment>{startCase(birth?.place?.city ?? "")}</React.Fragment>
+            )}
           </span>
         </ShowIf>
         <ShowIf condition={Boolean(deathDate)}>
