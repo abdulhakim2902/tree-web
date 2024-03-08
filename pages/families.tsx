@@ -7,7 +7,7 @@ import type { NextPage } from "next";
 import Image from "next/image";
 
 export type Family = {
-  _id: string;
+  id: string;
   name: string;
 };
 
@@ -29,7 +29,7 @@ const FamiliesPage: NextPage<FamiliesPageProps> = ({ families }) => {
         </div>
         <div className={s.familiesContainer}>
           {families.map((family) => (
-            <FamilyLink key={family._id} familyId={family._id} familyName={family.name} />
+            <FamilyLink key={family.id} familyId={family.id} familyName={family.name} />
           ))}
         </div>
       </div>

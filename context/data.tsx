@@ -60,7 +60,7 @@ type TreeNodeDataContextValue = {
   initNodes: () => void;
   setQuery: (query: string) => void;
   searchNodes: (event?: KeyboardEvent) => void;
-  rootNodes: (id?: string, isPublic?: boolean) => void;
+  rootNodes: (id?: string) => void;
   expandNode: (id: string, type: RelationType, cb?: () => void) => void;
   updateNode: (id: string, data: Bio, cb?: (success: boolean, error?: string) => void) => void;
   addNode: (id: string, data: any, relationType: RelationType, cb?: (success: boolean, error?: string) => void) => void;
@@ -72,7 +72,7 @@ const TreeNodeDataContext = createContext<TreeNodeDataContextValue | null>(null)
 
 export const TreeNodeDataContextProvider: FC = ({ children }) => {
   const { enqueueSnackbar } = useSnackbar();
-  const { setUser, isLoggedIn } = useAuthContext();
+  const { setUser } = useAuthContext();
   const { pathname, push } = useRouter();
 
   const [query, setQuery] = useState<string>("");
@@ -110,13 +110,13 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
     setLoading((prev) => ({ ...prev, main: false }));
   };
 
-  const rootNodes = async (id?: string, isPublic = false) => {
+  const rootNodes = async (id?: string) => {
     if (!id) return;
 
     try {
       setLoading((prev) => ({ ...prev, main: true }));
 
-      const { node, nodes, nodeMap } = await rootNodesAPI(id, isPublic);
+      const { node, nodes, nodeMap } = await rootNodesAPI(id);
 
       localStorage.removeItem(NODE_FAMILIES_KEY);
 
@@ -149,7 +149,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
     try {
       setLoading((prev) => ({ ...prev, main: true }));
 
-      const { node, nodes, nodeMap } = await searchNodesAPI(query, !isLoggedIn);
+      const { node, nodes, nodeMap } = await searchNodesAPI(query);
 
       localStorage.removeItem(NODE_FAMILIES_KEY);
 

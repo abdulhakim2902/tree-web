@@ -4,23 +4,14 @@ import { getCookie } from "cookies-next";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export const searchNodes = async (query: string, isPublic = false) => {
-  const headers = {
-    "Content-Type": "application/json",
-  } as Record<string, any>;
-
-  if (!isPublic) {
-    const token = getCookie(TOKEN_KEY)?.toString();
-    if (!token) {
-      throw new Error("Token not found");
-    }
-
-    headers.Authorization = `Bearer ${token.toString()}`;
-  }
-
-  const response = await fetch(`${API_URL}/nodes/search/${query}/${isPublic ? "public" : ""}?tree=true`, {
+export const searchNodes = async (query: string) => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+  const response = await fetch(`${API_URL}/nodes/search/${query}`, {
     method: "GET",
-    headers,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}` ?? "",
+    },
   });
 
   if (response.status !== 200) {
@@ -37,23 +28,14 @@ export const searchNodes = async (query: string, isPublic = false) => {
   };
 };
 
-export const rootNodes = async (id: string, isPublic = false) => {
-  const headers = {
-    "Content-Type": "application/json",
-  } as Record<string, any>;
-
-  if (!isPublic) {
-    const token = getCookie(TOKEN_KEY)?.toString();
-    if (!token) {
-      throw new Error("Token not found");
-    }
-
-    headers.Authorization = `Bearer ${token.toString()}`;
-  }
-
-  const response = await fetch(`${API_URL}/nodes/${id}/root/${isPublic ? "public" : ""}?tree=true`, {
+export const rootNodes = async (id: string) => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+  const response = await fetch(`${API_URL}/nodes/${id}/root`, {
     method: "GET",
-    headers,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}` ?? "",
+    },
   });
 
   if (response.status !== 200) {
@@ -113,7 +95,7 @@ export const familyNodes = async () => {
   }
 
   const result = await response.json();
-  return { data: result as { _id: string; name: string }[] };
+  return { data: result as { id: string; name: string }[] };
 };
 
 export const parentAndChildNodes = async (id: string) => {
@@ -122,7 +104,7 @@ export const parentAndChildNodes = async (id: string) => {
     throw new Error("Token not found");
   }
 
-  const response = await fetch(`${API_URL}/nodes/${id}/parents-and-children?tree=true`, {
+  const response = await fetch(`${API_URL}/nodes/${id}/parents-and-children`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -144,7 +126,7 @@ export const spouseAndChildNodes = async (id: string) => {
   if (!token) {
     throw new Error("Token not found");
   }
-  const response = await fetch(`${API_URL}/nodes/${id}/spouses-and-children?tree=true`, {
+  const response = await fetch(`${API_URL}/nodes/${id}/spouses-and-children`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
