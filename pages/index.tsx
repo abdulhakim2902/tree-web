@@ -1,11 +1,11 @@
 import React from "react";
 import type { GetServerSidePropsContext, NextPage } from "next";
 import { deleteCookie, getCookie } from "cookies-next";
-import s from "@/styles/HomePage.module.css";
-import ballS from "@/styles/Ball.module.css";
-import Button from "@/components/Button/Button";
+import s from "@tree/styles/HomePage.module.css";
+import ballS from "@tree/styles/Ball.module.css";
+import Button from "@tree/src/components/Button/Button";
 import classNames from "classnames";
-import { TOKEN_KEY, USER_KEY } from "@/constants/storage-key";
+import { TOKEN_KEY, USER_KEY } from "@tree/src/constants/storage-key";
 
 const HomePage: NextPage = () => {
   return (

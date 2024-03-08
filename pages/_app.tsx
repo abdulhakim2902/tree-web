@@ -1,11 +1,11 @@
-import Layout from "@/components/Layout/Layout";
-import { TreeNodeDataContextProvider } from "@/context/data";
-import "@/styles/globals.css";
+import Layout from "@tree/src/components/Layout/Layout";
+import { TreeNodeDataContextProvider } from "@tree/src/context/data";
+import "@tree/styles/globals.css";
 import { IconButton, createTheme, useMediaQuery, useTheme } from "@mui/material";
 import type { AppProps } from "next/app";
 import { SnackbarProvider, closeSnackbar } from "notistack";
 import CloseIcon from "@mui/icons-material/Close";
-import { AuthContextProvider } from "@/context/auth";
+import { AuthContextProvider } from "@tree/src/context/auth";
 import React from "react";
 
 const MyApp = ({ Component, pageProps }: AppProps) => {

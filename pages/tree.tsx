@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from "react";
-import TreeNodeDetails from "@/components/Tree/TreeNodeDetails/TreeNodeDetails";
-import TreeWithNavigation from "@/components/Tree/TreeWithNavigation/TreeWithNavigation";
-import { NavigationContextProvider } from "@/context/navigation";
-import { NodeSelectionContextProvider } from "@/context/tree";
+import TreeNodeDetails from "@tree/src/components/Tree/TreeNodeDetails/TreeNodeDetails";
+import TreeWithNavigation from "@tree/src/components/Tree/TreeWithNavigation/TreeWithNavigation";
+import { NavigationContextProvider } from "@tree/src/context/navigation";
+import { NodeSelectionContextProvider } from "@tree/src/context/tree";
 import type { GetServerSidePropsContext, NextPage } from "next";
-import { useTreeNodeDataContext } from "@/context/data";
+import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { deleteCookie, getCookie } from "cookies-next";
 import { Backdrop, CircularProgress } from "@mui/material";
-import s from "@/styles/TreePage.module.css";
-import ShowIf from "@/components/show-if";
+import s from "@tree/styles/TreePage.module.css";
+import ShowIf from "@tree/src/components/show-if";
 import { startCase } from "lodash";
-import s2 from "@/styles/HomePage.module.css";
-import ballS from "@/styles/Ball.module.css";
-import Button from "@/components/Button/Button";
+import s2 from "@tree/styles/HomePage.module.css";
+import ballS from "@tree/styles/Ball.module.css";
+import Button from "@tree/src/components/Button/Button";
 import classNames from "classnames";
-import { TOKEN_KEY, USER_KEY } from "@/constants/storage-key";
+import { TOKEN_KEY, USER_KEY } from "@tree/src/constants/storage-key";
 
 const Tree: NextPage = () => {
   const { node, nodes, nodeMap, loading, initNodes } = useTreeNodeDataContext();

@@ -1,8 +1,8 @@
-import FamilyLink from "@/components/FamilyLink/FamilyLink";
-import { TOKEN_KEY } from "@/constants/storage-key";
-import { familyNodes } from "@/services/node";
-import ballS from "@/styles/Ball.module.css";
-import s from "@/styles/FamilyPage.module.css";
+import FamilyLink from "@tree/src/components/FamilyLink/FamilyLink";
+import { TOKEN_KEY } from "@tree/src/constants/storage-key";
+import { familyNodes } from "@tree/src/lib/services/node";
+import ballS from "@tree/styles/Ball.module.css";
+import s from "@tree/styles/FamilyPage.module.css";
 import classNames from "classnames";
 import { getCookie } from "cookies-next";
 import type { GetServerSidePropsContext, NextPage } from "next";

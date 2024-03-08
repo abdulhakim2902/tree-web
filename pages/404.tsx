@@ -1,7 +1,7 @@
-import Button from "@/components/Button/Button";
-import ShowIf from "@/components/show-if";
-import s from "@/styles/404.module.css";
-import ballS from "@/styles/Ball.module.css";
+import Button from "@tree/src/components/Button/Button";
+import ShowIf from "@tree/src/components/show-if";
+import s from "@tree/styles/404.module.css";
+import ballS from "@tree/styles/Ball.module.css";
 import classNames from "classnames";
 import type { NextPage } from "next";
 
