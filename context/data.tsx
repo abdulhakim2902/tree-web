@@ -105,6 +105,8 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
       setNode(node);
       setNodes(nodes);
       setNodeMap(nodeMap);
+    } else {
+      push("/families");
     }
 
     setLoading((prev) => ({ ...prev, main: false }));
@@ -128,10 +130,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
       localStorage.setItem(NODES_KEY, JSON.stringify(nodes));
       localStorage.setItem(NODE_MAP_KEY, JSON.stringify(nodeMap));
 
-      if (pathname !== "/tree") {
-        setLoading((prev) => ({ ...prev, main: false }));
-        push("/tree");
-      }
+      if (pathname !== "/tree") push("/tree");
     } catch (err: any) {
       enqueueSnackbar({
         variant: "error",
@@ -161,7 +160,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
       localStorage.setItem(NODES_KEY, JSON.stringify(nodes));
       localStorage.setItem(NODE_MAP_KEY, JSON.stringify(nodeMap));
 
-      if (pathname === "/") push("/tree");
+      if (pathname !== "/tree") push("/tree");
     } catch (err: any) {
       enqueueSnackbar({
         variant: "error",

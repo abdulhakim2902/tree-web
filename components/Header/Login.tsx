@@ -13,6 +13,7 @@ import { parseJSON } from "@/helper/parse-json";
 import { getCookie } from "cookies-next";
 import { UserWithFullname } from "@/types/user";
 import { NODE_KEY, USER_KEY } from "@/constants/storage-key";
+import { useRouter } from "next/router";
 
 export type Error = {
   username: boolean;
@@ -25,6 +26,7 @@ const Login: FC = () => {
   const { isLoggedIn, login, loading } = useAuthContext();
   const { rootNodes } = useTreeNodeDataContext();
   const { enqueueSnackbar } = useSnackbar();
+  const { pathname, replace } = useRouter();
 
   const [data, setData] = useState<LoginType>({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -60,17 +62,20 @@ const Login: FC = () => {
     login(data, () => {
       setData({ username: "", password: "" });
       setOpen(false);
-      const nodeStr = localStorage.getItem(NODE_KEY)?.toString();
-      const node = parseJSON<{ id: string; isRoot: boolean }>(nodeStr);
+      if (pathname === "/families") replace("/families");
+      if (pathname === "/tree") {
+        const nodeStr = localStorage.getItem(NODE_KEY)?.toString();
+        const node = parseJSON<{ id: string; isRoot: boolean }>(nodeStr);
 
-      let nodeId = node?.id;
-      if (!node) {
-        const userStr = getCookie(USER_KEY)?.toString();
-        const user = parseJSON<UserWithFullname>(userStr);
-        nodeId = user?.nodeId;
+        let nodeId = node?.id;
+        if (!node) {
+          const userStr = getCookie(USER_KEY)?.toString();
+          const user = parseJSON<UserWithFullname>(userStr);
+          nodeId = user?.nodeId;
+        }
+
+        rootNodes(nodeId);
       }
-
-      rootNodes(nodeId);
     });
   };
 
