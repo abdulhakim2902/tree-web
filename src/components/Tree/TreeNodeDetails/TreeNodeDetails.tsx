@@ -1,11 +1,11 @@
 import { useNodeSelectionContext } from "@tree/src/context/tree";
 import { CloseIcon } from "@tree/src/components/Icon/CloseIcon";
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useState } from "react";
 import BioNavItem from "./BioNavItem/BioNavItem";
 import s from "./TreeNodeDetails.module.css";
 import { TreeNodeDetailsBio } from "./TreeNodeDetailsBio/TreeNodeDetailsBio";
 import { getTreeNodeDetails } from "@tree/src/helper/tree";
-import { Family, TreeNode, TreeNodeDataWithRelations } from "@tree/src/types/tree";
+import { TreeNode } from "@tree/src/types/tree";
 import Fab from "@mui/material/Fab";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -17,10 +17,7 @@ import ShowIf from "@tree/src/components/show-if";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DeleteMemberModal from "@tree/src/components/Modal/DeleteMemberModal";
 import { TreeNodeFamilies } from "../TreeNodeFamilies/TreeNodeFamilies";
-import { parseJSON } from "@tree/src/helper/parse-json";
-import { nodeFamilies } from "@tree/src/lib/services/node";
 import { startCase } from "lodash";
-import { NODE_FAMILIES_KEY } from "@tree/src/constants/storage-key";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 
 const navigation = [
@@ -28,50 +25,6 @@ const navigation = [
   { id: 2, title: "Galleries" },
   { id: 3, title: "Families" },
 ];
-
-type SelectedTabsProps = {
-  id: number;
-  node: TreeNodeDataWithRelations;
-  selectNode: (id: string, hasSubTree?: boolean) => void;
-};
-
-const SelectedTab: FC<SelectedTabsProps> = ({ id, selectNode, node }) => {
-  const [families, setFamilies] = useState<Family[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-
-  useEffect(() => {
-    const getFamilyNodes = async (id: string) => {
-      setLoading(true);
-
-      const familiesStr = localStorage.getItem(NODE_FAMILIES_KEY);
-      let families = parseJSON<Record<string, Family[]>>(familiesStr);
-      if (!families) families = {};
-      if (!families[id]) {
-        const { id: nodeId, families: data } = await nodeFamilies(id);
-        families[nodeId] = data;
-      }
-
-      localStorage.setItem(NODE_FAMILIES_KEY, JSON.stringify(families));
-
-      setFamilies(families[id]);
-      setLoading(false);
-    };
-
-    if (id === 3) {
-      getFamilyNodes(node.id);
-    }
-  }, [id, node]);
-
-  if (id === 1) {
-    return <TreeNodeDetailsBio {...node} onRelationNodeClick={(id) => selectNode(id)} />;
-  }
-
-  if (id === 2) {
-    return <span className={s.rootItem}>Unfortunately, we do not yet have photographs of this person.</span>;
-  }
-
-  return <TreeNodeFamilies fullname={node.fullname} families={families} loading={loading} />;
-};
 
 type TreeNodeDetailsProps = {
   nodeMap: Record<string, TreeNode>;
@@ -120,7 +73,17 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
             ))}
           </nav>
 
-          <SelectedTab id={navId} node={node} selectNode={selectNode} />
+          <ShowIf condition={navId === 1}>
+            <TreeNodeDetailsBio {...node} onRelationNodeClick={(id) => selectNode(id)} />
+          </ShowIf>
+
+          <ShowIf condition={navId === 2}>
+            <span className={s.rootItem}>Unfortunately, we do not yet have photographs of this person.</span>;
+          </ShowIf>
+
+          <ShowIf condition={navId === 3}>
+            <TreeNodeFamilies id={node.id} fullname={node.fullname} />
+          </ShowIf>
         </Box>
         <ShowIf condition={navId === 1}>
           <Box sx={{ display: "flex", justifyContent: "end" }}>

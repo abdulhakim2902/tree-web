@@ -1,19 +1,39 @@
 import { Family } from "@tree/src/types/tree";
 import classNames from "classnames";
-import React, { FC } from "react";
+import React, { FC, useEffect, useState } from "react";
 import s from "./TreeNodeFamilies.module.css";
 import { startCase } from "lodash";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { LinearProgress } from "@mui/material";
+import { nodeFamilies } from "@tree/src/lib/services/node";
 
 type TreeNodeFamiliesProps = {
-  loading: boolean;
+  id: string;
   fullname: string;
-  families: Family[];
 };
 
-export const TreeNodeFamilies: FC<TreeNodeFamiliesProps> = ({ fullname, families, loading }) => {
+export const TreeNodeFamilies: FC<TreeNodeFamiliesProps> = ({ id, fullname }) => {
   const { node, rootNodes } = useTreeNodeDataContext();
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [families, setFamilies] = useState<Family[]>([]);
+
+  useEffect(() => {
+    const getFamilyNodes = async (id: string) => {
+      setLoading(true);
+
+      try {
+        const { families: data } = await nodeFamilies(id);
+        setFamilies(data);
+      } catch {
+        // ignore
+      }
+
+      setLoading(false);
+    };
+
+    getFamilyNodes(id);
+  }, [id]);
 
   if (loading) {
     return (

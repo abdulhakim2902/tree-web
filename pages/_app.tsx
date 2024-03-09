@@ -8,7 +8,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { AuthContextProvider } from "@tree/src/context/auth";
 import React from "react";
 
-const MyApp = ({ Component, pageProps }: AppProps) => {
+const App = ({ Component, pageProps }: AppProps) => {
   const theme = useTheme();
   const match = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -43,4 +43,4 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   );
 };
 
-export default MyApp;
+export default App;
