@@ -80,3 +80,14 @@ export type Family = {
   id: string;
   name: string;
 };
+
+export type Root = {
+  id: string;
+  isRoot: boolean;
+};
+
+export type Tree = {
+  root: Root;
+  nodes: TreeNode[];
+  nodeMap: Record<string, TreeNode>;
+};

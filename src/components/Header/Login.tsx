@@ -12,8 +12,10 @@ import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { parseJSON } from "@tree/src/helper/parse-json";
 import { getCookie } from "cookies-next";
 import { UserWithFullname } from "@tree/src/types/user";
-import { NODE_KEY, USER_KEY } from "@tree/src/constants/storage-key";
+import { TREE_KEY, USER_KEY } from "@tree/src/constants/storage-key";
 import { useRouter } from "next/router";
+import { useCacheContext } from "@tree/src/context/cache";
+import { Tree } from "@tree/src/types/tree";
 
 export type Error = {
   username: boolean;
@@ -25,6 +27,7 @@ const defaultError = { username: false, password: false };
 const Login: FC = () => {
   const { isLoggedIn, login, loading } = useAuthContext();
   const { rootNodes } = useTreeNodeDataContext();
+  const { get } = useCacheContext();
   const { enqueueSnackbar } = useSnackbar();
   const { pathname, replace } = useRouter();
 
@@ -64,11 +67,10 @@ const Login: FC = () => {
       setOpen(false);
       if (pathname === "/families") replace("/families");
       if (pathname === "/tree") {
-        const nodeStr = localStorage.getItem(NODE_KEY)?.toString();
-        const node = parseJSON<{ id: string; isRoot: boolean }>(nodeStr);
+        const tree = get<Tree>(TREE_KEY);
 
-        let nodeId = node?.id;
-        if (!node) {
+        let nodeId = tree?.root?.id;
+        if (!nodeId) {
           const userStr = getCookie(USER_KEY)?.toString();
           const user = parseJSON<UserWithFullname>(userStr);
           nodeId = user?.nodeId;

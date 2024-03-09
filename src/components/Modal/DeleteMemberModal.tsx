@@ -1,7 +1,6 @@
 import { Box, Button, Modal, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { FC } from "react";
 import WarningIcon from "@mui/icons-material/Warning";
-import { useTreeNodeDataContext } from "@tree/src/context/data";
 
 type DeleteMemberModalProps = {
   nodeId?: string;
@@ -10,8 +9,6 @@ type DeleteMemberModalProps = {
 };
 
 const DeleteMemberModal: FC<DeleteMemberModalProps> = ({ nodeId, open, onClose }) => {
-  const { deleteNode } = useTreeNodeDataContext();
-
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -46,7 +43,6 @@ const DeleteMemberModal: FC<DeleteMemberModalProps> = ({ nodeId, open, onClose }
             variant="contained"
             color="error"
             onClick={() => {
-              deleteNode(nodeId ?? "");
               onClose();
             }}
           >

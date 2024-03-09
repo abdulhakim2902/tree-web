@@ -11,7 +11,7 @@ type NodeSelectionContextValue = {
 const NodeSelectionContext = createContext<NodeSelectionContextValue | undefined>(undefined);
 
 export const NodeSelectionContextProvider: FC = ({ children }) => {
-  const { node } = useTreeNodeDataContext();
+  const { tree } = useTreeNodeDataContext();
 
   const [selectedNodeId, setSelectedNodeId] = useState<string>();
   const [hasSubTree, setHasSubTree] = useState<boolean>();
@@ -25,8 +25,8 @@ export const NodeSelectionContextProvider: FC = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    setSelectedNodeId(node.id);
-  }, [node]);
+    setSelectedNodeId(tree.root.id);
+  }, [tree]);
 
   return (
     <NodeSelectionContext.Provider value={{ hasSubTree, selectedNodeId, selectNode, unselectNode }}>

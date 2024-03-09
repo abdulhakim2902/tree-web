@@ -12,18 +12,15 @@ import {
   searchNodes as searchNodesAPI,
   updateNode as updateNodeAPI,
 } from "@tree/src/lib/services/node";
-import { TreeNode } from "@tree/src/types/tree";
+import { Tree, TreeNode } from "@tree/src/types/tree";
 import { startCase } from "lodash";
 import { useSnackbar } from "notistack";
-import { FC, KeyboardEvent, createContext, useCallback, useContext, useState } from "react";
+import { FC, KeyboardEvent, createContext, useContext, useState } from "react";
 import { useAuthContext } from "./auth";
 import { useRouter } from "next/router";
-import { NODES_KEY, NODE_FAMILIES_KEY, NODE_KEY, NODE_MAP_KEY } from "@tree/src/constants/storage-key";
-
-type Node = {
-  id: string;
-  isRoot: boolean;
-};
+import { NODE_FAMILIES_KEY, TREE_KEY } from "@tree/src/constants/storage-key";
+import { useCacheContext } from "./cache";
+import { DAY } from "../helper/date";
 
 type Loading = {
   main: boolean;
@@ -33,11 +30,6 @@ type Loading = {
   };
   updated: boolean;
   added: boolean;
-};
-
-const defaultNode = {
-  id: "",
-  isRoot: false,
 };
 
 const defaultLoading = {
@@ -50,12 +42,19 @@ const defaultLoading = {
   added: false,
 };
 
+const defaultTree = {
+  root: {
+    id: "",
+    isRoot: false,
+  },
+  nodes: [],
+  nodeMap: {},
+};
+
 type TreeNodeDataContextValue = {
   loading: Loading;
   query: string;
-  node: Node;
-  nodes: TreeNode[];
-  nodeMap: Record<string, TreeNode>;
+  tree: Tree;
 
   initNodes: () => void;
   setQuery: (query: string) => void;
@@ -64,7 +63,6 @@ type TreeNodeDataContextValue = {
   expandNode: (id: string, type: RelationType, cb?: () => void) => void;
   updateNode: (id: string, data: Bio, cb?: (success: boolean, error?: string) => void) => void;
   addNode: (id: string, data: any, relationType: RelationType, cb?: (success: boolean, error?: string) => void) => void;
-  deleteNode: (id: string) => void;
   clearNodes: () => void;
 };
 
@@ -72,39 +70,25 @@ const TreeNodeDataContext = createContext<TreeNodeDataContextValue | null>(null)
 
 export const TreeNodeDataContextProvider: FC = ({ children }) => {
   const { enqueueSnackbar } = useSnackbar();
+  const { get, set, del, clear } = useCacheContext();
   const { setUser } = useAuthContext();
   const { pathname, push } = useRouter();
 
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState<Loading>(defaultLoading);
-
-  const [node, setNode] = useState<Node>(defaultNode);
-  const [nodes, setNodes] = useState<TreeNode[]>([]);
-  const [nodeMap, setNodeMap] = useState<Record<string, TreeNode>>({});
+  const [tree, setTree] = useState<Tree>(defaultTree);
 
   const clearNodes = () => {
-    setNode(defaultNode);
-    setNodes([]);
-    setNodeMap({});
-
-    localStorage.clear();
+    clear();
+    setTree(defaultTree);
   };
 
   const initNodes = async () => {
     setLoading((prev) => ({ ...prev, main: true }));
 
-    const nodeStr = localStorage.getItem(NODE_KEY);
-    const nodesStr = localStorage.getItem(NODES_KEY);
-    const nodeMapStr = localStorage.getItem(NODE_MAP_KEY);
-
-    const node = parseJSON<Node>(nodeStr);
-    const nodes = parseJSON<TreeNode[]>(nodesStr);
-    const nodeMap = parseJSON<Record<string, TreeNode>>(nodeMapStr);
-
-    if (node && nodes && nodeMap) {
-      setNode(node);
-      setNodes(nodes);
-      setNodeMap(nodeMap);
+    const tree = get<Tree>(TREE_KEY);
+    if (tree) {
+      setTree({ ...tree });
     } else {
       push("/families");
     }
@@ -118,17 +102,11 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
     try {
       setLoading((prev) => ({ ...prev, main: true }));
 
-      const { node, nodes, nodeMap } = await rootNodesAPI(id);
+      const tree = await rootNodesAPI(id);
 
-      localStorage.removeItem(NODE_FAMILIES_KEY);
-
-      setNode(node);
-      setNodes([...nodes]);
-      setNodeMap({ ...nodeMap });
-
-      localStorage.setItem(NODE_KEY, JSON.stringify(node));
-      localStorage.setItem(NODES_KEY, JSON.stringify(nodes));
-      localStorage.setItem(NODE_MAP_KEY, JSON.stringify(nodeMap));
+      del(NODE_FAMILIES_KEY);
+      set(TREE_KEY, tree, DAY);
+      setTree(tree);
 
       if (pathname !== "/tree") push("/tree");
     } catch (err: any) {
@@ -148,17 +126,11 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
     try {
       setLoading((prev) => ({ ...prev, main: true }));
 
-      const { node, nodes, nodeMap } = await searchNodesAPI(query);
+      const tree = await searchNodesAPI(query);
 
-      localStorage.removeItem(NODE_FAMILIES_KEY);
-
-      setNode(node);
-      setNodes([...nodes]);
-      setNodeMap({ ...nodeMap });
-
-      localStorage.setItem(NODE_KEY, JSON.stringify(node));
-      localStorage.setItem(NODES_KEY, JSON.stringify(nodes));
-      localStorage.setItem(NODE_MAP_KEY, JSON.stringify(nodeMap));
+      del(NODE_FAMILIES_KEY);
+      set(TREE_KEY, tree, DAY);
+      setTree(tree);
 
       if (pathname !== "/tree") push("/tree");
     } catch (err: any) {
@@ -238,6 +210,8 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
   };
 
   const updateNode = async (id: string, data: any, cb?: (success: boolean, error?: string) => void) => {
+    if (!tree) return;
+
     let success = false;
     let message = "";
 
@@ -245,7 +219,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
       setLoading((prev) => ({ ...prev, updated: true }));
 
       const { node: updatedNode } = await updateNodeAPI(id, data);
-      const updatedNodes = nodes.map((node) => {
+      const updatedNodes = tree.nodes.map((node) => {
         if (node.id === updatedNode.id) {
           node.data.birth = updatedNode.birth;
           node.data.name = updatedNode.name;
@@ -255,20 +229,19 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
         return node;
       });
 
-      const updatedNodeMap = nodeMap[updatedNode.id];
+      const updatedNodeMap = tree.nodeMap[updatedNode.id];
       updatedNodeMap.data.birth = updatedNode.birth;
       updatedNodeMap.data.name = updatedNode.name;
       updatedNodeMap.data.fullname = updatedNode.fullname;
-      nodeMap[updatedNode.id] = updatedNodeMap;
+      tree.nodeMap[updatedNode.id] = updatedNodeMap;
 
-      localStorage.removeItem(NODE_FAMILIES_KEY);
+      const updatedTree = { ...tree, nodes: updatedNodes };
 
       setUser(id, updatedNode.fullname);
-      setNodes([...updatedNodes]);
-      setNodeMap({ ...nodeMap });
 
-      localStorage.setItem(NODES_KEY, JSON.stringify(updatedNodes));
-      localStorage.setItem(NODE_MAP_KEY, JSON.stringify(updatedNodeMap));
+      del(NODE_FAMILIES_KEY);
+      set(TREE_KEY, updatedTree, DAY);
+      setTree(updatedTree);
 
       success = true;
       message = `${startCase(updatedNode.fullname)} biography is updated`;
@@ -287,10 +260,12 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
   };
 
   const parentAndChildNodes = async (id: string) => {
+    if (!tree) return;
+
     try {
       setLoading((prev) => ({ ...prev, expanded: { ...prev.expanded, parent: true } }));
 
-      const currentNodes = nodes;
+      const currentNodes = tree.nodes;
 
       const { nodes: newNodes } = await parentAndChildNodesAPI(id);
 
@@ -312,11 +287,10 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
       const result = [...updatedNodes, ...updatedNewNodes];
       const nodeMap = Object.fromEntries(result.map((e) => [e.id, e]));
 
-      setNodes([...result]);
-      setNodeMap({ ...nodeMap });
+      const updatedTree = { ...tree, nodes: result, nodeMap };
 
-      localStorage.setItem(NODES_KEY, JSON.stringify(result));
-      localStorage.setItem(NODE_MAP_KEY, JSON.stringify(nodeMap));
+      set(TREE_KEY, updatedTree, DAY);
+      setTree({ ...updatedTree });
     } catch (err: any) {
       enqueueSnackbar({
         variant: "error",
@@ -328,12 +302,14 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
   };
 
   const spouseAndChildNodes = async (id: string) => {
+    if (!tree) return;
+
     try {
       setLoading((prev) => ({ ...prev, expanded: { ...prev.expanded, spouse: true } }));
 
       const { nodes: newNodes } = await spouseAndChildNodesAPI(id);
 
-      const updatedNodes = nodes.map((node) => {
+      const updatedNodes = tree.nodes.map((node) => {
         if (node.id !== id) return node;
         const updatedNode = newNodes.find((e) => e.id === id);
 
@@ -352,11 +328,10 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
       const result = [...updatedNodes, ...updatedNewNodes];
       const nodeMap = Object.fromEntries(result.map((e: TreeNode) => [e.id, e]));
 
-      setNodes([...result]);
-      setNodeMap({ ...nodeMap });
+      const updatedTree = { ...tree, nodes: result, nodeMap };
 
-      localStorage.setItem(NODES_KEY, JSON.stringify(result));
-      localStorage.setItem(NODE_MAP_KEY, JSON.stringify(nodeMap));
+      set(TREE_KEY, updatedTree, DAY);
+      setTree({ ...updatedTree });
     } catch (err: any) {
       enqueueSnackbar({
         variant: "error",
@@ -367,48 +342,12 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
     }
   };
 
-  // TODO: Not implemented yet
-  const deleteNode = useCallback(
-    (id: string) => {
-      const updatedNodes = nodes
-        .filter((node) => node.id !== id)
-        .map((node) => {
-          node.spouses = node.spouses.filter((spouse) => spouse.id !== id);
-          node.parents = node.parents.filter((parent) => parent.id !== id);
-          node.siblings = node.siblings.filter((sibling) => sibling.id !== id);
-          node.children = node.children.filter((child) => child.id !== id);
-
-          return node;
-        });
-
-      delete nodeMap[id];
-
-      for (const nodeId in nodeMap) {
-        const node = nodeMap[nodeId];
-        node.spouses = node.spouses.filter((spouse) => spouse.id !== id);
-        node.parents = node.parents.filter((parent) => parent.id !== id);
-        node.siblings = node.siblings.filter((sibling) => sibling.id !== id);
-        node.children = node.children.filter((child) => child.id !== id);
-        nodeMap[nodeId] = node;
-      }
-
-      setNodes([...updatedNodes]);
-      setNodeMap({ ...nodeMap });
-
-      localStorage.setItem(NODES_KEY, JSON.stringify(updatedNodes));
-      localStorage.setItem(NODE_MAP_KEY, JSON.stringify(nodeMap));
-    },
-    [nodeMap, nodes],
-  );
-
   return (
     <TreeNodeDataContext.Provider
       value={{
         loading,
-        node,
         query,
-        nodes,
-        nodeMap,
+        tree,
         clearNodes,
         setQuery,
         initNodes,
@@ -417,7 +356,6 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
         updateNode,
         expandNode,
         addNode,
-        deleteNode,
       }}
     >
       {children}

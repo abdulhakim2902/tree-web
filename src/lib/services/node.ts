@@ -1,5 +1,5 @@
 import { TOKEN_KEY } from "@tree/src/constants/storage-key";
-import { Family, TreeNode, TreeNodeData } from "@tree/src/types/tree";
+import { Family, Root, TreeNode, TreeNodeData } from "@tree/src/types/tree";
 import { getCookie } from "cookies-next";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -22,7 +22,7 @@ export const searchNodes = async (query: string) => {
   const nodeMap = Object.fromEntries(data.map((e: TreeNode) => [e.id, e]));
 
   return {
-    node: { id: id as string, isRoot: isRoot as boolean },
+    root: { id, isRoot } as Root,
     nodes: data as TreeNode[],
     nodeMap: nodeMap as Record<string, TreeNode>,
   };
@@ -50,7 +50,7 @@ export const rootNodes = async (id: string) => {
   );
 
   return {
-    node: { id: id as string, isRoot: result.isRoot as boolean },
+    root: { id, isRoot: result.isRoot } as Root,
     nodes: result.data as TreeNode[],
     nodeMap: nodeMap as Record<string, TreeNode>,
   };

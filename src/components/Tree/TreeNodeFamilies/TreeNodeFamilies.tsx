@@ -6,6 +6,9 @@ import { startCase } from "lodash";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { LinearProgress } from "@mui/material";
 import { nodeFamilies } from "@tree/src/lib/services/node";
+import { useCacheContext } from "@tree/src/context/cache";
+import { NODE_FAMILIES_KEY } from "@tree/src/constants/storage-key";
+import { DAY } from "@tree/src/helper/date";
 
 type TreeNodeFamiliesProps = {
   id: string;
@@ -13,7 +16,8 @@ type TreeNodeFamiliesProps = {
 };
 
 export const TreeNodeFamilies: FC<TreeNodeFamiliesProps> = ({ id, fullname }) => {
-  const { node, rootNodes } = useTreeNodeDataContext();
+  const { tree, rootNodes } = useTreeNodeDataContext();
+  const { get, set } = useCacheContext();
 
   const [loading, setLoading] = useState<boolean>(true);
   const [families, setFamilies] = useState<Family[]>([]);
@@ -22,12 +26,22 @@ export const TreeNodeFamilies: FC<TreeNodeFamiliesProps> = ({ id, fullname }) =>
     const getFamilyNodes = async (id: string) => {
       setLoading(true);
 
-      try {
-        const { families: data } = await nodeFamilies(id);
-        setFamilies(data);
-      } catch {
-        // ignore
+      const data = get<Record<string, Family[]>>(NODE_FAMILIES_KEY) ?? {};
+      const familyNodes = data?.[id] ?? [];
+
+      if (!data?.[id]) {
+        try {
+          const { families: data } = await nodeFamilies(id);
+          familyNodes.push(...data);
+        } catch {
+          // ignore
+        }
       }
+
+      data[id] = familyNodes;
+
+      setFamilies(familyNodes);
+      set(NODE_FAMILIES_KEY, data, DAY);
 
       setLoading(false);
     };
@@ -53,7 +67,7 @@ export const TreeNodeFamilies: FC<TreeNodeFamiliesProps> = ({ id, fullname }) =>
       <span className={s.familyLinksTitle}>{`${fullname} is a descendant of families:`}</span>
       <div className={s.familyLinksContainer}>
         {families.map((family) => {
-          if (node.id === family.id) {
+          if (tree?.root.id === family.id) {
             return (
               <span
                 key={family.id}

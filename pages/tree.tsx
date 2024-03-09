@@ -17,7 +17,8 @@ import classNames from "classnames";
 import { TOKEN_KEY, USER_KEY } from "@tree/src/constants/storage-key";
 
 const Tree: NextPage = () => {
-  const { node, nodes, nodeMap, loading, initNodes } = useTreeNodeDataContext();
+  const { tree, loading, initNodes } = useTreeNodeDataContext();
+  const { root, nodes, nodeMap } = tree;
 
   useEffect(() => {
     initNodes();
@@ -30,15 +31,15 @@ const Tree: NextPage = () => {
       </Backdrop>
       <NodeSelectionContextProvider>
         <NavigationContextProvider>
-          <ShowIf condition={node.isRoot}>
+          <ShowIf condition={root.isRoot}>
             <div className={s.absoluteContainer}>
               <div className={s.treeRootNameContainer}>
                 <span className={s.treeRootTitle}>Tree Root</span>
-                <span className={s.treeRootName}>{startCase(nodeMap?.[node.id]?.data?.fullname ?? "")}</span>
+                <span className={s.treeRootName}>{startCase(nodeMap?.[root.id]?.data?.fullname ?? "")}</span>
               </div>
             </div>
           </ShowIf>
-          <TreeWithNavigation rootId={node.id} nodes={nodes} loading={loading.main} />
+          <TreeWithNavigation rootId={root.id} nodes={nodes} loading={loading.main} />
           <TreeNodeDetails nodeMap={nodeMap} />
         </NavigationContextProvider>
       </NodeSelectionContextProvider>
