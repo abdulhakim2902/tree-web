@@ -95,6 +95,10 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
       setInit(true);
     } else {
       push("/families");
+      enqueueSnackbar({
+        variant: "error",
+        message: "Tree not found",
+      });
     }
 
     setLoading((prev) => ({ ...prev, main: false }));
