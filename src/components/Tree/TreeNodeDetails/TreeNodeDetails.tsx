@@ -19,6 +19,7 @@ import DeleteMemberModal from "@tree/src/components/Modal/DeleteMemberModal";
 import { TreeNodeFamilies } from "../TreeNodeFamilies/TreeNodeFamilies";
 import { startCase } from "lodash";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
+import { useTreeNodeDataContext } from "@tree/src/context/data";
 
 const navigation = [
   { id: 1, title: "Biography" },
@@ -32,6 +33,7 @@ type TreeNodeDetailsProps = {
 
 const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
   const { selectedNodeId, unselectNode, selectNode } = useNodeSelectionContext();
+  const { init } = useTreeNodeDataContext();
   const { isLoggedIn } = useAuthContext();
 
   const [openAdd, setOpenAdd] = useState<boolean>(false);
@@ -41,87 +43,86 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
 
   const node = getTreeNodeDetails(nodeMap, selectedNodeId);
 
-  if (!isLoggedIn || !node) return <React.Fragment />;
+  if (!isLoggedIn || !node || init) return <React.Fragment />;
   return (
     <React.Fragment>
-      <div className={s.root}>
-        <Box>
-          <button className={s.closeButton} onClick={unselectNode}>
-            <CloseIcon className={s.closeIcon} />
-          </button>
-          <div className={s.rootItem}>
-            <h2 className={s.name}>
-              {startCase(node.fullname)}
-              <Tooltip title="Edit member" placement="bottom-start">
-                <EditIcon
-                  fontSize="small"
-                  sx={{ ml: "10px", cursor: "pointer", ":hover": { color: "#4da1ff" } }}
-                  onClick={() => setOpenEdit(true)}
+      <Box>
+        <div className={s.root}>
+          <Box>
+            <button className={s.closeButton} onClick={unselectNode}>
+              <CloseIcon className={s.closeIcon} />
+            </button>
+            <div className={s.rootItem}>
+              <h2 className={s.name}>
+                {startCase(node.fullname)}
+                <Tooltip title="Edit member" placement="bottom-start">
+                  <EditIcon
+                    fontSize="small"
+                    sx={{ ml: "10px", cursor: "pointer", ":hover": { color: "#4da1ff" } }}
+                    onClick={() => setOpenEdit(true)}
+                  />
+                </Tooltip>
+              </h2>
+            </div>
+            <nav className={s.rootItem}>
+              {navigation.map((item, index) => (
+                <BioNavItem
+                  key={index}
+                  id={item.id}
+                  text={item.title}
+                  isSelected={item.id === navId}
+                  onClick={setNavId}
                 />
-              </Tooltip>
-            </h2>
-          </div>
-          <nav className={s.rootItem}>
-            {navigation.map((item, index) => (
-              <BioNavItem
-                key={index}
-                id={item.id}
-                text={item.title}
-                isSelected={item.id === navId}
-                onClick={setNavId}
-              />
-            ))}
-          </nav>
+              ))}
+            </nav>
 
-          <ShowIf condition={navId === 1}>
-            <TreeNodeDetailsBio {...node} onRelationNodeClick={(id) => selectNode(id)} />
-          </ShowIf>
+            <ShowIf condition={navId === 1}>
+              <TreeNodeDetailsBio {...node} onRelationNodeClick={(id) => selectNode(id)} />
+            </ShowIf>
 
-          <ShowIf condition={navId === 2}>
-            <span className={s.rootItem}>Unfortunately, we do not yet have photographs of this person.</span>;
-          </ShowIf>
+            <ShowIf condition={navId === 2}>
+              <span className={s.rootItem}>Unfortunately, we do not yet have photographs of this person.</span>;
+            </ShowIf>
 
-          <ShowIf condition={navId === 3}>
-            <TreeNodeFamilies id={node.id} fullname={node.fullname} />
-          </ShowIf>
-        </Box>
-        <ShowIf condition={navId === 1}>
-          <Box sx={{ display: "flex", justifyContent: "end" }}>
-            <Tooltip title="Add new member" placement="bottom-end">
-              <Fab color="primary" aria-label="add" size="small" onClick={() => setOpenAdd(true)}>
-                <AddIcon />
-              </Fab>
-            </Tooltip>
-            <ShowIf condition={false}>
-              <Tooltip title="Delete member" placement="bottom-end">
-                <Fab
-                  color="error"
-                  aria-label="add"
-                  size="small"
-                  onClick={() => setOpenDelete(true)}
-                  sx={{ ml: "10px" }}
-                >
-                  <DeleteIcon />
-                </Fab>
-              </Tooltip>
+            <ShowIf condition={navId === 3}>
+              <TreeNodeFamilies id={node.id} fullname={node.fullname} />
             </ShowIf>
           </Box>
-        </ShowIf>
-        <ShowIf condition={navId === 2}>
-          <Box sx={{ display: "flex", justifyContent: "end" }}>
-            <Tooltip title="Add galleries" placement="bottom-end">
-              <Fab color="secondary" aria-label="add" size="small">
-                <AddPhotoAlternateIcon />
-              </Fab>
-            </Tooltip>
-          </Box>
-        </ShowIf>
-      </div>
-
+          <ShowIf condition={navId === 1}>
+            <Box sx={{ display: "flex", justifyContent: "end" }}>
+              <Tooltip title="Add new member" placement="bottom-end">
+                <Fab color="primary" aria-label="add" size="small" onClick={() => setOpenAdd(true)}>
+                  <AddIcon />
+                </Fab>
+              </Tooltip>
+              <ShowIf condition={false}>
+                <Tooltip title="Delete member" placement="bottom-end">
+                  <Fab
+                    color="error"
+                    aria-label="add"
+                    size="small"
+                    onClick={() => setOpenDelete(true)}
+                    sx={{ ml: "10px" }}
+                  >
+                    <DeleteIcon />
+                  </Fab>
+                </Tooltip>
+              </ShowIf>
+            </Box>
+          </ShowIf>
+          <ShowIf condition={navId === 2}>
+            <Box sx={{ display: "flex", justifyContent: "end" }}>
+              <Tooltip title="Add galleries" placement="bottom-end">
+                <Fab color="secondary" aria-label="add" size="small">
+                  <AddPhotoAlternateIcon />
+                </Fab>
+              </Tooltip>
+            </Box>
+          </ShowIf>
+        </div>
+      </Box>
       <EditMemberModal open={openEdit} onClose={() => setOpenEdit(false)} node={node} />
-
       <AddMemberModal nodeId={selectedNodeId} open={openAdd} onClose={() => setOpenAdd(false)} node={node} />
-
       <DeleteMemberModal nodeId={selectedNodeId} open={openDelete} onClose={() => setOpenDelete(false)} />
     </React.Fragment>
   );

@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import React, { FC, memo } from "react";
 import s from "./Tree.module.css";
 import TreeNode from "./TreeNode/TreeNode";
+import { useTreeNodeDataContext } from "@tree/src/context/data";
 
 const ReactFamilyTree = dynamic(() => import("@tree/src/lib/react-family-tree"), {
   ssr: false,
@@ -17,7 +18,17 @@ type TreeProps = {
 };
 
 const Tree: FC<TreeProps> = ({ rootId, nodes }) => {
-  const { selectNode, selectedNodeId } = useNodeSelectionContext();
+  const { init } = useTreeNodeDataContext();
+  const { selectNode, selectedNodeId, unselectNode } = useNodeSelectionContext();
+
+  const handleSelectNode = (id: string, hasSubtree?: boolean) => {
+    if (selectedNodeId === id && !init) {
+      unselectNode();
+    } else {
+      console.log("test", id);
+      selectNode(id, hasSubtree);
+    }
+  };
 
   return (
     <ReactFamilyTree
@@ -31,7 +42,7 @@ const Tree: FC<TreeProps> = ({ rootId, nodes }) => {
           isSelected={selectedNodeId === node.id}
           key={node.id}
           node={node as TreeExternalNode}
-          onClick={selectNode}
+          onClick={handleSelectNode}
           width={TREE_NODE_SIZE}
           height={TREE_NODE_SIZE}
         />

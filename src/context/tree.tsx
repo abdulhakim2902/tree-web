@@ -11,22 +11,24 @@ type NodeSelectionContextValue = {
 const NodeSelectionContext = createContext<NodeSelectionContextValue | undefined>(undefined);
 
 export const NodeSelectionContextProvider: FC = ({ children }) => {
-  const { tree } = useTreeNodeDataContext();
+  const { tree, setInit } = useTreeNodeDataContext();
 
   const [selectedNodeId, setSelectedNodeId] = useState<string>();
   const [hasSubTree, setHasSubTree] = useState<boolean>();
   const selectNode = useCallback((id: string, hasSubTree?: boolean) => {
     setHasSubTree(hasSubTree);
     setSelectedNodeId(id);
+    setInit(false);
   }, []);
   const unselectNode = useCallback(() => {
     setHasSubTree(undefined);
     setSelectedNodeId(undefined);
+    setInit(false);
   }, []);
 
   useEffect(() => {
     setSelectedNodeId(tree.root.id);
-  }, [tree]);
+  }, [tree.root]);
 
   return (
     <NodeSelectionContext.Provider value={{ hasSubTree, selectedNodeId, selectNode, unselectNode }}>

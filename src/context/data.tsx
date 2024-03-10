@@ -55,7 +55,9 @@ type TreeNodeDataContextValue = {
   loading: Loading;
   query: string;
   tree: Tree;
+  init: boolean;
 
+  setInit: (value: boolean) => void;
   initNodes: () => void;
   setQuery: (query: string) => void;
   searchNodes: (event?: KeyboardEvent) => void;
@@ -74,6 +76,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
   const { setUser } = useAuthContext();
   const { pathname, push } = useRouter();
 
+  const [init, setInit] = useState<boolean>(true);
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState<Loading>(defaultLoading);
   const [tree, setTree] = useState<Tree>(defaultTree);
@@ -89,6 +92,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
     const tree = get<Tree>(TREE_KEY);
     if (tree && tree.nodes.length > 0) {
       setTree({ ...tree });
+      setInit(true);
     } else {
       push("/families");
     }
@@ -107,6 +111,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
       del(NODE_FAMILIES_KEY);
       set(TREE_KEY, tree, DAY);
       setTree(tree);
+      setInit(true);
 
       if (tree.nodes.length <= 0) {
         if (pathname !== "/families") push("/families");
@@ -139,6 +144,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
       del(NODE_FAMILIES_KEY);
       set(TREE_KEY, tree, DAY);
       setTree(tree);
+      setInit(true);
 
       if (tree.nodes.length <= 0) {
         if (pathname !== "/families") push("/families");
@@ -364,6 +370,8 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
         loading,
         query,
         tree,
+        init,
+        setInit,
         clearNodes,
         setQuery,
         initNodes,
