@@ -50,9 +50,6 @@ export const useStyles = makeStyles(() => ({
 export type Error = {
   name: boolean;
   gender: boolean;
-  birthDate: boolean;
-  birthCountry: boolean;
-  birthCity: boolean;
   spouse?: boolean;
 };
 
@@ -95,9 +92,7 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
   const classes = useStyles();
 
   const handleBirthDate = (value: Dayjs | null) => {
-    const err = !Boolean(value?.date()) || !Boolean(value?.month()) || !Boolean(value?.year());
     setBio({ ...bio, birthDate: value });
-    setError({ ...error, birthDate: err });
   };
 
   const handleName = (event: ChangeEvent<HTMLInputElement>) => {
@@ -115,12 +110,10 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
   const handleBirthCity = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setBio({ ...bio, birthCity: value });
-    setError({ ...error, birthCity: !Boolean(value) });
   };
 
   const handleBirthCountry = (event: any, value: { country: string } | null) => {
     setBio({ ...bio, birthCountry: value });
-    setError({ ...error, birthCountry: !Boolean(value?.country) });
   };
 
   return (
@@ -174,10 +167,8 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
                 openPickerIcon: { fontSize: "large" },
                 openPickerButton: { sx: { color: "grey" } },
                 textField: {
-                  error: error.birthDate,
                   InputLabelProps: {
                     sx: { color: "grey" },
-                    error: error.birthDate,
                   },
                   fullWidth: true,
                 },
@@ -192,6 +183,7 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
             options={countries}
             getOptionLabel={(option) => option.country}
             onChange={handleBirthCountry}
+            placeholder="Optional"
             value={bio.birthCountry}
             isOptionEqualToValue={(option) => option.country === bio.birthCountry?.country}
             sx={{ input: { color: "whitesmoke" }, width: "49%" }}
@@ -200,7 +192,6 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
               <TextField
                 {...params}
                 label="Birth Country"
-                error={error.birthCountry}
                 sx={{ input: { color: "whitesmoke" } }}
                 InputLabelProps={{ sx: { color: "grey" }, classes }}
               />
@@ -211,8 +202,8 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
             id="name"
             label="Birth City"
             variant="outlined"
-            error={error.birthCity}
             value={bio.birthCity}
+            placeholder="Optional"
             onChange={handleBirthCity}
             sx={{ input: { color: "whitesmoke" }, width: "49%" }}
             InputLabelProps={{ sx: { color: "grey" } }}

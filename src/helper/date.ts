@@ -39,9 +39,9 @@ export const getMonthString = (month: number) => {
 };
 
 export const getDate = (year?: number, month?: number, day?: number) => {
-  return year
-    ? month
-      ? day
+  return year && year > 0
+    ? month && month > 0
+      ? day && day > 0
         ? `${day} ${getMonthString(month)} ${year}`
         : `${getMonthString(month)} ${year}`
       : `${year}`
@@ -53,8 +53,8 @@ export const getAge = (year?: number, month?: number, day?: number): [number, st
   const currentMonth = new Date().getMonth();
   const currentDay = new Date().getDate();
 
-  if (year) {
-    if (month) {
+  if (year && year > 0) {
+    if (month && month > 0) {
       if (currentMonth < month - 1) {
         const age = currentYear - year - 1;
         if (age <= 0) {
@@ -68,7 +68,7 @@ export const getAge = (year?: number, month?: number, day?: number): [number, st
         return [age, "years"];
       }
 
-      if (day) {
+      if (day && day > 0) {
         if (currentDay < day) {
           const age = currentYear - year - 1;
           if (age <= 0) {

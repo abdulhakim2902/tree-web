@@ -18,30 +18,24 @@ const SiblingForm: FC<SiblingFormProps> = ({ onSave, onCancel, loading }) => {
     const error = {
       name: !Boolean(name),
       gender: !Boolean(gender),
-      birthDate: !Boolean(birthDate?.date()) || !Boolean(birthDate?.month()) || !Boolean(birthDate?.year()),
-      birthCity: !Boolean(birthCity),
-      birthCountry: !Boolean(birthCountry?.country),
     };
 
     setError(error);
-    if (Object.values(error).includes(true) || !birthDate) {
+    if (Object.values(error).includes(true)) {
       return;
     }
 
     const names = name.replace(/\s+/g, " ").trim().split(" ");
-    const date = birthDate.date();
-    const month = birthDate.month();
-    const year = birthDate.year();
-    const data = {
+    const data: Record<string, any> = {
       name: { first: names[0] },
       gender: gender,
       birth: {
-        day: date,
-        month: month + 1,
-        year: year,
+        day: birthDate?.date() ?? 0,
+        month: birthDate?.month() ? birthDate.month() + 1 : 0,
+        year: birthDate?.year() ?? -1,
         place: {
-          city: birthCity,
-          country: birthCountry?.country,
+          country: birthCountry?.country ?? "",
+          city: birthCity ?? "",
         },
       },
     };

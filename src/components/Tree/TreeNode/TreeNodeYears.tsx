@@ -11,6 +11,10 @@ export const TreeNodeYears: FC<TreeNodeYearsProps> = ({ birthYear, deathYear }) 
     return null;
   }
 
+  if (birthYear && birthYear < 0 && !deathYear) {
+    return null;
+  }
+
   return (
     <div className={s.years}>
       <span className={s.birthYear}>{birthYear}</span>

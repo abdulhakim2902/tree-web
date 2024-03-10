@@ -14,5 +14,8 @@ export function parseJSON<T>(data?: string | null): T | null {
 }
 
 export function startCase(v: string) {
-  return v.split(" ").map((e) => capitalize(e)).join(" ");
+  return v
+    .split(" ")
+    .map((e) => capitalize(e))
+    .join(" ");
 }

@@ -43,7 +43,7 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
             {birthDate}/{age} {info} old
           </span>
         </ShowIf>
-        <ShowIf condition={Boolean(birth?.place?.country) || Boolean(birth?.place?.city)}>
+        <ShowIf condition={Boolean(birth?.place.country) || Boolean(birth?.place.city)}>
           <span className={s.gridItemTitle}>Birth Place</span>
           <span className={s.gridItemValue}>
             {birth?.place?.country && birth?.place?.city && (
