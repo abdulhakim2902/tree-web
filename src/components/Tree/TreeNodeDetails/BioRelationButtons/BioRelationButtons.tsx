@@ -4,6 +4,7 @@ import s from "./BioRelationButtons.module.css";
 import { startCase } from "lodash";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { CircularProgress, IconButton } from "@mui/material";
+import { RelType } from "@tree/src/lib/relatives-tree/types";
 
 export enum RelationType {
   Parents = "Parents",
@@ -26,10 +27,16 @@ const getName = (relationType: RelationType, relationInfo: RelationInfo, isLast:
   switch (relationType) {
     case RelationType.Parents: {
       const fullname = startCase(relationInfo.fullname);
+      if (relationInfo.type === RelType.adopted) {
+        return isLast ? `${fullname} (adoptive parent)` : `${fullname} (adoptive parent), `;
+      }
       return isLast ? fullname : `${fullname}, `;
     }
     case RelationType.Children: {
       const name = startCase(relationInfo?.nicknames?.[0] ?? relationInfo.firstName);
+      if (relationInfo.type === RelType.adopted) {
+        return isLast ? `${name} (adopted child)` : `${name} (adopted child),`;
+      }
       return isLast ? name : `${name},`;
     }
     case RelationType.Siblings: {
@@ -38,6 +45,9 @@ const getName = (relationType: RelationType, relationInfo: RelationInfo, isLast:
     }
     case RelationType.Spouses: {
       const fullname = startCase(relationInfo.fullname);
+      if (relationInfo.type === RelType.divorced) {
+        return isLast ? `${fullname} (divorce)` : `${fullname} (divorce),`;
+      }
       return isLast ? fullname : `${fullname},`;
     }
   }
