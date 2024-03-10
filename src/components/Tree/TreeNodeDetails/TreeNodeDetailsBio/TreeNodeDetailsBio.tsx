@@ -4,9 +4,9 @@ import React, { FC } from "react";
 import BioRelationButtons, { RelationType } from "../BioRelationButtons/BioRelationButtons";
 import { getAge, getDate } from "@tree/src/helper/date";
 import s from "./TreeNodeDetailsBio.module.css";
-import { startCase } from "lodash";
 import ShowIf from "@tree/src/components/show-if";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
+import { startCase } from "@tree/src/helper/string";
 
 type TreeNodeDetailsBioProps = TreeNodeDataWithRelations & {
   onRelationNodeClick: (id: string) => void;

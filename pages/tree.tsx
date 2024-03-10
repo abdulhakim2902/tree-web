@@ -9,7 +9,6 @@ import { deleteCookie, getCookie } from "cookies-next";
 import { Backdrop, CircularProgress } from "@mui/material";
 import s from "@tree/styles/TreePage.module.css";
 import ShowIf from "@tree/src/components/show-if";
-import { startCase } from "lodash";
 import s2 from "@tree/styles/HomePage.module.css";
 import ballS from "@tree/styles/Ball.module.css";
 import Button from "@tree/src/components/Button/Button";
@@ -35,7 +34,7 @@ const Tree: NextPage = () => {
             <div className={s.absoluteContainer}>
               <div className={s.treeRootNameContainer}>
                 <span className={s.treeRootTitle}>Tree Root</span>
-                <span className={s.treeRootName}>{startCase(nodeMap?.[root.id]?.data?.fullname ?? "")}</span>
+                <span className={s.treeRootName}>{nodeMap?.[root.id]?.data?.fullname ?? ""}</span>
               </div>
             </div>
           </ShowIf>

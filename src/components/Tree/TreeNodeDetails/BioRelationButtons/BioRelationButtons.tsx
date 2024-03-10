@@ -1,10 +1,10 @@
 import { RelationInfo } from "@tree/src/types/tree";
 import { FC } from "react";
 import s from "./BioRelationButtons.module.css";
-import { startCase } from "lodash";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { CircularProgress, IconButton } from "@mui/material";
 import { RelType } from "@tree/src/lib/relatives-tree/types";
+import { startCase } from "@tree/src/helper/string";
 
 export enum RelationType {
   Parents = "Parents",
@@ -26,7 +26,7 @@ type BioRelationButtonsProps = {
 const getName = (relationType: RelationType, relationInfo: RelationInfo, isLast: boolean) => {
   switch (relationType) {
     case RelationType.Parents: {
-      const fullname = startCase(relationInfo.fullname);
+      const fullname = relationInfo.fullname;
       if (relationInfo.type === RelType.adopted) {
         return isLast ? `${fullname} (adoptive parent)` : `${fullname} (adoptive parent), `;
       }
@@ -44,7 +44,7 @@ const getName = (relationType: RelationType, relationInfo: RelationInfo, isLast:
       return isLast ? name : `${name},`;
     }
     case RelationType.Spouses: {
-      const fullname = startCase(relationInfo.fullname);
+      const fullname = relationInfo.fullname;
       if (relationInfo.type === RelType.divorced) {
         return isLast ? `${fullname} (divorce)` : `${fullname} (divorce),`;
       }

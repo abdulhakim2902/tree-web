@@ -4,7 +4,7 @@ import { FC, memo, useState } from "react";
 import s from "./TreeNode.module.css";
 import { TreeNodeYears } from "./TreeNodeYears";
 import { getTreeNodeStyleTransform } from "./utils";
-import { startCase } from "lodash";
+import { capitalize } from "lodash";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
 
 interface TreeNodeProps {
@@ -49,9 +49,9 @@ const TreeNode: FC<TreeNodeProps> = ({ isSelected, node, onClick, width, height 
           })}
         >
           <div className={s.fullname}>
-            <span className={s.firstName}>{startCase(first)}</span>
-            <span className={s.middleName}>{startCase(middle)}</span>
-            <span className={s.lastName}>{startCase(last)}</span>
+            <span className={s.firstName}>{capitalize(first)}</span>
+            <span className={s.middleName}>{capitalize(middle)}</span>
+            <span className={s.lastName}>{capitalize(last)}</span>
           </div>
           <TreeNodeYears birthYear={birth?.year} deathYear={death?.year} />
         </button>

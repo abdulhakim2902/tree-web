@@ -13,7 +13,6 @@ import {
   updateNode as updateNodeAPI,
 } from "@tree/src/lib/services/node";
 import { Tree, TreeNode } from "@tree/src/types/tree";
-import { startCase } from "lodash";
 import { useSnackbar } from "notistack";
 import { FC, KeyboardEvent, createContext, useContext, useState } from "react";
 import { useAuthContext } from "./auth";
@@ -270,7 +269,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
       setTree(updatedTree);
 
       success = true;
-      message = `${startCase(updatedNode.fullname)} biography is updated`;
+      message = `${updatedNode.fullname} biography is updated`;
     } catch (err: any) {
       message = err.message;
     } finally {

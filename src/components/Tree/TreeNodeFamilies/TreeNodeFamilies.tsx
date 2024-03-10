@@ -2,13 +2,13 @@ import { Family } from "@tree/src/types/tree";
 import classNames from "classnames";
 import React, { FC, useEffect, useState } from "react";
 import s from "./TreeNodeFamilies.module.css";
-import { startCase } from "lodash";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { LinearProgress } from "@mui/material";
 import { nodeFamilies } from "@tree/src/lib/services/node";
 import { useCacheContext } from "@tree/src/context/cache";
 import { NODE_FAMILIES_KEY } from "@tree/src/constants/storage-key";
 import { DAY } from "@tree/src/helper/date";
+import { startCase } from "@tree/src/helper/string";
 
 type TreeNodeFamiliesProps = {
   id: string;

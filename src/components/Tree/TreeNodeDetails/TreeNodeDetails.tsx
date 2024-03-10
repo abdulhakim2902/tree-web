@@ -17,7 +17,6 @@ import ShowIf from "@tree/src/components/show-if";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DeleteMemberModal from "@tree/src/components/Modal/DeleteMemberModal";
 import { TreeNodeFamilies } from "../TreeNodeFamilies/TreeNodeFamilies";
-import { startCase } from "lodash";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
 
@@ -54,7 +53,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
             </button>
             <div className={s.rootItem}>
               <h2 className={s.name}>
-                {startCase(node.fullname)}
+                {node.fullname}
                 <Tooltip title="Edit member" placement="bottom-start">
                   <EditIcon
                     fontSize="small"
