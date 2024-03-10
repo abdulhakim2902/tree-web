@@ -1,17 +1,13 @@
 import FamilyLink from "@tree/src/components/FamilyLink/FamilyLink";
 import { TOKEN_KEY } from "@tree/src/constants/storage-key";
 import { familyNodes } from "@tree/src/lib/services/node";
+import { Family } from "@tree/src/types/tree";
 import ballS from "@tree/styles/Ball.module.css";
 import s from "@tree/styles/FamilyPage.module.css";
 import classNames from "classnames";
 import { getCookie } from "cookies-next";
 import type { GetServerSidePropsContext, NextPage } from "next";
 import Image from "next/image";
-
-export type Family = {
-  id: string;
-  name: string;
-};
 
 type FamiliesPageProps = {
   families: Family[];

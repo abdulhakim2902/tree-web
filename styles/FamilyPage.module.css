@@ -52,13 +52,16 @@
     max-width: 100%;
   }
   .imageContainer {
-    display: none;
+    width: 250px;
+    height: 250px;
+    z-index: -1;
   }
   .logoContainer {
     display: none;
   }
   .logoTitle {
     margin-left: 0px;
+    margin-top: 10px;
     font-size: 4rem;
   }
 }
