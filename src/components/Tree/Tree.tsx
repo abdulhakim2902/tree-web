@@ -25,7 +25,6 @@ const Tree: FC<TreeProps> = ({ rootId, nodes }) => {
     if (selectedNodeId === id && !init) {
       unselectNode();
     } else {
-      console.log("test", id);
       selectNode(id, hasSubtree);
     }
   };

@@ -156,7 +156,7 @@ export const updateNode = async (id: string, data: any) => {
   }
 
   const response = await fetch(`${API_URL}/nodes/${id}`, {
-    method: "PUT",
+    method: "PATCH",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token.toString()}`,
