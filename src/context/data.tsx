@@ -87,7 +87,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
     setLoading((prev) => ({ ...prev, main: true }));
 
     const tree = get<Tree>(TREE_KEY);
-    if (tree) {
+    if (tree && tree.nodes.length > 0) {
       setTree({ ...tree });
     } else {
       push("/families");
@@ -108,7 +108,15 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
       set(TREE_KEY, tree, DAY);
       setTree(tree);
 
-      if (pathname !== "/tree") push("/tree");
+      if (tree.nodes.length <= 0) {
+        if (pathname !== "/families") push("/families");
+        enqueueSnackbar({
+          variant: "error",
+          message: "Tree not found",
+        });
+      } else {
+        if (pathname !== "/tree") push("/tree");
+      }
     } catch (err: any) {
       enqueueSnackbar({
         variant: "error",
@@ -132,7 +140,15 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
       set(TREE_KEY, tree, DAY);
       setTree(tree);
 
-      if (pathname !== "/tree") push("/tree");
+      if (tree.nodes.length <= 0) {
+        if (pathname !== "/families") push("/families");
+        enqueueSnackbar({
+          variant: "error",
+          message: "Tree not found",
+        });
+      } else {
+        if (pathname !== "/tree") push("/tree");
+      }
     } catch (err: any) {
       enqueueSnackbar({
         variant: "error",
