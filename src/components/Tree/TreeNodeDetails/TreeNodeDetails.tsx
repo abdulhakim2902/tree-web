@@ -9,7 +9,6 @@ import { TreeNode } from "@tree/src/types/tree";
 import Fab from "@mui/material/Fab";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
-import AddMemberModal from "@tree/src/components/Modal/AddMemberModal";
 import EditMemberModal from "@tree/src/components/Modal/EditMemberModal";
 import { Box, Tooltip } from "@mui/material";
 import { useAuthContext } from "@tree/src/context/auth";
@@ -19,6 +18,7 @@ import DeleteMemberModal from "@tree/src/components/Modal/DeleteMemberModal";
 import { TreeNodeFamilies } from "../TreeNodeFamilies/TreeNodeFamilies";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
+import AddMemberDrawer from "../../Drawer/AddMemberDrawer";
 
 const navigation = [
   { id: 1, title: "Biography" },
@@ -120,8 +120,8 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
           </ShowIf>
         </div>
       </Box>
+      <AddMemberDrawer open={openAdd} onClose={() => setOpenAdd(false)} node={node} />
       <EditMemberModal open={openEdit} onClose={() => setOpenEdit(false)} node={node} />
-      <AddMemberModal nodeId={selectedNodeId} open={openAdd} onClose={() => setOpenAdd(false)} node={node} />
       <DeleteMemberModal nodeId={selectedNodeId} open={openDelete} onClose={() => setOpenDelete(false)} />
     </React.Fragment>
   );

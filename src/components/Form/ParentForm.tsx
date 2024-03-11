@@ -70,7 +70,7 @@ const ParentForm: FC<ParentFormProps> = ({ onSave, onCancel, loading }) => {
   return (
     <React.Fragment>
       <React.Fragment>
-        <Typography variant="h6" component="h2" sx={{ mt: "20px" }}>
+        <Typography variant="h6" component="h2" sx={{ mt: "20px", color: "whitesmoke" }}>
           Father
         </Typography>
         <Form
@@ -83,7 +83,7 @@ const ParentForm: FC<ParentFormProps> = ({ onSave, onCancel, loading }) => {
       </React.Fragment>
 
       <React.Fragment>
-        <Typography variant="h6" component="h2" sx={{ mt: "15px" }}>
+        <Typography variant="h6" component="h2" sx={{ mt: "15px", color: "whitesmoke" }}>
           Mother
         </Typography>
         <Form
