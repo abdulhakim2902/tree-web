@@ -1,4 +1,4 @@
-import { Box, Drawer, Grid, Paper, Typography } from "@mui/material";
+import { Box, Drawer, FormControl, FormControlLabel, Grid, Paper, Radio, RadioGroup, Typography } from "@mui/material";
 import { TreeNodeDataWithRelations } from "@tree/src/types/tree";
 import { FC, useEffect, useState } from "react";
 import { RelationType } from "../Tree/TreeNodeDetails/BioRelationButtons/BioRelationButtons";
@@ -19,9 +19,13 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
   const { addNode, loading } = useTreeNodeDataContext();
 
   const [relative, setRelative] = useState<RelationType>();
+  const [option, setOption] = useState<"new" | "tree">("new");
 
   useEffect(() => {
-    if (open) setRelative(undefined);
+    if (open) {
+      setRelative(undefined);
+      setOption("new");
+    }
   }, [open]);
 
   const onAddNode = (data: any, relation: RelationType) => {
@@ -116,38 +120,69 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
           <Typography variant="h5" component="h3" sx={{ color: "whitesmoke" }}>
             {`Add ${relative?.toLowerCase()} for ${node.fullname}`}
           </Typography>
-          <ShowIf condition={relative === RelationType.Parents}>
-            <ParentForm
-              onSave={(data) => onAddNode(data, RelationType.Parents)}
-              onCancel={onClose}
-              loading={loading.added}
-            />
+
+          <FormControl sx={{ mt: 3 }}>
+            <RadioGroup
+              row
+              sx={{ color: "whitesmoke" }}
+              value={option}
+              onChange={(event) => setOption(event.target.value as "new" | "tree")}
+            >
+              <FormControlLabel
+                value="new"
+                control={<Radio />}
+                label="New person"
+                componentsProps={{ typography: { variant: "h6" } }}
+              />
+              <FormControlLabel
+                value="tree"
+                control={<Radio />}
+                label="From your tree"
+                componentsProps={{ typography: { variant: "h6" } }}
+              />
+            </RadioGroup>
+          </FormControl>
+
+          <ShowIf condition={option === "new"}>
+            <ShowIf condition={relative === RelationType.Parents}>
+              <ParentForm
+                onSave={(data) => onAddNode(data, RelationType.Parents)}
+                onCancel={onClose}
+                loading={loading.added}
+              />
+            </ShowIf>
+
+            <ShowIf condition={relative === RelationType.Siblings}>
+              <SiblingForm
+                onSave={(data) => onAddNode(data, RelationType.Siblings)}
+                onCancel={onClose}
+                loading={loading.added}
+              />
+            </ShowIf>
+
+            <ShowIf condition={relative === RelationType.Spouses}>
+              <SpouseForm
+                node={node}
+                onSave={(data) => onAddNode(data, RelationType.Spouses)}
+                onCancel={onClose}
+                loading={loading.added}
+              />
+            </ShowIf>
+
+            <ShowIf condition={relative === RelationType.Children}>
+              <ChildForm
+                onSave={(data) => onAddNode(data, RelationType.Children)}
+                onCancel={onClose}
+                nodeId={node.id}
+                loading={loading.added}
+              />
+            </ShowIf>
           </ShowIf>
 
-          <ShowIf condition={relative === RelationType.Siblings}>
-            <SiblingForm
-              onSave={(data) => onAddNode(data, RelationType.Siblings)}
-              onCancel={onClose}
-              loading={loading.added}
-            />
-          </ShowIf>
-
-          <ShowIf condition={relative === RelationType.Spouses}>
-            <SpouseForm
-              node={node}
-              onSave={(data) => onAddNode(data, RelationType.Spouses)}
-              onCancel={onClose}
-              loading={loading.added}
-            />
-          </ShowIf>
-
-          <ShowIf condition={relative === RelationType.Children}>
-            <ChildForm
-              onSave={(data) => onAddNode(data, RelationType.Children)}
-              onCancel={onClose}
-              nodeId={node.id}
-              loading={loading.added}
-            />
+          <ShowIf condition={option === "tree"}>
+            <Typography variant="h5" component="h3" sx={{ color: "whitesmoke", mt: 3 }}>
+              Still on progress...
+            </Typography>
           </ShowIf>
         </ShowIf>
       </Box>

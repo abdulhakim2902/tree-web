@@ -54,7 +54,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
             <div className={s.rootItem}>
               <h2 className={s.name}>
                 {node.fullname}
-                <Tooltip title="Edit member" placement="bottom-start">
+                <Tooltip title="Edit the information for this person" placement="bottom-start">
                   <EditIcon
                     fontSize="small"
                     sx={{ ml: "10px", cursor: "pointer", ":hover": { color: "#4da1ff" } }}
@@ -89,7 +89,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
           </Box>
           <ShowIf condition={navId === 1}>
             <Box sx={{ display: "flex", justifyContent: "end" }}>
-              <Tooltip title="Add new member" placement="bottom-end">
+              <Tooltip title="Add relative" placement="bottom-end">
                 <Fab color="primary" aria-label="add" size="small" onClick={() => setOpenAdd(true)}>
                   <AddIcon />
                 </Fab>

@@ -1,5 +1,5 @@
 import { Autocomplete, Box, Button, CircularProgress, TextField, Typography } from "@mui/material";
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useCallback, useEffect, useState } from "react";
 import Form, { Bio, useStyles, defaultBio, Error, defaultError } from "./Form";
 import { TreeNodeData } from "@tree/src/types/tree";
 import { getSpouse } from "@tree/src/lib/services/node";
@@ -20,13 +20,18 @@ const ChildForm: FC<ChildFormProps> = ({ nodeId, onSave, onCancel, loading }) =>
   const [error, setError] = useState<Error>(defaultError);
   const [loadingSpouses, setLoadingSpouses] = useState<boolean>(false);
 
-  useEffect(() => {
+  const fetchSpouses = useCallback(() => {
     if (!nodeId) return;
+    console.log(nodeId);
     setLoadingSpouses(true);
     getSpouse(nodeId)
       .then(setSpouses)
       .finally(() => setLoadingSpouses(false));
   }, [nodeId]);
+
+  useEffect(() => {
+    fetchSpouses();
+  }, [fetchSpouses]);
 
   const handleSave = () => {
     const { name, gender, birthDate, birthCountry, birthCity } = bio;
