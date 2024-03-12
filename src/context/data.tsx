@@ -1,6 +1,4 @@
 import { Bio } from "@tree/src/components/Form/Form";
-import { RelationType } from "@tree/src/components/Tree/TreeNodeDetails/BioRelationButtons/BioRelationButtons";
-import { parseJSON } from "@tree/src/helper/parse-json";
 import {
   addChild,
   addParent,
@@ -61,9 +59,9 @@ type TreeNodeDataContextValue = {
   setQuery: (query: string) => void;
   searchNodes: (event?: KeyboardEvent) => void;
   rootNodes: (id?: string) => void;
-  expandNode: (id: string, type: RelationType, cb?: () => void) => void;
+  expandNode: (id: string, type: string, cb?: () => void) => void;
   updateNode: (id: string, data: Bio, cb?: (success: boolean, error?: string) => void) => void;
-  addNode: (id: string, data: any, relationType: RelationType, cb?: (success: boolean, error?: string) => void) => void;
+  addNode: (id: string, data: any, type: string, cb?: (success: boolean, error?: string) => void) => void;
   clearNodes: () => void;
 };
 
@@ -169,55 +167,50 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
     }
   };
 
-  const expandNode = (id: string, type: RelationType) => {
-    switch (type) {
-      case RelationType.Parents:
-      case RelationType.Siblings:
+  const expandNode = (id: string, relative: string) => {
+    switch (relative) {
+      case "parent":
+      case "sibling":
         parentAndChildNodes(id);
         break;
 
-      case RelationType.Spouses:
-      case RelationType.Children:
+      case "spouse":
+      case "child":
         spouseAndChildNodes(id);
         break;
     }
   };
 
-  const addNode = async (
-    id: string,
-    data: any,
-    relationType: RelationType,
-    cb?: (success: boolean, error?: string) => void,
-  ) => {
+  const addNode = async (id: string, data: any, relative: string, cb?: (success: boolean, error?: string) => void) => {
     let success = false;
     let message = "New member is added to the family";
 
     try {
       setLoading((prev) => ({ ...prev, added: true }));
 
-      switch (relationType) {
-        case RelationType.Spouses:
+      switch (relative) {
+        case "spouse":
           await addSpouse(id, data);
           await spouseAndChildNodes(id);
           break;
 
-        case RelationType.Children:
+        case "child":
           await addChild(id, data);
           await spouseAndChildNodes(id);
           break;
 
-        case RelationType.Siblings:
+        case "sibling":
           await addSibling(id, data);
           await parentAndChildNodes(id);
           break;
 
-        case RelationType.Parents:
+        case "parent":
           await addParent(id, data);
           await parentAndChildNodes(id);
           break;
       }
 
-      localStorage.removeItem(NODE_FAMILIES_KEY);
+      del(NODE_FAMILIES_KEY);
 
       success = true;
     } catch (err: any) {

@@ -1,13 +1,27 @@
-import { Box, Drawer, FormControl, FormControlLabel, Grid, Paper, Radio, RadioGroup, Typography } from "@mui/material";
+import {
+  Box,
+  Drawer,
+  FormControl,
+  FormControlLabel,
+  Grid,
+  InputAdornment,
+  Paper,
+  Radio,
+  RadioGroup,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { TreeNodeDataWithRelations } from "@tree/src/types/tree";
 import { FC, useEffect, useState } from "react";
-import { RelationType } from "../Tree/TreeNodeDetails/BioRelationButtons/BioRelationButtons";
 import ShowIf from "../show-if";
 import ChildForm from "../Form/ChildForm";
 import SpouseForm from "../Form/SpouseForm";
 import SiblingForm from "../Form/SiblingForm";
 import ParentForm from "../Form/ParentForm";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
+import { capitalize } from "lodash";
+import SearchIcon from "@mui/icons-material/Search";
+import { useCacheContext } from "@tree/src/context/cache";
 
 type AddMemberDrawerProps = {
   node: TreeNodeDataWithRelations;
@@ -17,20 +31,22 @@ type AddMemberDrawerProps = {
 
 const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
   const { addNode, loading } = useTreeNodeDataContext();
+  const { del } = useCacheContext();
 
-  const [relative, setRelative] = useState<RelationType>();
+  const [relative, setRelative] = useState<string>();
   const [option, setOption] = useState<"new" | "tree">("new");
 
   useEffect(() => {
     if (open) {
       setRelative(undefined);
       setOption("new");
+      del(`spouse-${node.id}`);
     }
   }, [open]);
 
-  const onAddNode = (data: any, relation: RelationType) => {
+  const onAddNode = (data: any, relative: string) => {
     if (!node?.id) return;
-    addNode(node.id, data, relation, (success, error) => {
+    addNode(node.id, data, relative, (success, error) => {
       if (success) {
         onClose();
         setRelative(undefined);
@@ -56,11 +72,11 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
           </Typography>
 
           <Grid container rowSpacing={3} columnSpacing={{ xs: 1, sm: 2, md: 3 }} sx={{ mt: 1 }}>
-            {[RelationType.Parents, RelationType.Children, RelationType.Spouses, RelationType.Siblings].map((e) => {
+            {["parent", "child", "spouse", "brother", "sister"].map((e) => {
               const expandable = node?.metadata?.expandable;
 
               switch (e) {
-                case RelationType.Parents: {
+                case "parent": {
                   const parents = node?.parents ?? [];
                   if (parents.length > 0 || expandable?.parents) {
                     return;
@@ -69,7 +85,7 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
                   break;
                 }
 
-                case RelationType.Children: {
+                case "child": {
                   const spouses = node?.spouses ?? [];
                   if (spouses.length <= 0 && !expandable?.spouses) {
                     return;
@@ -78,7 +94,8 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
                   break;
                 }
 
-                case RelationType.Siblings:
+                case "brother":
+                case "sister":
                   const parentSiblings = node?.parents ?? [];
                   if (parentSiblings.length <= 0 && !expandable?.parents) {
                     return;
@@ -86,7 +103,7 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
 
                   break;
 
-                case RelationType.Spouses:
+                case "spouse":
                   const totalSpouses = node?.metadata?.totalSpouses ?? 0;
                   const maxSpouse = node?.metadata?.maxSpouses ?? 0;
                   if (totalSpouses >= maxSpouse) {
@@ -108,7 +125,7 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
                     }}
                   >
                     <Typography variant="h6" component="h3">
-                      {e}
+                      {capitalize(e)}
                     </Typography>
                   </Paper>
                 </Grid>
@@ -118,7 +135,7 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
         </ShowIf>
         <ShowIf condition={Boolean(relative)}>
           <Typography variant="h5" component="h3" sx={{ color: "whitesmoke" }}>
-            {`Add ${relative?.toLowerCase()} for ${node.fullname}`}
+            {`Add a ${relative} for ${node.fullname}`}
           </Typography>
 
           <FormControl sx={{ mt: 3 }}>
@@ -144,34 +161,31 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
           </FormControl>
 
           <ShowIf condition={option === "new"}>
-            <ShowIf condition={relative === RelationType.Parents}>
-              <ParentForm
-                onSave={(data) => onAddNode(data, RelationType.Parents)}
-                onCancel={onClose}
-                loading={loading.added}
-              />
+            <ShowIf condition={relative === "parent"}>
+              <ParentForm onSave={(data) => onAddNode(data, "parent")} onCancel={onClose} loading={loading.added} />
             </ShowIf>
 
-            <ShowIf condition={relative === RelationType.Siblings}>
+            <ShowIf condition={relative === "brother" || relative === "sister"}>
               <SiblingForm
-                onSave={(data) => onAddNode(data, RelationType.Siblings)}
+                relative={relative}
+                onSave={(data) => onAddNode(data, "sibling")}
                 onCancel={onClose}
                 loading={loading.added}
               />
             </ShowIf>
 
-            <ShowIf condition={relative === RelationType.Spouses}>
+            <ShowIf condition={relative === "spouse"}>
               <SpouseForm
                 node={node}
-                onSave={(data) => onAddNode(data, RelationType.Spouses)}
+                onSave={(data) => onAddNode(data, "spouse")}
                 onCancel={onClose}
                 loading={loading.added}
               />
             </ShowIf>
 
-            <ShowIf condition={relative === RelationType.Children}>
+            <ShowIf condition={relative === "child"}>
               <ChildForm
-                onSave={(data) => onAddNode(data, RelationType.Children)}
+                onSave={(data) => onAddNode(data, "child")}
                 onCancel={onClose}
                 nodeId={node.id}
                 loading={loading.added}
@@ -180,9 +194,22 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
           </ShowIf>
 
           <ShowIf condition={option === "tree"}>
-            <Typography variant="h5" component="h3" sx={{ color: "whitesmoke", mt: 3 }}>
-              Still on progress...
-            </Typography>
+            <TextField
+              id="search"
+              sx={{ mt: 3, input: { color: "whitesmoke" } }}
+              size="small"
+              fullWidth
+              placeholder="Search tree"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon
+                      sx={{ color: "whitesmoke", cursor: "pointer", opacity: 0.8, ":hover": { opacity: 1 } }}
+                    />
+                  </InputAdornment>
+                ),
+              }}
+            />
           </ShowIf>
         </ShowIf>
       </Box>

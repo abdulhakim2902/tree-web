@@ -1,16 +1,26 @@
 import { Box, Button, CircularProgress } from "@mui/material";
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import Form, { Bio, defaultBio, Error, defaultError } from "./Form";
 
 type SiblingFormProps = {
+  relative?: string;
   loading: boolean;
   onSave: (data: any) => void;
   onCancel: () => void;
 };
 
-const SiblingForm: FC<SiblingFormProps> = ({ onSave, onCancel, loading }) => {
+const SiblingForm: FC<SiblingFormProps> = ({ relative, onSave, onCancel, loading }) => {
   const [bio, setBio] = useState<Bio>(defaultBio);
   const [error, setError] = useState<Error>(defaultError);
+
+  useEffect(() => {
+    if (!relative) return;
+    if (relative === "brother") {
+      setBio((prev) => ({ ...prev, gender: "male" }));
+    } else {
+      setBio((prev) => ({ ...prev, gender: "female" }));
+    }
+  }, [relative]);
 
   const handleSave = () => {
     const { name, gender, birthDate, birthCountry, birthCity } = bio;
@@ -53,7 +63,7 @@ const SiblingForm: FC<SiblingFormProps> = ({ onSave, onCancel, loading }) => {
 
   return (
     <React.Fragment>
-      <Form bio={bio} setBio={setBio} error={error} setError={setError} />
+      <Form bio={bio} setBio={setBio} error={error} setError={setError} disabledGender={true} />
 
       <Box sx={{ mt: "30px" }} textAlign="end">
         <Button color="info" variant="outlined" sx={{ mr: "10px" }} onClick={handleCancel} disabled={loading}>

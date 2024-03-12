@@ -6,44 +6,37 @@ import { CircularProgress, IconButton } from "@mui/material";
 import { RelType } from "@tree/src/lib/relatives-tree/types";
 import { startCase } from "@tree/src/helper/string";
 
-export enum RelationType {
-  Parents = "Parents",
-  Spouses = "Spouses",
-  Children = "Children",
-  Siblings = "Siblings",
-}
-
 type BioRelationButtonsProps = {
-  relationType: RelationType;
+  relationType: string;
   items: RelationInfo[];
   expandable: boolean;
   loading: boolean;
 
   onClick: (id: string) => void;
-  onExpandNode: (type: RelationType) => void;
+  onExpandNode: (type: string) => void;
 };
 
-const getName = (relationType: RelationType, relationInfo: RelationInfo, isLast: boolean) => {
+const getName = (relationType: string, relationInfo: RelationInfo, isLast: boolean) => {
   switch (relationType) {
-    case RelationType.Parents: {
+    case "parent": {
       const fullname = relationInfo.fullname;
       if (relationInfo.type === RelType.adopted) {
         return isLast ? `${fullname} (adoptive parent)` : `${fullname} (adoptive parent), `;
       }
       return isLast ? fullname : `${fullname}, `;
     }
-    case RelationType.Children: {
+    case "child": {
       const name = startCase(relationInfo?.nicknames?.[0] ?? relationInfo.firstName);
       if (relationInfo.type === RelType.adopted) {
         return isLast ? `${name} (adopted child)` : `${name} (adopted child),`;
       }
       return isLast ? name : `${name},`;
     }
-    case RelationType.Siblings: {
+    case "sibling": {
       const name = startCase(relationInfo?.nicknames?.[0] ?? relationInfo.firstName);
       return isLast ? name : `${name},`;
     }
-    case RelationType.Spouses: {
+    case "spouse": {
       const fullname = relationInfo.fullname;
       if (relationInfo.type === RelType.divorced) {
         return isLast ? `${fullname} (divorce)` : `${fullname} (divorce),`;

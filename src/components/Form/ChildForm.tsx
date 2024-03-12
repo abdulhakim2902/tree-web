@@ -3,6 +3,7 @@ import React, { FC, useCallback, useEffect, useState } from "react";
 import Form, { Bio, useStyles, defaultBio, Error, defaultError } from "./Form";
 import { TreeNodeData } from "@tree/src/types/tree";
 import { getSpouse } from "@tree/src/lib/services/node";
+import { useCacheContext } from "@tree/src/context/cache";
 
 type ChildFormProps = {
   nodeId?: string;
@@ -14,6 +15,8 @@ type ChildFormProps = {
 const ChildForm: FC<ChildFormProps> = ({ nodeId, onSave, onCancel, loading }) => {
   const classes = useStyles();
 
+  const { get, set } = useCacheContext();
+
   const [bio, setBio] = useState<Bio>(defaultBio);
   const [spouses, setSpouses] = useState<TreeNodeData[]>([]);
   const [spouse, setSpouse] = useState<TreeNodeData | null>(null);
@@ -22,11 +25,20 @@ const ChildForm: FC<ChildFormProps> = ({ nodeId, onSave, onCancel, loading }) =>
 
   const fetchSpouses = useCallback(() => {
     if (!nodeId) return;
-    console.log(nodeId);
-    setLoadingSpouses(true);
-    getSpouse(nodeId)
-      .then(setSpouses)
-      .finally(() => setLoadingSpouses(false));
+    const spouses = get<TreeNodeData[]>(`spouse-${nodeId}`);
+    if (!spouses) {
+      setLoadingSpouses(true);
+      getSpouse(nodeId)
+        .then((data) => {
+          set(`spouse-${nodeId}`, data);
+          setSpouses(data);
+          setSpouse(data?.[0] || null);
+        })
+        .finally(() => setLoadingSpouses(false));
+    } else {
+      setSpouses(spouses);
+      setSpouse(spouses?.[0] || null);
+    }
   }, [nodeId]);
 
   useEffect(() => {

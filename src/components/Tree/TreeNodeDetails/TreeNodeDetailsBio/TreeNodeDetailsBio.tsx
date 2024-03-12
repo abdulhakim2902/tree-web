@@ -1,7 +1,7 @@
 import { TreeNodeDataWithRelations } from "@tree/src/types/tree";
 import classNames from "classnames";
 import React, { FC } from "react";
-import BioRelationButtons, { RelationType } from "../BioRelationButtons/BioRelationButtons";
+import BioRelationButtons from "../BioRelationButtons/BioRelationButtons";
 import { getAge, getDate } from "@tree/src/helper/date";
 import s from "./TreeNodeDetailsBio.module.css";
 import ShowIf from "@tree/src/components/show-if";
@@ -76,7 +76,7 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
               onClick={onRelationNodeClick}
               onExpandNode={(type) => expandNode(id, type)}
               items={parents}
-              relationType={RelationType.Parents}
+              relationType="parent"
               expandable={Boolean(metadata?.expandable?.parents)}
               loading={loading.expanded.parent}
             />
@@ -89,7 +89,7 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
               onClick={onRelationNodeClick}
               onExpandNode={(type) => expandNode(id, type)}
               items={siblings}
-              relationType={RelationType.Siblings}
+              relationType="sibling"
               expandable={Boolean(metadata?.expandable?.siblings)}
               loading={loading.expanded.parent}
             />
@@ -102,7 +102,7 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
               onClick={onRelationNodeClick}
               onExpandNode={(type) => expandNode(id, type)}
               items={spouses}
-              relationType={RelationType.Spouses}
+              relationType="spouse"
               expandable={Boolean(metadata?.expandable?.spouses)}
               loading={loading.expanded.spouse}
             />
@@ -115,7 +115,7 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
               onClick={onRelationNodeClick}
               onExpandNode={(type) => expandNode(id, type)}
               items={children}
-              relationType={RelationType.Children}
+              relationType="child"
               expandable={Boolean(metadata?.expandable?.children)}
               loading={loading.expanded.spouse}
             />
