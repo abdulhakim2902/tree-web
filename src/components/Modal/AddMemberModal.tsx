@@ -14,7 +14,6 @@ import ParentForm from "../Form/ParentForm";
 import ChildForm from "../Form/ChildForm";
 import { FC, useState } from "react";
 import { TreeNodeDataWithRelations } from "@tree/src/types/tree";
-import { RelationType } from "../Tree/TreeNodeDetails/BioRelationButtons/BioRelationButtons";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
 import ShowIf from "../show-if";
 import { makeStyles } from "@mui/styles";
@@ -41,22 +40,22 @@ const AddMemberModal: FC<AddMemberModalProps> = ({ open, onClose, nodeId, node }
 
   const { addNode, loading } = useTreeNodeDataContext();
 
-  const [relation, setRelation] = useState<string>("");
+  const [relative, setRelative] = useState<string>("");
 
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleClose = () => {
     onClose();
-    setRelation("");
+    setRelative("");
   };
 
-  const onAddNode = (data: any, relation: RelationType) => {
+  const onAddNode = (data: any) => {
     if (!node?.id) return;
-    addNode(node.id, data, relation, (success, error) => {
+    addNode(node.id, data, relative, (success, error) => {
       if (success) {
         onClose();
-        setRelation("");
+        setRelative("");
       }
     });
   };
@@ -92,17 +91,17 @@ const AddMemberModal: FC<AddMemberModalProps> = ({ open, onClose, nodeId, node }
             Relation
           </InputLabel>
           <Select
-            value={relation}
-            onChange={(event) => setRelation(event.target.value)}
+            value={relative}
+            onChange={(event) => setRelative(event.target.value)}
             label="Relation"
             sx={{ color: "whitesmoke" }}
             MenuProps={{ classes }}
           >
-            {[RelationType.Parents, RelationType.Children, RelationType.Spouses, RelationType.Siblings].map((e, i) => {
+            {["parent", "child", "spouse", "brother", "sister"].map((e, i) => {
               const expandable = node?.metadata?.expandable;
 
               switch (e) {
-                case RelationType.Parents: {
+                case "parent": {
                   const parents = node?.parents ?? [];
                   if (parents.length > 0 || expandable?.parents) {
                     return;
@@ -111,7 +110,7 @@ const AddMemberModal: FC<AddMemberModalProps> = ({ open, onClose, nodeId, node }
                   break;
                 }
 
-                case RelationType.Children: {
+                case "child": {
                   const spouses = node?.spouses ?? [];
                   if (spouses.length <= 0 && !expandable?.spouses) {
                     return;
@@ -120,7 +119,8 @@ const AddMemberModal: FC<AddMemberModalProps> = ({ open, onClose, nodeId, node }
                   break;
                 }
 
-                case RelationType.Siblings:
+                case "brother":
+                case "sister":
                   const parentSiblings = node?.parents ?? [];
                   if (parentSiblings.length <= 0 && !expandable?.parents) {
                     return;
@@ -128,7 +128,7 @@ const AddMemberModal: FC<AddMemberModalProps> = ({ open, onClose, nodeId, node }
 
                   break;
 
-                case RelationType.Spouses:
+                case "spouse":
                   const totalSpouses = node?.metadata?.totalSpouses ?? 0;
                   const maxSpouse = node?.metadata?.maxSpouses ?? 0;
                   if (totalSpouses >= maxSpouse) {
@@ -146,41 +146,28 @@ const AddMemberModal: FC<AddMemberModalProps> = ({ open, onClose, nodeId, node }
           </Select>
         </FormControl>
 
-        <ShowIf condition={relation === RelationType.Parents}>
-          <ParentForm
-            onSave={(data) => onAddNode(data, RelationType.Parents)}
-            onCancel={handleClose}
-            loading={loading.added}
-          />
+        <ShowIf condition={relative === "parent"}>
+          <ParentForm onSave={(data) => onAddNode(data)} onCancel={handleClose} loading={loading.added} />
         </ShowIf>
 
-        <ShowIf condition={relation === RelationType.Siblings}>
-          <SiblingForm
-            onSave={(data) => onAddNode(data, RelationType.Siblings)}
-            onCancel={handleClose}
-            loading={loading.added}
-          />
+        <ShowIf condition={relative === "brother" || relative === "sister"}>
+          <SiblingForm onSave={(data) => onAddNode(data)} onCancel={handleClose} loading={loading.added} />
         </ShowIf>
 
-        <ShowIf condition={relation === RelationType.Spouses}>
-          <SpouseForm
-            node={node}
-            onSave={(data) => onAddNode(data, RelationType.Spouses)}
-            onCancel={handleClose}
-            loading={loading.added}
-          />
+        <ShowIf condition={relative === "spouse"}>
+          <SpouseForm node={node} onSave={(data) => onAddNode(data)} onCancel={handleClose} loading={loading.added} />
         </ShowIf>
 
-        <ShowIf condition={relation === RelationType.Children}>
+        <ShowIf condition={relative === "child"}>
           <ChildForm
-            onSave={(data) => onAddNode(data, RelationType.Children)}
+            onSave={(data) => onAddNode(data)}
             onCancel={handleClose}
             nodeId={nodeId}
             loading={loading.added}
           />
         </ShowIf>
 
-        <ShowIf condition={!Boolean(relation)}>
+        <ShowIf condition={!Boolean(relative)}>
           <Box sx={{ mt: "20px" }} textAlign="end">
             <Button color="info" variant="outlined" onClick={handleClose}>
               Cancel

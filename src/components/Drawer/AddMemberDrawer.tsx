@@ -33,24 +33,21 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
   const { addNode, loading } = useTreeNodeDataContext();
   const { del } = useCacheContext();
 
-  const [relative, setRelative] = useState<string>();
+  const [relative, setRelative] = useState<string>("");
   const [option, setOption] = useState<"new" | "tree">("new");
 
   useEffect(() => {
     if (open) {
-      setRelative(undefined);
+      setRelative("");
       setOption("new");
       del(`spouse-${node.id}`);
     }
   }, [open]);
 
-  const onAddNode = (data: any, relative: string) => {
+  const onAddNode = (data: any) => {
     if (!node?.id) return;
     addNode(node.id, data, relative, (success, error) => {
-      if (success) {
-        onClose();
-        setRelative(undefined);
-      }
+      if (success) onClose();
     });
   };
 
@@ -166,13 +163,13 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
 
           <ShowIf condition={option === "new"}>
             <ShowIf condition={relative === "parent"}>
-              <ParentForm onSave={(data) => onAddNode(data, "parent")} onCancel={onClose} loading={loading.added} />
+              <ParentForm onSave={(data) => onAddNode(data)} onCancel={onClose} loading={loading.added} />
             </ShowIf>
 
             <ShowIf condition={relative === "brother" || relative === "sister"}>
               <SiblingForm
                 relative={relative}
-                onSave={(data) => onAddNode(data, "sibling")}
+                onSave={(data) => onAddNode(data)}
                 onCancel={onClose}
                 loading={loading.added}
               />
@@ -181,7 +178,7 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
             <ShowIf condition={relative === "spouse"}>
               <SpouseForm
                 node={node}
-                onSave={(data) => onAddNode(data, "spouse")}
+                onSave={(data) => onAddNode(DataTransferItemList)}
                 onCancel={onClose}
                 loading={loading.added}
               />
@@ -189,7 +186,7 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
 
             <ShowIf condition={relative === "child"}>
               <ChildForm
-                onSave={(data) => onAddNode(data, "child")}
+                onSave={(data) => onAddNode(data)}
                 onCancel={onClose}
                 nodeId={node.id}
                 loading={loading.added}
