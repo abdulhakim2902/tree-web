@@ -57,7 +57,11 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
   return (
     <Drawer
       open={open}
-      onClose={onClose}
+      onClose={(event, reason) => {
+        if (loading.added && reason === "backdropClick") return;
+        if (loading.added && reason === "escapeKeyDown") return;
+        onClose();
+      }}
       anchor="right"
       PaperProps={{ sx: { backgroundColor: "var(--background-color)", width: "350px" } }}
     >
