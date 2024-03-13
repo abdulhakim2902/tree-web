@@ -68,8 +68,8 @@ const ChildForm: FC<ChildFormProps> = ({ nodeId, onSave, onCancel, loading }) =>
         month: birthDate?.month() ? birthDate.month() + 1 : 0,
         year: birthDate?.year() ?? -1,
         place: {
-          country: birthCountry?.country ?? "",
-          city: birthCity ?? "",
+          country: birthCountry,
+          city: birthCity,
         },
       },
     };

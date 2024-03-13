@@ -23,12 +23,12 @@ const EditForm: FC<EditFormProps> = ({ onUpdate, onCancel, node, loading }) => {
 
     const name = node?.fullname ?? "";
     const gender = (node?.gender as string) ?? "";
-    const birthCountry = country ? { country: startCase(country) } : null;
+    const birthCountry = startCase(country ?? "");
     const birthCity = startCase(city ?? "");
     const birthDate = birthDateToDayjs(node?.birth?.day, node?.birth?.month, node?.birth?.year);
 
     setBio({ name, gender, birthDate, birthCity, birthCountry });
-  }, [node]);
+  }, []);
 
   const handleUpdate = () => {
     const { name, gender, birthDate, birthCountry, birthCity } = bio;
@@ -52,8 +52,8 @@ const EditForm: FC<EditFormProps> = ({ onUpdate, onCancel, node, loading }) => {
         month: birthDate?.month() ? birthDate.month() + 1 : 0,
         year: birthDate?.year() ?? -1,
         place: {
-          country: birthCountry?.country ?? "",
-          city: birthCity ?? "",
+          country: birthCountry,
+          city: birthCity,
         },
       },
     };

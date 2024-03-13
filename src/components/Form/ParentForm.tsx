@@ -26,7 +26,6 @@ const ParentForm: FC<ParentFormProps> = ({ onSave, onCancel, loading }) => {
       const error = {
         name: !Boolean(name),
         gender: !Boolean(gender),
-        birthCountry: !Boolean(birthCountry?.country),
       };
 
       const setError = index === 0 ? setFatherError : setMotherError;
@@ -45,8 +44,8 @@ const ParentForm: FC<ParentFormProps> = ({ onSave, onCancel, loading }) => {
           month: birthDate?.month() ? birthDate.month() + 1 : 0,
           year: birthDate?.year() ?? -1,
           place: {
-            country: birthCountry?.country ?? "",
-            city: birthCity ?? "",
+            country: birthCountry,
+            city: birthCity,
           },
         },
       };

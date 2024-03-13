@@ -1,7 +1,6 @@
 import {
   Autocomplete,
   Box,
-  Button,
   CircularProgress,
   FormControl,
   InputLabel,
@@ -9,14 +8,17 @@ import {
   Select,
   SelectChangeEvent,
   TextField,
+  Typography,
 } from "@mui/material";
 import { DatePicker, LocalizationProvider, PickersLayout } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import React, { ChangeEvent, FC, useEffect, useState } from "react";
-import countries from "country-json/src/country-by-name.json";
 import { Dayjs } from "dayjs";
 import { makeStyles } from "@mui/styles";
 import { styled } from "@mui/material/styles";
+import { City, searchCities } from "@tree/src/lib/services/city";
+import { useDebounce } from "@tree/src/hooks/use-debounce.hook";
+import { startCase } from "lodash";
 
 export const StyledPickersLayout = styled(PickersLayout)({
   ".MuiDateCalendar-root": {
@@ -45,6 +47,9 @@ export const useStyles = makeStyles(() => ({
     background: "var(--background-color)",
     color: "whitesmoke",
   },
+  noOptions: {
+    color: "whitesmoke",
+  },
 }));
 
 export type Error = {
@@ -58,9 +63,7 @@ export type Bio = {
   gender: string;
   birthDate: Dayjs | null;
   birthCity: string;
-  birthCountry: {
-    country: string;
-  } | null;
+  birthCountry: string;
 };
 
 type FormProps = {
@@ -76,7 +79,7 @@ export const defaultBio = {
   gender: "",
   birthDate: null,
   birthCity: "",
-  birthCountry: null,
+  birthCountry: "",
 };
 
 export const defaultError = {
@@ -90,6 +93,28 @@ export const defaultError = {
 
 const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = false }) => {
   const classes = useStyles();
+
+  const [value, setValue] = useState<string>("");
+  const [cities, setCities] = useState<City[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const debounceValue = useDebounce(value, 1000);
+
+  useEffect(() => {
+    if (!debounceValue) return;
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    setLoading(true);
+    searchCities(debounceValue, signal)
+      .then(setCities)
+      .catch(() => setCities([]))
+      .finally(() => setLoading(false));
+
+    return () => {
+      controller.abort();
+    };
+  }, [debounceValue]);
 
   const handleBirthDate = (value: Dayjs | null) => {
     setBio({ ...bio, birthDate: value });
@@ -107,13 +132,39 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
     setError({ ...error, gender: !Boolean(value) });
   };
 
-  const handleBirthCity = (event: ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    setBio({ ...bio, birthCity: value });
+  const handleBirthPlace = (event: any, value: City | string | null) => {
+    if (typeof value === "string") return;
+
+    const birthCity = value?.name ?? "";
+    const birthCountry = value?.country ?? "";
+
+    setValue("");
+    setBio({ ...bio, birthCity, birthCountry });
   };
 
-  const handleBirthCountry = (event: any, value: { country: string } | null) => {
-    setBio({ ...bio, birthCountry: value });
+  const optionLabel = (option: City | string) => {
+    if (typeof option === "string") {
+      return option;
+    }
+
+    let name = option.name;
+    if (option.country) {
+      name += `, ${option.country}`;
+    }
+
+    return name;
+  };
+
+  const onChangeValue = (event: ChangeEvent<HTMLInputElement>) => {
+    setValue(event.target.value);
+
+    const [birthCity, birthCountry] = event.target.value.split(",");
+
+    setBio({
+      ...bio,
+      birthCity: birthCity?.trim() ?? "",
+      birthCountry: birthCountry?.trim() ?? "",
+    });
   };
 
   return (
@@ -179,34 +230,39 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
 
         <Box sx={{ display: "flex", justifyContent: "space-between", mt: "10px" }}>
           <Autocomplete
-            id="countries"
-            options={countries}
-            getOptionLabel={(option) => option.country}
-            onChange={handleBirthCountry}
-            placeholder="Optional"
-            value={bio.birthCountry}
-            isOptionEqualToValue={(option) => option.country === bio.birthCountry?.country}
-            sx={{ input: { color: "whitesmoke" }, width: "49%" }}
+            id="city"
+            options={cities}
+            getOptionLabel={optionLabel}
+            fullWidth
+            freeSolo
+            value={`${bio.birthCity}${bio.birthCountry ? `, ${bio.birthCountry}` : ""}`}
             classes={classes}
+            isOptionEqualToValue={(option: City) => option?.name === bio?.birthCity}
+            onChange={handleBirthPlace}
+            componentsProps={{
+              popper: {
+                sx: { fontSize: "50px" },
+              },
+            }}
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Birth Country"
+                error={error.spouse}
                 sx={{ input: { color: "whitesmoke" } }}
-                InputLabelProps={{ sx: { color: "grey" }, classes }}
+                InputLabelProps={{ sx: { color: "grey" } }}
+                label="Birth place"
+                onChange={onChangeValue}
+                InputProps={{
+                  ...params.InputProps,
+                  endAdornment: (
+                    <React.Fragment>
+                      {loading ? <CircularProgress sx={{ color: "whitesmoke" }} size={15} /> : null}
+                      {params.InputProps.startAdornment}
+                    </React.Fragment>
+                  ),
+                }}
               />
             )}
-          />
-
-          <TextField
-            id="name"
-            label="Birth City"
-            variant="outlined"
-            value={bio.birthCity}
-            placeholder="Optional"
-            onChange={handleBirthCity}
-            sx={{ input: { color: "whitesmoke" }, width: "49%" }}
-            InputLabelProps={{ sx: { color: "grey" } }}
           />
         </Box>
       </Box>
