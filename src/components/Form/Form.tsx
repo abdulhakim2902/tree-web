@@ -143,9 +143,7 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
   };
 
   const optionLabel = (option: City | string) => {
-    if (typeof option === "string") {
-      return option;
-    }
+    if (typeof option === "string") return option;
 
     let name = option.name;
     if (option.country) {
@@ -257,7 +255,6 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
                   endAdornment: (
                     <React.Fragment>
                       {loading ? <CircularProgress sx={{ color: "whitesmoke" }} size={15} /> : null}
-                      {params.InputProps.startAdornment}
                     </React.Fragment>
                   ),
                 }}

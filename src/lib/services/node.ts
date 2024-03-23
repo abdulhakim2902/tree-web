@@ -1,6 +1,7 @@
 import { TOKEN_KEY } from "@tree/src/constants/storage-key";
 import { Family, Root, TreeNode, TreeNodeData } from "@tree/src/types/tree";
 import { getCookie } from "cookies-next";
+import { File } from "./file";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -299,4 +300,52 @@ export const getSpouse = async (id: string) => {
 
   const { data } = await response.json();
   return data as TreeNodeData[];
+};
+
+export const getGalleries = async (id: string) => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+  if (!token) {
+    throw new Error("Token not found");
+  }
+
+  const response = await fetch(`${API_URL}/nodes/${id}/galleries`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token.toString()}`,
+    },
+  });
+
+  if (response.status !== 200) {
+    return [];
+  }
+
+  const res = await response.json();
+  return res as File[];
+};
+
+export const updateNodeProfile = async (id: string, fileId = "") => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+  if (!token) {
+    throw new Error("Token not found");
+  }
+
+  if (!id) {
+    throw new Error("Invalid node id");
+  }
+
+  const response = await fetch(`${API_URL}/nodes/${id}/profile`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token.toString()}`,
+    },
+    body: JSON.stringify({ fileId }),
+  });
+
+  if (response.status !== 200) {
+    throw new Error(response.statusText);
+  }
+
+  await response.json();
 };

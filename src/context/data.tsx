@@ -18,6 +18,7 @@ import { useRouter } from "next/router";
 import { NODE_FAMILIES_KEY, TREE_KEY } from "@tree/src/constants/storage-key";
 import { useCacheContext } from "./cache";
 import { DAY } from "../helper/date";
+import { File } from "../lib/services/file";
 
 type Loading = {
   main: boolean;
@@ -44,7 +45,7 @@ const defaultTree = {
     id: "",
     isRoot: false,
   },
-  nodes: [],
+  nodes: [] as TreeNode[],
   nodeMap: {},
 };
 
@@ -61,6 +62,7 @@ type TreeNodeDataContextValue = {
   rootNodes: (id?: string) => void;
   expandNode: (id: string, type: string, cb?: () => void) => void;
   updateNode: (id: string, data: Bio, cb?: (success: boolean, error?: string) => void) => void;
+  updateNodeProfile: (id: string, data?: File) => void;
   addNode: (id: string, data: any, type: string, cb?: (success: boolean, error?: string) => void) => void;
   clearNodes: () => void;
 };
@@ -360,6 +362,33 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
     }
   };
 
+  const updateNodeProfile = (id: string, data?: File) => {
+    tree.nodes = tree.nodes.map((node) => {
+      if (node.id === id) {
+        if (data) {
+          node.data.profileImageURL = data.url;
+        } else {
+          delete node.data.profileImageURL;
+        }
+      }
+
+      return node;
+    });
+
+    const node = tree.nodeMap[id];
+    if (node) {
+      if (data) {
+        node.data.profileImageURL = data.url;
+      } else {
+        delete node.data.profileImageURL;
+      }
+    }
+    tree.nodeMap[id] = node;
+
+    set(TREE_KEY, tree, DAY);
+    setTree({ ...tree });
+  };
+
   return (
     <TreeNodeDataContext.Provider
       value={{
@@ -374,6 +403,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
         rootNodes,
         searchNodes,
         updateNode,
+        updateNodeProfile,
         expandNode,
         addNode,
       }}
