@@ -64,18 +64,16 @@ export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile 
   return (
     <ImageList cols={mobile ? 2 : 3} gap={8} variant="masonry">
       {galleries.map((item) => (
-        <ImageListItem
-          key={item._id}
-          sx={{
-            cursor: "pointer",
-            ":hover": {
-              opacity: "75%",
-            },
-          }}
-        >
+        <ImageListItem key={item._id}>
           <Box position="relative">
             <IconButton
-              sx={{ position: "absolute", ":hover": { opacity: "50%" }, color: "whitesmoke" }}
+              sx={{
+                position: "absolute",
+                color: "whitesmoke",
+                right: "2%",
+                bottom: "2%",
+                backgroundColor: "grey",
+              }}
               onClick={() => removeGallery(item._id)}
             >
               <DeleteIcon />
