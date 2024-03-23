@@ -1,6 +1,6 @@
 import { useNodeSelectionContext } from "@tree/src/context/tree";
 import { CloseIcon } from "@tree/src/components/Icon/CloseIcon";
-import React, { FC, useState } from "react";
+import React, { ChangeEvent, FC, useState } from "react";
 import BioNavItem from "./BioNavItem/BioNavItem";
 import s from "./TreeNodeDetails.module.css";
 import { TreeNodeDetailsBio } from "./TreeNodeDetailsBio/TreeNodeDetailsBio";
@@ -19,6 +19,9 @@ import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
 import AddMemberDrawer from "../../Drawer/AddMemberDrawer";
 import EditMemberDrawer from "../../Drawer/EditMemberDrawer";
+import { File, upload } from "@tree/src/lib/services/file";
+import { useSnackbar } from "notistack";
+import { TreeNodeGalleries } from "../TreeNodeGalleries/TreeNodeGalleries";
 
 const navigation = [
   { id: 1, title: "Biography" },
@@ -34,13 +37,36 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
   const { selectedNodeId, unselectNode, selectNode } = useNodeSelectionContext();
   const { init } = useTreeNodeDataContext();
   const { isLoggedIn } = useAuthContext();
+  const { enqueueSnackbar } = useSnackbar();
 
   const [openAdd, setOpenAdd] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openDelete, setOpenDelete] = useState<boolean>(false);
+  const [newFile, setNewFile] = useState<File>();
   const [navId, setNavId] = useState<number>(1);
 
   const node = getTreeNodeDetails(nodeMap, selectedNodeId);
+
+  const onUploadImage = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files?.length <= 0) return;
+    const file = files[0];
+    const form = new FormData();
+    form.append("file", file);
+    if (node) {
+      form.set("nodeId", node?.id);
+    }
+
+    try {
+      const result = await upload(form);
+      setNewFile(result);
+    } catch (err: any) {
+      enqueueSnackbar({
+        variant: "error",
+        message: err.message,
+      });
+    }
+  };
 
   if (!isLoggedIn || !node || init) return <React.Fragment />;
   return (
@@ -80,7 +106,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
             </ShowIf>
 
             <ShowIf condition={navId === 2}>
-              <span className={s.rootItem}>Unfortunately, we do not yet have photographs of this person.</span>;
+              <TreeNodeGalleries nodeId={node.id} newFile={newFile} />
             </ShowIf>
 
             <ShowIf condition={navId === 3}>
@@ -112,8 +138,9 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
           <ShowIf condition={navId === 2}>
             <Box sx={{ display: "flex", justifyContent: "end" }}>
               <Tooltip title="Add galleries" placement="bottom-end">
-                <Fab color="secondary" aria-label="add" size="small">
+                <Fab color="secondary" aria-label="add-galleries" size="small" component="label">
                   <AddPhotoAlternateIcon />
+                  <input type="file" hidden={true} onChange={onUploadImage} />
                 </Fab>
               </Tooltip>
             </Box>
