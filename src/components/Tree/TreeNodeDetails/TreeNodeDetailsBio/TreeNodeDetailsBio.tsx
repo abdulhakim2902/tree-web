@@ -8,7 +8,6 @@ import ShowIf from "@tree/src/components/show-if";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { startCase } from "@tree/src/helper/string";
 import { Box } from "@mui/material";
-import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import Image from "next/image";
 import GalleryModal from "@tree/src/components/Modal/GalleryModal";
 
@@ -28,7 +27,6 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
   education,
   occupation,
   rewards,
-  bio,
   onRelationNodeClick,
   metadata,
   profileImageURL,
@@ -42,31 +40,8 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
   const [open, setOpen] = useState<boolean>(false);
 
   return (
-    <div className={s.bioContainer}>
-      <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
-        <Box
-          height={150}
-          width={150}
-          sx={{
-            mr: "20px",
-            display: "flex",
-            justifyContent: "center",
-            flexDirection: "column",
-            alignItems: "center",
-            cursor: "pointer",
-            borderStyle: profileImageURL ? "none" : "solid",
-            borderWidth: profileImageURL ? "0px" : "1px",
-          }}
-          borderRadius={1}
-          borderColor="whitesmoke"
-          onClick={() => setOpen(true)}
-        >
-          {profileImageURL ? (
-            <Image src={profileImageURL} width={150} height={150} alt={profileImageURL} />
-          ) : (
-            <AddPhotoAlternateIcon fontSize="large" />
-          )}
-        </Box>
+    <React.Fragment>
+      <div className={s.bioContainer}>
         <div className={classNames(s.bioGrid)}>
           <ShowIf condition={Boolean(birthDate)}>
             <span className={s.gridItemTitle}>Birth Date</span>
@@ -169,12 +144,24 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
             <span className={s.gridItemValue}>{rewards?.join(", ")}</span>
           </ShowIf>
         </div>
-      </Box>
-      <span className={classNames(s.rootItem)}>
-        {bio ??
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam pulvinar dui ut dolor sollicitudin, ut porta ligula luctus. Sed maximus fringilla magna et porttitor. Maecenas."}
-      </span>
-      <GalleryModal open={open} onClose={() => setOpen(false)} nodeId={id} current={profileImageURL ?? ""} />
-    </div>
+
+        <ShowIf condition={Boolean(profileImageURL)}>
+          <Box
+            height={150}
+            width={150}
+            sx={{
+              mb: "10px",
+              cursor: "pointer",
+            }}
+            borderRadius={1}
+            borderColor="whitesmoke"
+            onClick={() => setOpen(true)}
+          >
+            <img src={profileImageURL ?? ""} width={150} alt={profileImageURL} loading="lazy" />
+          </Box>
+        </ShowIf>
+      </div>
+      <GalleryModal open={open} onClose={() => setOpen(false)} nodeId={id} current={profileImageURL} />
+    </React.Fragment>
   );
 };

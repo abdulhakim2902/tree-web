@@ -1,8 +1,9 @@
-import { ImageList, ImageListItem, LinearProgress } from "@mui/material";
-import { File } from "@tree/src/lib/services/file";
+import { Box, IconButton, ImageList, ImageListItem, LinearProgress, useMediaQuery, useTheme } from "@mui/material";
+import { File, remove } from "@tree/src/lib/services/file";
 import { getGalleries } from "@tree/src/lib/services/node";
-import Image from "next/image";
 import React, { FC, useEffect, useState } from "react";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useSnackbar } from "notistack";
 
 type TreeNodeGalleriesProps = {
   nodeId: string;
@@ -10,6 +11,11 @@ type TreeNodeGalleriesProps = {
 };
 
 export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile }) => {
+  const theme = useTheme();
+  const mobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  const { enqueueSnackbar } = useSnackbar();
+
   const [galleries, setGalleries] = useState<File[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -35,6 +41,18 @@ export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile 
     setGalleries((prev) => [...prev, newFile]);
   }, [newFile]);
 
+  const removeGallery = async (id: string) => {
+    try {
+      await remove(id);
+      setGalleries((prev) => prev.filter((e) => e._id != id));
+    } catch (err: any) {
+      enqueueSnackbar({
+        variant: "error",
+        message: err.message,
+      });
+    }
+  };
+
   if (loading) {
     return <LinearProgress />;
   }
@@ -44,10 +62,26 @@ export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile 
   }
 
   return (
-    <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}>
+    <ImageList cols={mobile ? 2 : 3} gap={8} variant="masonry">
       {galleries.map((item) => (
-        <ImageListItem key={item._id}>
-          <Image src={item.url} alt={item.publicId} loading="lazy" width={250} height={250} />
+        <ImageListItem
+          key={item._id}
+          sx={{
+            cursor: "pointer",
+            ":hover": {
+              opacity: "75%",
+            },
+          }}
+        >
+          <Box position="relative">
+            <IconButton
+              sx={{ position: "absolute", ":hover": { opacity: "50%" }, color: "whitesmoke" }}
+              onClick={() => removeGallery(item._id)}
+            >
+              <DeleteIcon />
+            </IconButton>
+            <img src={item.url} alt={item.publicId} loading="lazy" />
+          </Box>
         </ImageListItem>
       ))}
     </ImageList>

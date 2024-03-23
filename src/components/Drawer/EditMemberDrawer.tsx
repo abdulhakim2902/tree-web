@@ -23,6 +23,7 @@ import { capitalize } from "lodash";
 import SearchIcon from "@mui/icons-material/Search";
 import { useCacheContext } from "@tree/src/context/cache";
 import EditForm from "../Form/EditForm";
+import Image from "next/image";
 
 type EditMemberDrawerProps = {
   node: TreeNodeDataWithRelations;
@@ -58,7 +59,12 @@ const EditMemberDrawer: FC<EditMemberDrawerProps> = ({ node, open, onClose }) =>
           Edit person
         </Typography>
 
-        <Box sx={{ mt: 5 }}>
+        {node.profileImageURL && (
+          <Box sx={{ mt: 2 }}>
+            <Image src={node.profileImageURL} alt={node.profileImageURL} width={80} height={80} />
+          </Box>
+        )}
+        <Box sx={{ mt: 2 }}>
           <EditForm onUpdate={onUpdate} onCancel={onClose} node={node} loading={loading.updated} />
         </Box>
       </Box>

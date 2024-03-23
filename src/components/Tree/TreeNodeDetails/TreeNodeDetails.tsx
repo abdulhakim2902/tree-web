@@ -22,6 +22,7 @@ import EditMemberDrawer from "../../Drawer/EditMemberDrawer";
 import { File, upload } from "@tree/src/lib/services/file";
 import { useSnackbar } from "notistack";
 import { TreeNodeGalleries } from "../TreeNodeGalleries/TreeNodeGalleries";
+import GalleryModal from "../../Modal/GalleryModal";
 
 const navigation = [
   { id: 1, title: "Biography" },
@@ -42,6 +43,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
   const [openAdd, setOpenAdd] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openDelete, setOpenDelete] = useState<boolean>(false);
+  const [openGalleries, setOpenGalleries] = useState<boolean>(false);
   const [newFile, setNewFile] = useState<File>();
   const [navId, setNavId] = useState<number>(1);
 
@@ -115,6 +117,17 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
           </Box>
           <ShowIf condition={navId === 1}>
             <Box sx={{ display: "flex", justifyContent: "end" }}>
+              <Tooltip title="Update profile image" placement="bottom-end" sx={{ mr: "10px" }}>
+                <Fab
+                  color="secondary"
+                  aria-label="update-profile"
+                  size="small"
+                  component="label"
+                  onClick={() => setOpenGalleries(true)}
+                >
+                  <AddPhotoAlternateIcon />
+                </Fab>
+              </Tooltip>
               <Tooltip title="Add relative" placement="bottom-end">
                 <Fab color="primary" aria-label="add" size="small" onClick={() => setOpenAdd(true)}>
                   <AddIcon />
@@ -150,6 +163,12 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
       <AddMemberDrawer open={openAdd} onClose={() => setOpenAdd(false)} node={node} />
       <EditMemberDrawer open={openEdit} onClose={() => setOpenEdit(false)} node={node} />
       <DeleteMemberModal nodeId={selectedNodeId} open={openDelete} onClose={() => setOpenDelete(false)} />
+      <GalleryModal
+        open={openGalleries}
+        onClose={() => setOpenGalleries(false)}
+        nodeId={node.id}
+        current={node.profileImageURL}
+      />
     </React.Fragment>
   );
 };

@@ -19,7 +19,6 @@ export const upload = async (data: FormData) => {
   const response = await fetch(`${API_URL}/files`, {
     method: "POST",
     headers: {
-      // "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${token.toString()}`,
     },
     body: data,
@@ -31,4 +30,26 @@ export const upload = async (data: FormData) => {
 
   const result = await response.json();
   return result as File;
+};
+
+export const remove = async (id: string) => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+  if (!token) {
+    throw new Error("Token not found");
+  }
+
+  const response = await fetch(`${API_URL}/files/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token.toString()}`,
+    },
+  });
+
+  if (response.status !== 200) {
+    throw new Error(response.statusText);
+  }
+
+  const result = await response.json();
+  return result;
 };

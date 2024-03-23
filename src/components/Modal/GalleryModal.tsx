@@ -8,6 +8,8 @@ import {
   ImageListItemBar,
   Modal,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { File, upload } from "@tree/src/lib/services/file";
 import { getGalleries, updateNodeProfile } from "@tree/src/lib/services/node";
@@ -19,7 +21,7 @@ import { useSnackbar } from "notistack";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
 
 type GalleryModalProps = {
-  current: string;
+  current?: string;
   nodeId: string;
   open: boolean;
 
@@ -29,6 +31,9 @@ type GalleryModalProps = {
 const GalleryModal: FC<GalleryModalProps> = ({ current, nodeId, open, onClose }) => {
   const { enqueueSnackbar } = useSnackbar();
   const { updateNodeProfile: setNodeProfile } = useTreeNodeDataContext();
+
+  const theme = useTheme();
+  const mobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [loadGalleries, setLoadGalleries] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -120,6 +125,7 @@ const GalleryModal: FC<GalleryModalProps> = ({ current, nodeId, open, onClose })
           position: "absolute",
           top: "50%",
           left: "50%",
+          width: mobile ? "90%" : 560,
           transform: "translate(-50%, -50%)",
           bgcolor: "var(--background-color)",
           borderRadius: "10px",
@@ -136,14 +142,13 @@ const GalleryModal: FC<GalleryModalProps> = ({ current, nodeId, open, onClose })
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              width: 500,
-              height: 450,
+              width: "100%",
             }}
           >
             <CircularProgress />
           </Box>
         ) : (
-          <ImageList sx={{ width: 500, height: 450, mt: "20px" }} cols={3} rowHeight={164}>
+          <ImageList sx={{ mt: "20px" }} cols={mobile ? 2 : 3} gap={8} variant="masonry">
             {galleries.map((item) => (
               <ImageListItem
                 key={item._id}
@@ -156,12 +161,12 @@ const GalleryModal: FC<GalleryModalProps> = ({ current, nodeId, open, onClose })
                 }}
                 onClick={() => onSelect(item)}
               >
-                <Image src={item.url} alt={item.publicId} loading="lazy" width={250} height={250} />
+                <img src={item.url} alt={item.publicId} loading="lazy" />
               </ImageListItem>
             ))}
           </ImageList>
         )}
-        <Divider sx={{ backgroundColor: "whitesmoke" }} />
+        <Divider sx={{ backgroundColor: "whitesmoke", mt: "20px" }} />
         <Box sx={{ display: "flex", justifyContent: "space-between", mt: "20px" }}>
           <Button variant="contained" startIcon={<CloudUploadIcon />} component="label" disabled={loading}>
             Upload media
