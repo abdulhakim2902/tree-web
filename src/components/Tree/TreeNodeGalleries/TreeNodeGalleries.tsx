@@ -7,10 +7,11 @@ import { useSnackbar } from "notistack";
 
 type TreeNodeGalleriesProps = {
   nodeId: string;
+  current?: string;
   newFile?: File;
 };
 
-export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile }) => {
+export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile, current }) => {
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -66,18 +67,21 @@ export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile 
       {galleries.map((item) => (
         <ImageListItem key={item._id}>
           <Box position="relative">
-            <IconButton
-              sx={{
-                position: "absolute",
-                color: "whitesmoke",
-                right: "2%",
-                bottom: "2%",
-                backgroundColor: "grey",
-              }}
-              onClick={() => removeGallery(item._id)}
-            >
-              <DeleteIcon />
-            </IconButton>
+            {current !== item.url && (
+              <IconButton
+                sx={{
+                  position: "absolute",
+                  color: "whitesmoke",
+                  right: "2%",
+                  bottom: "2%",
+                  backgroundColor: "grey",
+                }}
+                onClick={() => removeGallery(item._id)}
+              >
+                <DeleteIcon />
+              </IconButton>
+            )}
+
             <img src={item.url} alt={item.publicId} loading="lazy" />
           </Box>
         </ImageListItem>

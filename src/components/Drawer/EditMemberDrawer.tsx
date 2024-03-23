@@ -61,7 +61,7 @@ const EditMemberDrawer: FC<EditMemberDrawerProps> = ({ node, open, onClose }) =>
 
         {node.profileImageURL && (
           <Box sx={{ mt: 2 }}>
-            <Image src={node.profileImageURL} alt={node.profileImageURL} width={80} height={80} />
+            <img src={node.profileImageURL} alt={node.profileImageURL} width={80}/>
           </Box>
         )}
         <Box sx={{ mt: 2 }}>

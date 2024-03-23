@@ -108,7 +108,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
             </ShowIf>
 
             <ShowIf condition={navId === 2}>
-              <TreeNodeGalleries nodeId={node.id} newFile={newFile} />
+              <TreeNodeGalleries nodeId={node.id} newFile={newFile} current={node.profileImageURL} />
             </ShowIf>
 
             <ShowIf condition={navId === 3}>
