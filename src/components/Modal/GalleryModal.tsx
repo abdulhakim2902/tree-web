@@ -87,8 +87,6 @@ const GalleryModal: FC<GalleryModalProps> = ({ current, nodeId, open, onClose })
     if (file.url === current) return;
 
     try {
-      setLoading(true);
-
       await updateNodeProfile(nodeId, file._id);
       setNodeProfile(nodeId, file);
       onClose();
@@ -101,29 +99,23 @@ const GalleryModal: FC<GalleryModalProps> = ({ current, nodeId, open, onClose })
         variant: "error",
         message: err.message,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   const onRemove = async () => {
     try {
-      setLoading(true);
-
       await updateNodeProfile(nodeId);
       setNodeProfile(nodeId);
       onClose();
       enqueueSnackbar({
         variant: "success",
-        message: "Successfully update profile image",
+        message: "Successfully remove profile image",
       });
     } catch (err: any) {
       enqueueSnackbar({
         variant: "error",
         message: err.message,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
