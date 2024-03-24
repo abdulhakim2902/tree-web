@@ -10,6 +10,28 @@ export type File = {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+export const nodeFiles = async (id?: string) => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+  if (!token) {
+    throw new Error("Token not found");
+  }
+
+  const response = await fetch(`${API_URL}/files?nodeId=${id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token.toString()}`,
+    },
+  });
+
+  if (response.status !== 200) {
+    return [];
+  }
+
+  const res = await response.json();
+  return res as File[];
+};
+
 export const upload = async (data: FormData) => {
   const token = getCookie(TOKEN_KEY)?.toString();
   if (!token) {

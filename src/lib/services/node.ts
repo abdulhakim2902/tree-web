@@ -302,28 +302,6 @@ export const getSpouse = async (id: string) => {
   return data as TreeNodeData[];
 };
 
-export const getGalleries = async (id: string) => {
-  const token = getCookie(TOKEN_KEY)?.toString();
-  if (!token) {
-    throw new Error("Token not found");
-  }
-
-  const response = await fetch(`${API_URL}/nodes/${id}/galleries`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token.toString()}`,
-    },
-  });
-
-  if (response.status !== 200) {
-    return [];
-  }
-
-  const res = await response.json();
-  return res as File[];
-};
-
 export const updateNodeProfile = async (id: string, fileId = "") => {
   const token = getCookie(TOKEN_KEY)?.toString();
   if (!token) {

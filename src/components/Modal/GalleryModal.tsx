@@ -9,8 +9,8 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import { File, upload } from "@tree/src/lib/services/file";
-import { getGalleries, updateNodeProfile } from "@tree/src/lib/services/node";
+import { File, nodeFiles, upload } from "@tree/src/lib/services/file";
+import { updateNodeProfile } from "@tree/src/lib/services/node";
 import React, { ChangeEvent, FC, useCallback, useEffect, useState } from "react";
 import Divider from "@mui/material/Divider";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -40,7 +40,7 @@ const GalleryModal: FC<GalleryModalProps> = ({ current, nodeId, open, onClose })
   const fetchGalleries = useCallback(() => {
     if (!nodeId) return;
     setLoadGalleries(true);
-    getGalleries(nodeId)
+    nodeFiles(nodeId)
       .then(setGalleries)
       .finally(() => setLoadGalleries(false));
   }, [nodeId]);

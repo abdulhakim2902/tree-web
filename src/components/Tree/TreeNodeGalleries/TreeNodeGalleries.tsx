@@ -8,8 +8,7 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import { File, remove } from "@tree/src/lib/services/file";
-import { getGalleries } from "@tree/src/lib/services/node";
+import { File, remove, nodeFiles } from "@tree/src/lib/services/file";
 import React, { FC, useEffect, useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useSnackbar } from "notistack";
@@ -36,7 +35,7 @@ export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile,
       setLoading(true);
 
       try {
-        const files = await getGalleries(id);
+        const files = await nodeFiles(id);
         setGalleries(files);
       } catch {
         //
