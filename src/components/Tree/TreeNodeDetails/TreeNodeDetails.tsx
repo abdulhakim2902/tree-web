@@ -44,6 +44,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openGalleries, setOpenGalleries] = useState<boolean>(false);
+  const [uploading, setUploading] = useState<boolean>(false);
   const [newFile, setNewFile] = useState<File>();
   const [navId, setNavId] = useState<number>(1);
 
@@ -52,6 +53,9 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
   const onUploadImage = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files?.length <= 0) return;
+
+    setUploading(true);
+
     const file = files[0];
     const form = new FormData();
     form.append("file", file);
@@ -60,13 +64,27 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
     }
 
     try {
+      setNewFile({ _id: "new", assetId: "new", publicId: "new", url: URL.createObjectURL(file) });
+
       const result = await upload(form);
-      setNewFile(result);
+      setNewFile((prev) => {
+        if (prev) {
+          prev._id = result._id;
+          prev.assetId = result.assetId;
+          prev.publicId = result.publicId;
+        } else {
+          prev = result;
+        }
+
+        return prev;
+      });
     } catch (err: any) {
       enqueueSnackbar({
         variant: "error",
         message: err.message,
       });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -108,7 +126,12 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
             </ShowIf>
 
             <ShowIf condition={navId === 2}>
-              <TreeNodeGalleries nodeId={node.id} newFile={newFile} current={node.profileImageURL} />
+              <TreeNodeGalleries
+                nodeId={node.id}
+                newFile={newFile}
+                current={node.profileImageURL}
+                uploading={uploading}
+              />
             </ShowIf>
 
             <ShowIf condition={navId === 3}>
@@ -153,7 +176,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
               <Tooltip title="Add galleries" placement="bottom-end">
                 <Fab color="secondary" aria-label="add-galleries" size="small" component="label">
                   <AddPhotoAlternateIcon />
-                  <input type="file" hidden={true} onChange={onUploadImage} />
+                  <input type="file" hidden={true} onChange={onUploadImage} disabled={uploading} />
                 </Fab>
               </Tooltip>
             </Box>

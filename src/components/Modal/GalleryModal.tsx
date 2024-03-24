@@ -1,11 +1,9 @@
 import {
   Box,
   Button,
-  Checkbox,
   CircularProgress,
   ImageList,
   ImageListItem,
-  ImageListItemBar,
   Modal,
   Typography,
   useMediaQuery,
@@ -13,12 +11,12 @@ import {
 } from "@mui/material";
 import { File, upload } from "@tree/src/lib/services/file";
 import { getGalleries, updateNodeProfile } from "@tree/src/lib/services/node";
-import Image from "next/image";
-import { ChangeEvent, FC, useCallback, useEffect, useState } from "react";
+import React, { ChangeEvent, FC, useCallback, useEffect, useState } from "react";
 import Divider from "@mui/material/Divider";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { useSnackbar } from "notistack";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
+import ShowIf from "../show-if";
 
 type GalleryModalProps = {
   current?: string;
@@ -62,8 +60,19 @@ const GalleryModal: FC<GalleryModalProps> = ({ current, nodeId, open, onClose })
 
     try {
       setLoading(true);
+      setGalleries([...galleries, { _id: "new", url: URL.createObjectURL(file), publicId: "new", assetId: "new" }]);
       const result = await upload(form);
-      setGalleries([...galleries, result]);
+      setGalleries((prev) => {
+        return prev.map((e) => {
+          if (e._id === "new") {
+            e._id = result._id;
+            e.assetId = result.assetId;
+            e.publicId = result.publicId;
+          }
+
+          return e;
+        });
+      });
     } catch (err: any) {
       enqueueSnackbar({
         variant: "error",
@@ -119,7 +128,14 @@ const GalleryModal: FC<GalleryModalProps> = ({ current, nodeId, open, onClose })
   };
 
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal
+      open={open}
+      onClose={(event, reason) => {
+        if (loading && reason === "backdropClick") return;
+        if (loading && reason === "escapeKeyDown") return;
+        onClose();
+      }}
+    >
       <Box
         sx={{
           position: "absolute",
@@ -148,28 +164,35 @@ const GalleryModal: FC<GalleryModalProps> = ({ current, nodeId, open, onClose })
             <CircularProgress />
           </Box>
         ) : (
-          <ImageList sx={{ mt: "20px" }} cols={mobile ? 2 : 3} gap={8} variant="masonry">
-            {galleries.map((item) => (
-              <ImageListItem
-                key={item._id}
-                sx={{
-                  opacity: current === item.url ? "50%" : "100%",
-                  cursor: current === item.url ? "default" : "pointer",
-                  ":hover": {
-                    opacity: current === item.url ? "50%" : "75%",
-                  },
-                }}
-                onClick={() => onSelect(item)}
-              >
-                <img src={item.url} alt={item.publicId} loading="lazy" />
-              </ImageListItem>
-            ))}
-          </ImageList>
+          <React.Fragment>
+            <ImageList sx={{ mt: "20px" }} cols={mobile ? 2 : 3} gap={8} variant="masonry">
+              {galleries.map((item) => (
+                <ImageListItem
+                  key={item._id}
+                  sx={{
+                    opacity: current === item.url ? "50%" : "100%",
+                    cursor: current === item.url ? "default" : "pointer",
+                    ":hover": {
+                      opacity: current === item.url ? "50%" : "75%",
+                    },
+                  }}
+                  onClick={!loading ? () => onSelect(item) : () => {}}
+                >
+                  <Box position="relative">
+                    <img src={item.url} alt={item.publicId} loading="lazy" />
+                    <ShowIf condition={item._id === "new" && loading}>
+                      <CircularProgress size={20} sx={{ position: "absolute", right: "45%", top: "45%" }} />
+                    </ShowIf>
+                  </Box>
+                </ImageListItem>
+              ))}
+            </ImageList>
+          </React.Fragment>
         )}
         <Divider sx={{ backgroundColor: "whitesmoke", mt: "20px" }} />
         <Box sx={{ display: "flex", justifyContent: "space-between", mt: "20px" }}>
-          <Button variant="contained" startIcon={<CloudUploadIcon />} component="label" disabled={loading}>
-            Upload media
+          <Button variant="contained" startIcon={<CloudUploadIcon />} component="label">
+            {loading ? "Uploading..." : "Upload media"}
             <input type="file" hidden={true} onChange={onUploadImage} disabled={loading} />
           </Button>
           <Button variant="outlined" onClick={onRemove}>

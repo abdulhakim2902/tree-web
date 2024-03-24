@@ -1,6 +1,6 @@
 import { TreeNodeDataWithRelations } from "@tree/src/types/tree";
 import classNames from "classnames";
-import React, { FC, useState } from "react";
+import React, { FC } from "react";
 import BioRelationButtons from "../BioRelationButtons/BioRelationButtons";
 import { getAge, getDate } from "@tree/src/helper/date";
 import s from "./TreeNodeDetailsBio.module.css";
@@ -8,8 +8,6 @@ import ShowIf from "@tree/src/components/show-if";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { startCase } from "@tree/src/helper/string";
 import { Box } from "@mui/material";
-import Image from "next/image";
-import GalleryModal from "@tree/src/components/Modal/GalleryModal";
 
 type TreeNodeDetailsBioProps = TreeNodeDataWithRelations & {
   onRelationNodeClick: (id: string) => void;
@@ -36,8 +34,6 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
   const birthDate = getDate(birth?.year, birth?.month, birth?.day);
   const deathDate = getDate(death?.year, death?.month, death?.day);
   const [age, info] = getAge(birth?.year, birth?.month, birth?.day);
-
-  const [open, setOpen] = useState<boolean>(false);
 
   return (
     <React.Fragment>
@@ -146,22 +142,11 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
         </div>
 
         <ShowIf condition={Boolean(profileImageURL)}>
-          <Box
-            height={150}
-            width={150}
-            sx={{
-              mb: "10px",
-              cursor: "pointer",
-            }}
-            borderRadius={1}
-            borderColor="whitesmoke"
-            onClick={() => setOpen(true)}
-          >
+          <Box height={150} width={150} sx={{ mb: "10px" }} borderRadius={1} borderColor="whitesmoke">
             <img src={profileImageURL ?? ""} width={150} alt={profileImageURL} loading="lazy" />
           </Box>
         </ShowIf>
       </div>
-      <GalleryModal open={open} onClose={() => setOpen(false)} nodeId={id} current={profileImageURL} />
     </React.Fragment>
   );
 };

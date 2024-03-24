@@ -1,17 +1,28 @@
-import { Box, IconButton, ImageList, ImageListItem, LinearProgress, useMediaQuery, useTheme } from "@mui/material";
+import {
+  Box,
+  CircularProgress,
+  IconButton,
+  ImageList,
+  ImageListItem,
+  LinearProgress,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import { File, remove } from "@tree/src/lib/services/file";
 import { getGalleries } from "@tree/src/lib/services/node";
 import React, { FC, useEffect, useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useSnackbar } from "notistack";
+import ShowIf from "../../show-if";
 
 type TreeNodeGalleriesProps = {
   nodeId: string;
   current?: string;
   newFile?: File;
+  uploading: boolean;
 };
 
-export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile, current }) => {
+export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile, current, uploading }) => {
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -39,7 +50,21 @@ export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile,
 
   useEffect(() => {
     if (!newFile) return;
-    setGalleries((prev) => [...prev, newFile]);
+    if (newFile._id === "new") {
+      setGalleries((prev) => [...prev, newFile]);
+    } else {
+      setGalleries((prev) =>
+        prev.map((e) => {
+          if (e._id === "new") {
+            e._id = newFile._id;
+            e.assetId = newFile.assetId;
+            e.publicId = newFile.publicId;
+          }
+
+          return e;
+        }),
+      );
+    }
   }, [newFile]);
 
   const removeGallery = async (id: string) => {
@@ -67,7 +92,7 @@ export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile,
       {galleries.map((item) => (
         <ImageListItem key={item._id}>
           <Box position="relative">
-            {current !== item.url && (
+            {current !== item.url && item._id !== "new" && (
               <IconButton
                 sx={{
                   position: "absolute",
@@ -83,6 +108,9 @@ export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile,
             )}
 
             <img src={item.url} alt={item.publicId} loading="lazy" />
+            <ShowIf condition={item._id === "new" && uploading}>
+              <CircularProgress size={20} sx={{ position: "absolute", right: "45%", top: "45%" }} />
+            </ShowIf>
           </Box>
         </ImageListItem>
       ))}
