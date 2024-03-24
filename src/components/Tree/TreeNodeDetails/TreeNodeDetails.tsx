@@ -156,19 +156,17 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
                   <AddIcon />
                 </Fab>
               </Tooltip>
-              <ShowIf condition={false}>
-                <Tooltip title="Delete member" placement="bottom-end">
-                  <Fab
-                    color="error"
-                    aria-label="add"
-                    size="small"
-                    onClick={() => setOpenDelete(true)}
-                    sx={{ ml: "10px" }}
-                  >
-                    <DeleteIcon />
-                  </Fab>
-                </Tooltip>
-              </ShowIf>
+              <Tooltip title="Delete relative" placement="bottom-end">
+                <Fab
+                  color="error"
+                  aria-label="add"
+                  size="small"
+                  onClick={() => setOpenDelete(true)}
+                  sx={{ ml: "10px" }}
+                >
+                  <DeleteIcon />
+                </Fab>
+              </Tooltip>
             </Box>
           </ShowIf>
           <ShowIf condition={navId === 2}>

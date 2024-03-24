@@ -1,6 +1,8 @@
 import { Box, Button, Modal, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { FC } from "react";
 import WarningIcon from "@mui/icons-material/Warning";
+import { useTreeNodeDataContext } from "@tree/src/context/data";
+import { useNodeSelectionContext } from "@tree/src/context/tree";
 
 type DeleteMemberModalProps = {
   nodeId?: string;
@@ -9,11 +11,23 @@ type DeleteMemberModalProps = {
 };
 
 const DeleteMemberModal: FC<DeleteMemberModalProps> = ({ nodeId, open, onClose }) => {
+  const { deleteNode, loading } = useTreeNodeDataContext();
+  const { unselectNode } = useNodeSelectionContext();
+
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
-    <Modal open={open} onClose={onClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
+    <Modal
+      open={open}
+      onClose={(event, reason) => {
+        if (loading.deleted && reason === "backdropClick") return;
+        if (loading.deleted && reason === "escapeKeyDown") return;
+        onClose();
+      }}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
       <Box
         sx={{
           position: "absolute",
@@ -36,17 +50,31 @@ const DeleteMemberModal: FC<DeleteMemberModalProps> = ({ nodeId, open, onClose }
           You are about to delete this member
         </Typography>
         <Box sx={{ mt: "30px" }} textAlign="end">
-          <Button color="info" variant="outlined" sx={{ mr: "10px" }} onClick={onClose}>
+          <Button
+            color="info"
+            variant="outlined"
+            sx={{ mr: "10px" }}
+            onClick={() => {
+              if (loading.deleted) return;
+              onClose();
+            }}
+          >
             Cancel
           </Button>
           <Button
             variant="contained"
             color="error"
             onClick={() => {
-              onClose();
+              if (loading.deleted) return;
+              deleteNode(nodeId ?? "", (success) => {
+                if (success) {
+                  onClose();
+                  unselectNode();
+                }
+              });
             }}
           >
-            Delete
+            {loading.deleted ? "Deleting..." : "Delete"}
           </Button>
         </Box>
       </Box>

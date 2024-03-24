@@ -327,3 +327,26 @@ export const updateNodeProfile = async (id: string, fileId = "") => {
 
   await response.json();
 };
+
+export const deleteNode = async (id: string) => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+  if (!token) {
+    throw new Error("Token not found");
+  }
+
+  if (!id) {
+    throw new Error("Invalid node id");
+  }
+
+  const response = await fetch(`${API_URL}/nodes/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token.toString()}`,
+    },
+  });
+
+  if (response.status !== 200) {
+    throw new Error(response.statusText);
+  }
+};

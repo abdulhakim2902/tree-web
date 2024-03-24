@@ -9,6 +9,7 @@ import {
   rootNodes as rootNodesAPI,
   searchNodes as searchNodesAPI,
   updateNode as updateNodeAPI,
+  deleteNode as deleteNodeAPI,
 } from "@tree/src/lib/services/node";
 import { Tree, TreeNode } from "@tree/src/types/tree";
 import { useSnackbar } from "notistack";
@@ -18,7 +19,7 @@ import { useRouter } from "next/router";
 import { NODE_FAMILIES_KEY, TREE_KEY } from "@tree/src/constants/storage-key";
 import { useCacheContext } from "./cache";
 import { DAY } from "../helper/date";
-import { File } from "../lib/services/file";
+import { File, remove } from "../lib/services/file";
 
 type Loading = {
   main: boolean;
@@ -28,6 +29,7 @@ type Loading = {
   };
   updated: boolean;
   added: boolean;
+  deleted: boolean;
 };
 
 const defaultLoading = {
@@ -38,6 +40,7 @@ const defaultLoading = {
   },
   updated: false,
   added: false,
+  deleted: false,
 };
 
 const defaultTree = {
@@ -64,6 +67,7 @@ type TreeNodeDataContextValue = {
   updateNode: (id: string, data: Bio, cb?: (success: boolean, error?: string) => void) => void;
   updateNodeProfile: (id: string, data?: File) => void;
   addNode: (id: string, data: any, type: string, cb?: (success: boolean, error?: string) => void) => void;
+  deleteNode: (id: string, cb?: (success: boolean, error?: string) => void) => void;
   clearNodes: () => void;
 };
 
@@ -201,7 +205,8 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
           await spouseAndChildNodes(id);
           break;
 
-        case "sibling":
+        case "brother":
+        case "sister":
           await addSibling(id, data);
           await parentAndChildNodes(id);
           break;
@@ -219,6 +224,54 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
       message = err.message;
     } finally {
       setLoading((prev) => ({ ...prev, added: false }));
+    }
+
+    cb && cb(success, !success ? message : undefined);
+
+    enqueueSnackbar({
+      variant: success ? "success" : "error",
+      message: message,
+    });
+  };
+
+  const deleteNode = async (id: string, cb?: (success: boolean, error?: string) => void) => {
+    if (!id) return;
+
+    let success = false;
+    let message = "Relative is deleted from the family";
+
+    try {
+      setLoading((prev) => ({ ...prev, deleted: true }));
+
+      await deleteNodeAPI(id);
+      await remove(id, "node");
+
+      const updatedNodes = tree.nodes
+        .map((node) => {
+          node.parents = node.parents.filter((parent) => parent.id !== id);
+          node.children = node.children.filter((child) => child.id !== id);
+          node.spouses = node.spouses.filter((spouse) => spouse.id !== id);
+          node.siblings = node.siblings.filter((sibling) => sibling.id !== id);
+          if (node?.data?.families) {
+            node.data.families = node.data.families.filter((family) => family.id !== id);
+          }
+
+          return node;
+        })
+        .filter((node) => node.id !== id);
+
+      const nodeMap = Object.fromEntries(updatedNodes.map((e) => [e.id, e]));
+
+      const updatedTree = { ...tree, nodes: updatedNodes, nodeMap };
+
+      set(TREE_KEY, updatedTree, DAY);
+      setTree({ ...updatedTree });
+
+      success = true;
+    } catch (err: any) {
+      message = err.message;
+    } finally {
+      setLoading((prev) => ({ ...prev, deleted: false }));
     }
 
     cb && cb(success, !success ? message : undefined);
@@ -406,6 +459,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
         updateNodeProfile,
         expandNode,
         addNode,
+        deleteNode,
       }}
     >
       {children}

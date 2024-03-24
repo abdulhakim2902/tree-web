@@ -54,13 +54,13 @@ export const upload = async (data: FormData) => {
   return result as File;
 };
 
-export const remove = async (id: string) => {
+export const remove = async (id: string, type?: string) => {
   const token = getCookie(TOKEN_KEY)?.toString();
   if (!token) {
     throw new Error("Token not found");
   }
 
-  const response = await fetch(`${API_URL}/files/${id}`, {
+  const response = await fetch(`${API_URL}/files/${id}?type=${type}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
