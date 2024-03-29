@@ -11,7 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { deepOrange } from "@mui/material/colors";
-import React, { FC } from "react";
+import React, { FC, useState } from "react";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
@@ -19,9 +19,10 @@ import { useRouter } from "next/router";
 import { makeStyles } from "@mui/styles";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import Diversity1Icon from "@mui/icons-material/Diversity1";
-import { startCase } from "@tree/src/helper/string";
+import { getNameSymbol, startCase } from "@tree/src/helper/string";
 import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
 import ShowIf from "../show-if";
+import InvitePeopleModal from "../Modal/InvitePeopleModal";
 
 const useStyles = makeStyles(() => ({
   paper: {
@@ -37,7 +38,8 @@ const User: FC = () => {
   const { clearNodes } = useTreeNodeDataContext();
   const { replace, push } = useRouter();
 
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [openInvite, setOpenInvite] = useState<boolean>(false);
 
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -71,7 +73,7 @@ const User: FC = () => {
             width: mobile ? "30px" : "35px",
           }}
         >
-          <Typography sx={{ color: "whitesmoke" }}>{getNameSymbol(user.name).toUpperCase()}</Typography>
+          <Typography sx={{ color: "whitesmoke" }}>{getNameSymbol(user.name)}</Typography>
         </Avatar>
       </Badge>
       <Menu
@@ -100,7 +102,12 @@ const User: FC = () => {
           <ListItemText>{startCase(user.name)}</ListItemText>
         </MenuItem>
         <ShowIf condition={!Boolean(user.role)}>
-          <MenuItem>
+          <MenuItem
+            onClick={() => {
+              setAnchorEl(null);
+              setOpenInvite(true);
+            }}
+          >
             <ListItemIcon>
               <ForwardToInboxIcon sx={{ color: "whitesmoke" }} />
             </ListItemIcon>
@@ -132,18 +139,9 @@ const User: FC = () => {
           <ListItemText>Logout</ListItemText>
         </MenuItem>
       </Menu>
+      <InvitePeopleModal open={openInvite} onClose={() => setOpenInvite(false)} />
     </React.Fragment>
   );
 };
 
 export default User;
-
-function getNameSymbol(name?: string): string {
-  if (!name) return "U";
-  const names = name.split(" ");
-  if (names.length === 1) {
-    return names[0][0];
-  }
-
-  return `${names[0][0]}${names[1][0]}`;
-}
