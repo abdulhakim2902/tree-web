@@ -5,13 +5,10 @@ import { Login as LoginType, Register } from "@tree/src/types/auth";
 import { useSnackbar } from "notistack";
 import LoginModal from "../Modal/LoginModal";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
-import { parseJSON } from "@tree/src/helper/parse-json";
-import { getCookie } from "cookies-next";
-import { UserWithFullname } from "@tree/src/types/user";
-import { TREE_KEY, USER_KEY } from "@tree/src/constants/storage-key";
+import { TREE_KEY, TREE_ROOT_KEY, USER_KEY } from "@tree/src/constants/storage-key";
 import { useRouter } from "next/router";
 import { useCacheContext } from "@tree/src/context/cache";
-import { Tree } from "@tree/src/types/tree";
+import { Root } from "@tree/src/types/tree";
 import LoginForm from "../Form/LoginForm";
 import RegisterModal from "../Modal/RegisterModal";
 import { Bio, defaultBio, defaultError as defaultErrorBio, Error as ErrorBio } from "../Form/Form";
@@ -96,16 +93,8 @@ const Login: FC = () => {
       setOpenLogin(false);
       if (pathname === "/families") replace("/families");
       if (pathname === "/tree") {
-        const tree = get<Tree>(TREE_KEY);
-
-        let nodeId = tree?.root?.id;
-        if (!nodeId) {
-          const userStr = getCookie(USER_KEY)?.toString();
-          const user = parseJSON<UserWithFullname>(userStr);
-          nodeId = user?.nodeId;
-        }
-
-        rootNodes(nodeId);
+        const root = get<Root>(TREE_ROOT_KEY);
+        rootNodes(root?.id);
       }
     });
   };

@@ -1,16 +1,13 @@
-import { TreeNodeData } from "./tree";
+export enum Role {
+  GUEST = "guest",
+  CONTRIBUTOR = "contributor",
+  EDITOR = "editor",
+}
 
 export type User = {
   id: string;
+  name: string;
   email: string;
   username: string;
-};
-
-export type UserWithFullname = User & {
-  nodeId: string;
-  fullname: string;
-};
-
-export type UserWithNode = User & {
-  node: TreeNodeData;
+  role?: Role;
 };

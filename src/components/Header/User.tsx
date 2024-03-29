@@ -19,6 +19,9 @@ import { useRouter } from "next/router";
 import { makeStyles } from "@mui/styles";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import Diversity1Icon from "@mui/icons-material/Diversity1";
+import { startCase } from "@tree/src/helper/string";
+import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
+import ShowIf from "../show-if";
 
 const useStyles = makeStyles(() => ({
   paper: {
@@ -31,7 +34,7 @@ const User: FC = () => {
   const classes = useStyles();
 
   const { isLoggedIn, user, logout } = useAuthContext();
-  const { clearNodes, rootNodes } = useTreeNodeDataContext();
+  const { clearNodes } = useTreeNodeDataContext();
   const { replace, push } = useRouter();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -39,7 +42,7 @@ const User: FC = () => {
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  if (!isLoggedIn) return <React.Fragment />;
+  if (!isLoggedIn || !user) return <React.Fragment />;
   return (
     <React.Fragment>
       <Badge
@@ -68,7 +71,7 @@ const User: FC = () => {
             width: mobile ? "30px" : "35px",
           }}
         >
-          <Typography sx={{ color: "whitesmoke" }}>{getNameSymbol(user?.fullname)}</Typography>
+          <Typography sx={{ color: "whitesmoke" }}>{getNameSymbol(user.name).toUpperCase()}</Typography>
         </Avatar>
       </Badge>
       <Menu
@@ -88,15 +91,22 @@ const User: FC = () => {
       >
         <MenuItem
           onClick={() => {
-            rootNodes(user?.nodeId);
             setAnchorEl(null);
           }}
         >
           <ListItemIcon>
             <AccountCircleIcon sx={{ color: "whitesmoke" }} />
           </ListItemIcon>
-          <ListItemText>{user?.fullname ?? ""}</ListItemText>
+          <ListItemText>{startCase(user.name)}</ListItemText>
         </MenuItem>
+        <ShowIf condition={!Boolean(user.role)}>
+          <MenuItem>
+            <ListItemIcon>
+              <ForwardToInboxIcon sx={{ color: "whitesmoke" }} />
+            </ListItemIcon>
+            <ListItemText>Invite People</ListItemText>
+          </MenuItem>
+        </ShowIf>
         <MenuItem
           onClick={() => {
             push("/families");

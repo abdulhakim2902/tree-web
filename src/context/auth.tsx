@@ -1,5 +1,5 @@
 import { Login } from "@tree/src/types/auth";
-import { UserWithFullname } from "@tree/src/types/user";
+import { User } from "@tree/src/types/user";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { FC, createContext, useCallback, useContext, useEffect, useState } from "react";
 import { login as loginAPI } from "@tree/src/lib/services/auth";
@@ -10,10 +10,9 @@ import { TOKEN_KEY, USER_KEY } from "@tree/src/constants/storage-key";
 type AuthContextValue = {
   isLoggedIn: boolean;
   loading: boolean;
-  user: UserWithFullname | null;
+  user: User | null;
   token: string;
 
-  setUser: (id: string, fullname: string) => void;
   login: (data: Login, cb?: (success: boolean) => void) => void;
   logout: () => void;
 };
@@ -28,11 +27,11 @@ export const AuthContextProvider: FC = ({ children }) => {
 
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(Boolean(userStr) && Boolean(tokenStr));
   const [loading, setLoading] = useState<boolean>(false);
-  const [user, setUser] = useState<UserWithFullname | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string>(tokenStr);
 
   useEffect(() => {
-    const user = parseJSON<UserWithFullname>(userStr);
+    const user = parseJSON<User>(userStr);
     setUser(user);
   }, [userStr]);
 
@@ -74,26 +73,8 @@ export const AuthContextProvider: FC = ({ children }) => {
     setUser(null);
   };
 
-  const onUpdateUser = useCallback((id: string, fullname: string) => {
-    setUser((user) => {
-      if (user?.nodeId === id) {
-        const newUser = {
-          ...user,
-          fullname,
-        };
-
-        setCookie(USER_KEY, newUser);
-        return newUser;
-      }
-
-      return user;
-    });
-  }, []);
-
   return (
-    <AuthContext.Provider value={{ loading, isLoggedIn, user, token, setUser: onUpdateUser, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={{ loading, isLoggedIn, user, token, login, logout }}>{children}</AuthContext.Provider>
   );
 };
 

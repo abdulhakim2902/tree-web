@@ -21,14 +21,7 @@ export const login = async (data: Login, cb?: (user?: User, token?: string) => v
 
   if (token) {
     const result = await me(token);
-    const user = {
-      id: result.id,
-      email: result.username,
-      username: result.username,
-      nodeId: result?.node?.id ?? "",
-      fullname: result?.node?.fullname ?? "Admin",
-    };
 
-    cb && cb(user, token);
+    cb && cb(result, token);
   }
 };

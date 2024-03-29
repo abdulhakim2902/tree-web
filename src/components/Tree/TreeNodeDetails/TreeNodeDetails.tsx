@@ -23,6 +23,7 @@ import { File, upload } from "@tree/src/lib/services/file";
 import { useSnackbar } from "notistack";
 import { TreeNodeGalleries } from "../TreeNodeGalleries/TreeNodeGalleries";
 import GalleryModal from "../../Modal/GalleryModal";
+import { Role } from "@tree/src/types/user";
 
 const navigation = [
   { id: 1, title: "Biography" },
@@ -37,7 +38,7 @@ type TreeNodeDetailsProps = {
 const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
   const { selectedNodeId, unselectNode, selectNode } = useNodeSelectionContext();
   const { init } = useTreeNodeDataContext();
-  const { isLoggedIn } = useAuthContext();
+  const { isLoggedIn, user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
 
   const [openAdd, setOpenAdd] = useState<boolean>(false);
@@ -88,7 +89,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
     }
   };
 
-  if (!isLoggedIn || !node || init) return <React.Fragment />;
+  if (!isLoggedIn || !node || init || !user) return <React.Fragment />;
   return (
     <React.Fragment>
       <Box>
@@ -100,13 +101,15 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
             <div className={s.rootItem}>
               <h2 className={s.name}>
                 {node.fullname}
-                <Tooltip title="Edit the information for this person" placement="bottom-start">
-                  <EditIcon
-                    fontSize="small"
-                    sx={{ ml: "10px", cursor: "pointer", ":hover": { color: "#4da1ff" } }}
-                    onClick={() => setOpenEdit(true)}
-                  />
-                </Tooltip>
+                <ShowIf condition={[Role.EDITOR, Role.CONTRIBUTOR].some((e) => e === user.role) || !Boolean(user.role)}>
+                  <Tooltip title="Edit the information for this person" placement="bottom-start">
+                    <EditIcon
+                      fontSize="small"
+                      sx={{ ml: "10px", cursor: "pointer", ":hover": { color: "#4da1ff" } }}
+                      onClick={() => setOpenEdit(true)}
+                    />
+                  </Tooltip>
+                </ShowIf>
               </h2>
             </div>
             <nav className={s.rootItem}>
@@ -140,43 +143,52 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
           </Box>
           <ShowIf condition={navId === 1}>
             <Box sx={{ display: "flex", justifyContent: "end" }}>
-              <Tooltip title="Update profile image" placement="bottom-end" sx={{ mr: "10px" }}>
-                <Fab
-                  color="secondary"
-                  aria-label="update-profile"
-                  size="small"
-                  component="label"
-                  onClick={() => setOpenGalleries(true)}
-                >
-                  <AddPhotoAlternateIcon />
-                </Fab>
-              </Tooltip>
-              <Tooltip title="Add relative" placement="bottom-end">
-                <Fab color="primary" aria-label="add" size="small" onClick={() => setOpenAdd(true)}>
-                  <AddIcon />
-                </Fab>
-              </Tooltip>
-              <Tooltip title="Delete relative" placement="bottom-end">
-                <Fab
-                  color="error"
-                  aria-label="add"
-                  size="small"
-                  onClick={() => setOpenDelete(true)}
-                  sx={{ ml: "10px" }}
-                >
-                  <DeleteIcon />
-                </Fab>
-              </Tooltip>
+              <ShowIf condition={[Role.EDITOR, Role.CONTRIBUTOR].some((e) => e === user.role) || !Boolean(user.role)}>
+                <Tooltip title="Update profile image" placement="bottom-end" sx={{ mr: "10px" }}>
+                  <Fab
+                    color="secondary"
+                    aria-label="update-profile"
+                    size="small"
+                    component="label"
+                    onClick={() => setOpenGalleries(true)}
+                  >
+                    <AddPhotoAlternateIcon />
+                  </Fab>
+                </Tooltip>
+              </ShowIf>
+              <ShowIf condition={[Role.EDITOR].some((e) => e === user.role) || !Boolean(user.role)}>
+                <Tooltip title="Add relative" placement="bottom-end">
+                  <Fab color="primary" aria-label="add" size="small" onClick={() => setOpenAdd(true)}>
+                    <AddIcon />
+                  </Fab>
+                </Tooltip>
+              </ShowIf>
+
+              <ShowIf condition={[Role.EDITOR].some((e) => e === user.role) || !Boolean(user.role)}>
+                <Tooltip title="Delete relative" placement="bottom-end">
+                  <Fab
+                    color="error"
+                    aria-label="add"
+                    size="small"
+                    onClick={() => setOpenDelete(true)}
+                    sx={{ ml: "10px" }}
+                  >
+                    <DeleteIcon />
+                  </Fab>
+                </Tooltip>
+              </ShowIf>
             </Box>
           </ShowIf>
           <ShowIf condition={navId === 2}>
             <Box sx={{ display: "flex", justifyContent: "end" }}>
-              <Tooltip title="Add galleries" placement="bottom-end">
-                <Fab color="secondary" aria-label="add-galleries" size="small" component="label">
-                  <AddPhotoAlternateIcon />
-                  <input type="file" hidden={true} onChange={onUploadImage} disabled={uploading} />
-                </Fab>
-              </Tooltip>
+              <ShowIf condition={[Role.EDITOR, Role.CONTRIBUTOR].some((e) => e === user.role) || !Boolean(user.role)}>
+                <Tooltip title="Add galleries" placement="bottom-end">
+                  <Fab color="secondary" aria-label="add-galleries" size="small" component="label">
+                    <AddPhotoAlternateIcon />
+                    <input type="file" hidden={true} onChange={onUploadImage} disabled={uploading} />
+                  </Fab>
+                </Tooltip>
+              </ShowIf>
             </Box>
           </ShowIf>
         </div>

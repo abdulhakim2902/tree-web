@@ -14,7 +14,6 @@ import {
 import { Root, Tree, TreeNode } from "@tree/src/types/tree";
 import { useSnackbar } from "notistack";
 import { FC, KeyboardEvent, createContext, useContext, useState } from "react";
-import { useAuthContext } from "./auth";
 import { useRouter } from "next/router";
 import { NODE_FAMILIES_KEY, TREE_KEY, TREE_ROOT_KEY } from "@tree/src/constants/storage-key";
 import { useCacheContext } from "./cache";
@@ -82,7 +81,6 @@ const TreeNodeDataContext = createContext<TreeNodeDataContextValue | null>(null)
 export const TreeNodeDataContextProvider: FC = ({ children }) => {
   const { enqueueSnackbar } = useSnackbar();
   const { get, set, del, clear } = useCacheContext();
-  const { setUser } = useAuthContext();
   const { pathname, push } = useRouter();
   const { startProgress, endProgress } = useLoadingBarContext();
 
@@ -402,7 +400,6 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
       const updatedTree = { ...tree, nodes: Object.values(tree.nodeMap) };
 
       setTree(updatedTree);
-      setUser(id, updatedNode.fullname);
 
       success = true;
       message = `${updatedNode.fullname} biography is updated`;

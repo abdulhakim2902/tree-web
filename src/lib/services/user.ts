@@ -1,9 +1,9 @@
-import { UserWithNode } from "@tree/src/types/user";
+import { User } from "@tree/src/types/user";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const me = async (token: string) => {
-  return new Promise<UserWithNode>((resolve, reject) => {
+  return new Promise<User>((resolve, reject) => {
     fetch(`${API_URL}/users/me`, {
       method: "GET",
       headers: {

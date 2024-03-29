@@ -68,9 +68,10 @@ const DeleteMemberModal: FC<DeleteMemberModalProps> = ({ nodeId, open, onClose }
               if (loading.deleted) return;
               deleteNode(nodeId ?? "", (success) => {
                 if (success) {
-                  onClose();
                   unselectNode();
                 }
+
+                onClose();
               });
             }}
           >
