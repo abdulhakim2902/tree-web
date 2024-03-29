@@ -25,6 +25,10 @@ import { TreeNodeGalleries } from "../TreeNodeGalleries/TreeNodeGalleries";
 import GalleryModal from "../../Modal/GalleryModal";
 import { Role } from "@tree/src/types/user";
 
+const UPDATE = [Role.EDITOR, Role.CONTRIBUTOR, Role.SUPERADMIN];
+const CREATE = [Role.EDITOR, Role.SUPERADMIN];
+const DELETE = [Role.EDITOR, Role.SUPERADMIN];
+
 const navigation = [
   { id: 1, title: "Biography" },
   { id: 2, title: "Galleries" },
@@ -101,7 +105,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
             <div className={s.rootItem}>
               <h2 className={s.name}>
                 {node.fullname}
-                <ShowIf condition={[Role.EDITOR, Role.CONTRIBUTOR].some((e) => e === user.role) || !Boolean(user.role)}>
+                <ShowIf condition={UPDATE.some((e) => e === user.role)}>
                   <Tooltip title="Edit the information for this person" placement="bottom-start">
                     <EditIcon
                       fontSize="small"
@@ -143,7 +147,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
           </Box>
           <ShowIf condition={navId === 1}>
             <Box sx={{ display: "flex", justifyContent: "end" }}>
-              <ShowIf condition={[Role.EDITOR, Role.CONTRIBUTOR].some((e) => e === user.role) || !Boolean(user.role)}>
+              <ShowIf condition={UPDATE.some((e) => e === user.role)}>
                 <Tooltip title="Update profile image" placement="bottom-end" sx={{ mr: "10px" }}>
                   <Fab
                     color="secondary"
@@ -156,7 +160,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
                   </Fab>
                 </Tooltip>
               </ShowIf>
-              <ShowIf condition={[Role.EDITOR].some((e) => e === user.role) || !Boolean(user.role)}>
+              <ShowIf condition={CREATE.some((e) => e === user.role)}>
                 <Tooltip title="Add relative" placement="bottom-end">
                   <Fab color="primary" aria-label="add" size="small" onClick={() => setOpenAdd(true)}>
                     <AddIcon />
@@ -164,7 +168,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
                 </Tooltip>
               </ShowIf>
 
-              <ShowIf condition={[Role.EDITOR].some((e) => e === user.role) || !Boolean(user.role)}>
+              <ShowIf condition={DELETE.some((e) => e === user.role)}>
                 <Tooltip title="Delete relative" placement="bottom-end">
                   <Fab
                     color="error"
@@ -181,7 +185,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
           </ShowIf>
           <ShowIf condition={navId === 2}>
             <Box sx={{ display: "flex", justifyContent: "end" }}>
-              <ShowIf condition={[Role.EDITOR, Role.CONTRIBUTOR].some((e) => e === user.role) || !Boolean(user.role)}>
+              <ShowIf condition={UPDATE.some((e) => e === user.role)}>
                 <Tooltip title="Add galleries" placement="bottom-end">
                   <Fab color="secondary" aria-label="add-galleries" size="small" component="label">
                     <AddPhotoAlternateIcon />

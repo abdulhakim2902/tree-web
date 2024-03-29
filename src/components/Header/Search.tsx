@@ -6,9 +6,23 @@ import CloseIcon from "@mui/icons-material/Close";
 import ShowIf from "../show-if";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
 import Link from "next/link";
+import { useAuthContext } from "@tree/src/context/auth";
 
 const Search: FC = () => {
   const { query, setQuery, searchNodes } = useTreeNodeDataContext();
+  const { isLoggedIn } = useAuthContext();
+
+  if (!isLoggedIn) {
+    return (
+      <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}>
+        <Link passHref={true} href="/">
+          <span style={{ cursor: "pointer" }}>
+            <Image src="/favicon.ico" width={40} height={34} alt="Tree project" />
+          </span>
+        </Link>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}>

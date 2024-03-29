@@ -5,7 +5,7 @@ import { Login as LoginType, Register } from "@tree/src/types/auth";
 import { useSnackbar } from "notistack";
 import LoginModal from "../Modal/LoginModal";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
-import { TREE_KEY, TREE_ROOT_KEY, USER_KEY } from "@tree/src/constants/storage-key";
+import { TREE_ROOT_KEY } from "@tree/src/constants/storage-key";
 import { useRouter } from "next/router";
 import { useCacheContext } from "@tree/src/context/cache";
 import { Root } from "@tree/src/types/tree";
@@ -27,7 +27,7 @@ const defaultErrorRegister = { username: false, password: false, email: false };
 
 const Login: FC = () => {
   const { isLoggedIn, login } = useAuthContext();
-  const { rootNodes } = useTreeNodeDataContext();
+  const { rootNodes, tree } = useTreeNodeDataContext();
   const { get } = useCacheContext();
   const { enqueueSnackbar } = useSnackbar();
   const { pathname, replace } = useRouter();
@@ -94,7 +94,9 @@ const Login: FC = () => {
       if (pathname === "/families") replace("/families");
       if (pathname === "/tree") {
         const root = get<Root>(TREE_ROOT_KEY);
-        rootNodes(root?.id);
+        const nodeId = root?.id ?? tree?.root?.id;
+        if (!nodeId) replace("/families");
+        rootNodes(nodeId);
       }
     });
   };

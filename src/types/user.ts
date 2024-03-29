@@ -2,6 +2,7 @@ export enum Role {
   GUEST = "guest",
   CONTRIBUTOR = "contributor",
   EDITOR = "editor",
+  SUPERADMIN = "superadmin",
 }
 
 export type User = {

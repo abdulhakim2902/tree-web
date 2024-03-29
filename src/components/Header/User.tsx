@@ -23,6 +23,7 @@ import { getNameSymbol, startCase } from "@tree/src/helper/string";
 import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
 import ShowIf from "../show-if";
 import InvitePeopleModal from "../Modal/InvitePeopleModal";
+import { Role } from "@tree/src/types/user";
 
 const useStyles = makeStyles(() => ({
   paper: {
@@ -101,7 +102,7 @@ const User: FC = () => {
           </ListItemIcon>
           <ListItemText>{startCase(user.name)}</ListItemText>
         </MenuItem>
-        <ShowIf condition={!Boolean(user.role)}>
+        <ShowIf condition={user.role === Role.SUPERADMIN}>
           <MenuItem
             onClick={() => {
               setAnchorEl(null);

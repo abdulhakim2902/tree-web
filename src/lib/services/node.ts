@@ -11,6 +11,25 @@ type NodeResponse = {
 
 export type Relative = "parents" | "children" | "siblings" | "spouses";
 
+export const sampleNodes = async (): Promise<NodeResponse> => {
+  const response = await fetch(`${API_URL}/nodes/samples`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (response.status !== 200) {
+    throw new Error(response.statusText);
+  }
+
+  const { id, isRoot, data } = await response.json();
+
+  const root = { id, isRoot };
+
+  return { root, nodes: data };
+};
+
 export const rootNodes = async (id: string): Promise<NodeResponse> => {
   const token = getCookie(TOKEN_KEY)?.toString();
   const response = await fetch(`${API_URL}/nodes/${id}/root`, {

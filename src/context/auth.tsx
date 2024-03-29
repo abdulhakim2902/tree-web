@@ -5,7 +5,8 @@ import { FC, createContext, useCallback, useContext, useEffect, useState } from 
 import { login as loginAPI } from "@tree/src/lib/services/auth";
 import { useSnackbar } from "notistack";
 import { parseJSON } from "@tree/src/helper/parse-json";
-import { TOKEN_KEY, USER_KEY } from "@tree/src/constants/storage-key";
+import { TOKEN_KEY, TREE_KEY, USER_KEY } from "@tree/src/constants/storage-key";
+import { DAY } from "../helper/date";
 
 type AuthContextValue = {
   isLoggedIn: boolean;
@@ -45,8 +46,8 @@ export const AuthContextProvider: FC = ({ children }) => {
         await loginAPI(data, (user, token) => {
           success = Boolean(user) && Boolean(token);
           if (success) {
-            setCookie(USER_KEY, user, { maxAge: 24 * 60 * 60 });
-            setCookie(TOKEN_KEY, token, { maxAge: 24 * 60 * 60 });
+            setCookie(USER_KEY, user, { maxAge: DAY });
+            setCookie(TOKEN_KEY, token, { maxAge: DAY });
             setIsLoggedIn(true);
           }
         });
@@ -68,6 +69,7 @@ export const AuthContextProvider: FC = ({ children }) => {
   const logout = () => {
     deleteCookie(TOKEN_KEY);
     deleteCookie(USER_KEY);
+    deleteCookie(TREE_KEY);
     setIsLoggedIn(false);
     setToken("");
     setUser(null);

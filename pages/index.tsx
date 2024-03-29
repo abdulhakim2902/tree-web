@@ -6,8 +6,12 @@ import ballS from "@tree/styles/Ball.module.css";
 import Button from "@tree/src/components/Button/Button";
 import classNames from "classnames";
 import { TOKEN_KEY, USER_KEY } from "@tree/src/constants/storage-key";
+import { useAuthContext } from "@tree/src/context/auth";
+import ShowIf from "@tree/src/components/show-if";
 
 const HomePage: NextPage = () => {
+  const { isLoggedIn } = useAuthContext();
+
   return (
     <React.Fragment>
       <div className={s.pageContainer}>
@@ -15,7 +19,9 @@ const HomePage: NextPage = () => {
           <span className={classNames(s.descriptionItem, s.title)}>Tree Project</span>
           <div className={s.buttonsContainer}>
             <Button href="/tree" text="View Tree" className={s.descriptionItem} />
-            <Button href="/families" text="View Families" className={s.descriptionItem} isSecondary={true} />
+            <ShowIf condition={isLoggedIn}>
+              <Button href="/families" text="View Families" className={s.descriptionItem} isSecondary={true} />
+            </ShowIf>
           </div>
         </div>
         <div className={s.imageContainer}>
@@ -33,12 +39,8 @@ const HomePage: NextPage = () => {
 export default HomePage;
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
-  try {
-    const token = getCookie(TOKEN_KEY, ctx)?.toString();
-    if (!token) {
-      throw new Error("Not logged in");
-    }
-  } catch {
+  const token = getCookie(TOKEN_KEY, ctx)?.toString();
+  if (!token) {
     deleteCookie(USER_KEY, ctx);
     deleteCookie(TOKEN_KEY, ctx);
   }

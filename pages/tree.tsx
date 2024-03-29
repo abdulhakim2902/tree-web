@@ -8,15 +8,23 @@ import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { deleteCookie, getCookie } from "cookies-next";
 import s from "@tree/styles/TreePage.module.css";
 import ShowIf from "@tree/src/components/show-if";
-import { TOKEN_KEY, USER_KEY } from "@tree/src/constants/storage-key";
+import { TOKEN_KEY, TREE_KEY, USER_KEY } from "@tree/src/constants/storage-key";
+import { startCase } from "@tree/src/helper/string";
+import { sampleNodes } from "@tree/src/lib/services/node";
+import { Root, TreeNode } from "@tree/src/types/tree";
 
-const Tree: NextPage = () => {
+type TreeProps = {
+  root: Root;
+  nodes: TreeNode[];
+};
+
+const Tree: NextPage<TreeProps> = (props: TreeProps) => {
   const { tree, initNodes } = useTreeNodeDataContext();
   const { root, nodes, nodeMap } = tree;
 
   useEffect(() => {
-    initNodes();
-  }, []);
+    initNodes(props);
+  }, [props]);
 
   return (
     <React.Fragment>
@@ -26,7 +34,7 @@ const Tree: NextPage = () => {
             <div className={s.absoluteContainer}>
               <div className={s.treeRootNameContainer}>
                 <span className={s.treeRootTitle}>Tree Root</span>
-                <span className={s.treeRootName}>{nodeMap?.[root.id]?.data?.fullname ?? ""}</span>
+                <span className={s.treeRootName}>{startCase(nodeMap?.[root.id]?.data?.fullname ?? "")}</span>
               </div>
             </div>
           </ShowIf>
@@ -41,14 +49,34 @@ const Tree: NextPage = () => {
 export default Tree;
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
-  try {
-    const token = getCookie(TOKEN_KEY, ctx)?.toString();
-    if (!token) {
-      throw new Error("Not logged in");
-    }
-  } catch {
+  const token = getCookie(TOKEN_KEY, ctx)?.toString();
+  if (!token) {
     deleteCookie(USER_KEY, ctx);
     deleteCookie(TOKEN_KEY, ctx);
+
+    const result = await sampleNodes();
+    if (result.nodes.length <= 0) {
+      return {
+        redirect: {
+          destination: "/",
+          permanent: false,
+        },
+      };
+    }
+
+    return {
+      props: result,
+    };
+  }
+
+  const isDataExists = getCookie(TREE_KEY, ctx)?.toString();
+  if (!isDataExists) {
+    return {
+      redirect: {
+        destination: "/families",
+        permanent: false,
+      },
+    };
   }
 
   return {

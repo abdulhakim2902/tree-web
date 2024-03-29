@@ -21,6 +21,7 @@ import { DAY } from "../helper/date";
 import { File, removeFile } from "../lib/services/file";
 import { parseTreeNodeDetail } from "../helper/tree";
 import { useLoadingBarContext } from "./loading";
+import { setCookie } from "cookies-next";
 
 type Loading = {
   main: boolean;
@@ -64,7 +65,7 @@ type TreeNodeDataContextValue = {
   init: boolean;
 
   setInit: (value: boolean) => void;
-  initNodes: () => void;
+  initNodes: (data?: { root: Root; nodes: TreeNode[] }) => void;
   setQuery: (query: string) => void;
   searchNodes: (event?: KeyboardEvent) => void;
   rootNodes: (id?: string) => void;
@@ -94,9 +95,27 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
     setTree(defaultTree);
   };
 
-  const initNodes = async () => {
+  const initNodes = async (init?: { root: Root; nodes: TreeNode[] }) => {
     setLoading((prev) => ({ ...prev, main: true }));
     startProgress();
+
+    if (init?.nodes && init.nodes.length > 0) {
+      setLoading((prev) => ({ ...prev, main: false }));
+      endProgress();
+
+      const root = init.root;
+      const nodes = parseTreeNodeDetail(init.nodes);
+      const nodeMap = Object.fromEntries(nodes.map((e) => [e.id, e]));
+      const tree = { root, nodes, nodeMap };
+
+      setTree({ ...tree });
+      setInit(true);
+
+      setLoading((prev) => ({ ...prev, main: false }));
+      endProgress();
+
+      return;
+    }
 
     const data = get<Record<string, TreeNode>>(TREE_KEY);
 
@@ -109,10 +128,6 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
       setInit(true);
     } else {
       push("/families");
-      enqueueSnackbar({
-        variant: "error",
-        message: "Tree not found",
-      });
     }
 
     setLoading((prev) => ({ ...prev, main: false }));
@@ -139,6 +154,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
 
       setTree(tree);
       setInit(true);
+      setCookie(TREE_KEY, true, { maxAge: DAY });
 
       if (tree.nodes.length <= 0) {
         if (pathname !== "/families") push("/families");
@@ -181,6 +197,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
 
       setTree(tree);
       setInit(true);
+      setCookie(TREE_KEY, true, { maxAge: DAY });
 
       if (tree.nodes.length <= 0) {
         if (pathname !== "/families") push("/families");

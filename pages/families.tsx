@@ -1,5 +1,5 @@
 import FamilyLink from "@tree/src/components/FamilyLink/FamilyLink";
-import { TOKEN_KEY } from "@tree/src/constants/storage-key";
+import { TOKEN_KEY, USER_KEY } from "@tree/src/constants/storage-key";
 import { allFamilyNodes } from "@tree/src/lib/services/node";
 import { Family } from "@tree/src/types/tree";
 import ballS from "@tree/styles/Ball.module.css";
@@ -47,6 +47,16 @@ export default FamiliesPage;
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   const families = [] as Family[];
   const token = getCookie(TOKEN_KEY, ctx)?.toString();
+  const user = getCookie(USER_KEY, ctx)?.toString();
+
+  if (!token || !user) {
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
+  }
 
   try {
     const { data } = await allFamilyNodes(token);
