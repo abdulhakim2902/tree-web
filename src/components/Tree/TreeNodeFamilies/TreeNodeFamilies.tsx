@@ -4,7 +4,7 @@ import React, { FC, useEffect, useState } from "react";
 import s from "./TreeNodeFamilies.module.css";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { LinearProgress } from "@mui/material";
-import { nodeFamilies } from "@tree/src/lib/services/node";
+import { familyNodes } from "@tree/src/lib/services/node";
 import { useCacheContext } from "@tree/src/context/cache";
 import { NODE_FAMILIES_KEY } from "@tree/src/constants/storage-key";
 import { DAY } from "@tree/src/helper/date";
@@ -27,20 +27,20 @@ export const TreeNodeFamilies: FC<TreeNodeFamiliesProps> = ({ id, fullname }) =>
       setLoading(true);
 
       const data = get<Record<string, Family[]>>(NODE_FAMILIES_KEY) ?? {};
-      const familyNodes = data?.[id] ?? [];
+      const nodes = data?.[id] ?? [];
 
       if (!data?.[id]) {
         try {
-          const { families: data } = await nodeFamilies(id);
-          familyNodes.push(...data);
+          const { families: data } = await familyNodes(id);
+          nodes.push(...data);
         } catch {
           // ignore
         }
       }
 
-      data[id] = familyNodes;
+      data[id] = nodes;
 
-      setFamilies(familyNodes);
+      setFamilies(nodes);
       set(NODE_FAMILIES_KEY, data, DAY);
 
       setLoading(false);

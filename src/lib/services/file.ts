@@ -54,7 +54,7 @@ export const upload = async (data: FormData) => {
   return result as File;
 };
 
-export const remove = async (id: string, type?: string) => {
+export const removeFile = async (id: string, type?: string) => {
   const token = getCookie(TOKEN_KEY)?.toString();
   if (!token) {
     throw new Error("Token not found");

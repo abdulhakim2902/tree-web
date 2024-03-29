@@ -15,6 +15,8 @@ export function parseJSON<T>(data?: string | null): T | null {
 
 export function startCase(v: string) {
   return v
+    .replace(/\s+/g, " ")
+    .trim()
     .split(" ")
     .map((e) => capitalize(e))
     .join(" ");

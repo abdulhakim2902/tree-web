@@ -86,13 +86,19 @@ const User: FC = () => {
           horizontal: "center",
         }}
       >
-        <MenuItem onClick={() => rootNodes(user?.nodeId)}>
+        <MenuItem onClick={() => {
+          rootNodes(user?.nodeId);
+          setAnchorEl(null);
+        }}>
           <ListItemIcon>
             <AccountCircleIcon sx={{ color: "whitesmoke" }} />
           </ListItemIcon>
           <ListItemText>{user?.fullname ?? ""}</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => push("/families")}>
+        <MenuItem onClick={() => {
+          push("/families");
+          setAnchorEl(null);
+        }}>
           <ListItemIcon>
             <Diversity1Icon sx={{ color: "whitesmoke" }} />
           </ListItemIcon>

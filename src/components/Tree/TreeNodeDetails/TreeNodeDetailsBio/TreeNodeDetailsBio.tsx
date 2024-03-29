@@ -80,7 +80,7 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
                 items={parents}
                 relationType="parent"
                 expandable={Boolean(metadata?.expandable?.parents)}
-                loading={loading.expanded.parent}
+                loading={loading.expanded.parents}
               />
             </div>
           </ShowIf>
@@ -93,7 +93,7 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
                 items={siblings}
                 relationType="sibling"
                 expandable={Boolean(metadata?.expandable?.siblings)}
-                loading={loading.expanded.parent}
+                loading={loading.expanded.siblings}
               />
             </div>
           </ShowIf>
@@ -106,7 +106,7 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
                 items={spouses}
                 relationType="spouse"
                 expandable={Boolean(metadata?.expandable?.spouses)}
-                loading={loading.expanded.spouse}
+                loading={loading.expanded.spouses}
               />
             </div>
           </ShowIf>
@@ -119,7 +119,7 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
                 items={children}
                 relationType="child"
                 expandable={Boolean(metadata?.expandable?.children)}
-                loading={loading.expanded.spouse}
+                loading={loading.expanded.children}
               />
             </div>
           </ShowIf>

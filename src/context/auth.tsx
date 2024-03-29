@@ -99,7 +99,7 @@ export const useAuthContext = (): AuthContextValue => {
   const AuthContextValue = useContext(AuthContext);
 
   if (!AuthContextValue) {
-    throw Error("useAuthContext hook must be used inside TreeNodeDataContext provider");
+    throw Error("useAuthContext hook must be used inside AuthContext provider");
   }
 
   return AuthContextValue;

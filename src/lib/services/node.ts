@@ -1,35 +1,17 @@
 import { TOKEN_KEY } from "@tree/src/constants/storage-key";
 import { Family, Root, TreeNode, TreeNodeData } from "@tree/src/types/tree";
 import { getCookie } from "cookies-next";
-import { File } from "./file";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export const searchNodes = async (query: string) => {
-  const token = getCookie(TOKEN_KEY)?.toString();
-  const response = await fetch(`${API_URL}/nodes/search/${query}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: token ? `Bearer ${token}` : "",
-    },
-  });
-
-  if (response.status !== 200) {
-    throw new Error(response.statusText);
-  }
-
-  const { id, data, isRoot } = await response.json();
-  const nodeMap = Object.fromEntries(data.map((e: TreeNode) => [e.id, e]));
-
-  return {
-    root: { id, isRoot } as Root,
-    nodes: data as TreeNode[],
-    nodeMap: nodeMap as Record<string, TreeNode>,
-  };
+type NodeResponse = {
+  root: Root;
+  nodes: TreeNode[];
 };
 
-export const rootNodes = async (id: string) => {
+export type Relative = "parents" | "children" | "siblings" | "spouses";
+
+export const rootNodes = async (id: string): Promise<NodeResponse> => {
   const token = getCookie(TOKEN_KEY)?.toString();
   const response = await fetch(`${API_URL}/nodes/${id}/root`, {
     method: "GET",
@@ -43,21 +25,35 @@ export const rootNodes = async (id: string) => {
     throw new Error(response.statusText);
   }
 
-  const result = await response.json();
-  const nodeMap = Object.fromEntries(
-    result.data.map((e: TreeNode) => {
-      return [e.id, e];
-    }),
-  );
+  const { isRoot, data } = await response.json();
 
-  return {
-    root: { id, isRoot: result.isRoot } as Root,
-    nodes: result.data as TreeNode[],
-    nodeMap: nodeMap as Record<string, TreeNode>,
-  };
+  const root = { id, isRoot };
+
+  return { root, nodes: data };
 };
 
-export const nodeFamilies = async (id: string) => {
+export const searchNodes = async (query: string): Promise<NodeResponse> => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+  const response = await fetch(`${API_URL}/nodes/search/${query}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token ? `Bearer ${token}` : "",
+    },
+  });
+
+  if (response.status !== 200) {
+    throw new Error(response.statusText);
+  }
+
+  const { id, isRoot, data } = await response.json();
+
+  const root = { id, isRoot };
+
+  return { root, nodes: data };
+};
+
+export const familyNodes = async (id: string) => {
   const token = getCookie(TOKEN_KEY)?.toString();
   if (!token) {
     throw new Error("Token not found");
@@ -83,7 +79,7 @@ export const nodeFamilies = async (id: string) => {
   };
 };
 
-export const familyNodes = async (token?: string) => {
+export const allFamilyNodes = async (token?: string) => {
   if (!token) token = getCookie(TOKEN_KEY)?.toString();
   const response = await fetch(`${API_URL}/nodes/families`, {
     method: "GET",
@@ -98,16 +94,16 @@ export const familyNodes = async (token?: string) => {
   }
 
   const result = await response.json();
-  return { data: result as { id: string; name: string }[] };
+  return { data: result as Family[] };
 };
 
-export const parentAndChildNodes = async (id: string) => {
+export const relativeNodes = async (id: string, relative: Relative) => {
   const token = getCookie(TOKEN_KEY)?.toString();
   if (!token) {
     throw new Error("Token not found");
   }
 
-  const response = await fetch(`${API_URL}/nodes/${id}/parents-and-children`, {
+  const response = await fetch(`${API_URL}/nodes/${id}/${relative}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -119,31 +115,9 @@ export const parentAndChildNodes = async (id: string) => {
     throw new Error(response.statusText);
   }
 
-  const { data } = await response.json();
+  const { nodes } = await response.json();
 
-  return { nodes: data as TreeNode[] };
-};
-
-export const spouseAndChildNodes = async (id: string) => {
-  const token = getCookie(TOKEN_KEY)?.toString();
-  if (!token) {
-    throw new Error("Token not found");
-  }
-  const response = await fetch(`${API_URL}/nodes/${id}/spouses-and-children`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token.toString()}`,
-    },
-  });
-
-  const { data } = await response.json();
-
-  if (response.status !== 200) {
-    throw new Error(response.statusText);
-  }
-
-  return { nodes: data as TreeNode[] };
+  return { nodes: nodes as TreeNode[] };
 };
 
 export const updateNode = async (id: string, data: any) => {

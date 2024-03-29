@@ -8,13 +8,12 @@ const PinchZoomPan = dynamic(() => import("@tree/src/components/PinchZoomPan/Pin
 });
 
 type TreeNavigationProps = {
-  loading: boolean;
   rootId: string;
   nodes: TreeNode[];
 };
 
-const TreeWithNavigation: FC<TreeNavigationProps> = ({ rootId, nodes, loading }) => {
-  if (nodes.length <= 0 || !rootId || loading) return <React.Fragment />;
+const TreeWithNavigation: FC<TreeNavigationProps> = ({ rootId, nodes }) => {
+  if (nodes.length <= 0 || !rootId) return <React.Fragment />;
 
   return (
     <PinchZoomPan>
