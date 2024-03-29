@@ -8,6 +8,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { AuthContextProvider } from "@tree/src/context/auth";
 import React from "react";
 import { CacheContextProvider } from "@tree/src/context/cache";
+import { LoadingBarContextProvider } from "@tree/src/context/loading";
 
 const App = ({ Component, pageProps }: AppProps) => {
   const theme = useTheme();
@@ -34,13 +35,15 @@ const App = ({ Component, pageProps }: AppProps) => {
           );
         }}
       >
-        <AuthContextProvider>
-          <TreeNodeDataContextProvider>
-            <Layout>
-              <Component {...pageProps} />
-            </Layout>
-          </TreeNodeDataContextProvider>
-        </AuthContextProvider>
+        <LoadingBarContextProvider>
+          <AuthContextProvider>
+            <TreeNodeDataContextProvider>
+              <Layout>
+                <Component {...pageProps} />
+              </Layout>
+            </TreeNodeDataContextProvider>
+          </AuthContextProvider>
+        </LoadingBarContextProvider>
       </SnackbarProvider>
     </CacheContextProvider>
   );

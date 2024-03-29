@@ -84,6 +84,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
   const { get, set, del, clear } = useCacheContext();
   const { setUser } = useAuthContext();
   const { pathname, push } = useRouter();
+  const { startProgress, endProgress } = useLoadingBarContext();
 
   const [init, setInit] = useState<boolean>(true);
   const [query, setQuery] = useState<string>("");
@@ -97,6 +98,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
 
   const initNodes = async () => {
     setLoading((prev) => ({ ...prev, main: true }));
+    startProgress();
 
     const data = get<Record<string, TreeNode>>(TREE_KEY);
 
@@ -116,6 +118,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
     }
 
     setLoading((prev) => ({ ...prev, main: false }));
+    endProgress();
   };
 
   const rootNodes = async (id?: string) => {
@@ -123,6 +126,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
 
     try {
       setLoading((prev) => ({ ...prev, main: true }));
+      startProgress();
 
       const { root, nodes: data } = await rootNodesAPI(id);
 
@@ -154,6 +158,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
       });
     } finally {
       setLoading((prev) => ({ ...prev, main: false }));
+      endProgress();
     }
   };
 
@@ -163,6 +168,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
 
     try {
       setLoading((prev) => ({ ...prev, main: true }));
+      startProgress();
 
       const { root, nodes: data } = await searchNodesAPI(query);
 
@@ -195,6 +201,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
     } finally {
       setQuery("");
       setLoading((prev) => ({ ...prev, main: false }));
+      endProgress();
     }
   };
 
