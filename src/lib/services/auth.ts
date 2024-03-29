@@ -1,4 +1,4 @@
-import { Login } from "@tree/src/types/login";
+import { Login } from "@tree/src/types/auth";
 import { User } from "@tree/src/types/user";
 import { me } from "./user";
 

@@ -15,14 +15,14 @@ export const LoadingBarContextProvider: FC = ({ children }) => {
   const [progress, setProgress] = useState<number>(-1);
 
   useEffect(() => {
-    router.events.on('routeChangeStart', startProgress);
-    router.events.on('routeChangeComplete', endProgress);
+    router.events.on("routeChangeStart", startProgress);
+    router.events.on("routeChangeComplete", endProgress);
 
     return () => {
-      router.events.off('routeChangeStart', startProgress);
-      router.events.off('routeChangeComplete', endProgress);
+      router.events.off("routeChangeStart", startProgress);
+      router.events.off("routeChangeComplete", endProgress);
     };
-  }, [])
+  }, []);
 
   const startProgress = () => {
     setProgress(Math.random() * 70 + 10);

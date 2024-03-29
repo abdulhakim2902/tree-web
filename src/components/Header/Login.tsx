@@ -1,11 +1,7 @@
 import { useAuthContext } from "@tree/src/context/auth";
-import { Box, Button, CircularProgress, IconButton, TextField, useMediaQuery, useTheme } from "@mui/material";
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { Box, Button, useMediaQuery, useTheme } from "@mui/material";
 import React, { ChangeEvent, FC, KeyboardEvent, useEffect, useState } from "react";
-import ShowIf from "../show-if";
-import { Login as LoginType } from "@tree/src/types/login";
-import { green } from "@mui/material/colors";
+import { Login as LoginType, Register } from "@tree/src/types/auth";
 import { useSnackbar } from "notistack";
 import LoginModal from "../Modal/LoginModal";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
@@ -16,55 +12,88 @@ import { TREE_KEY, USER_KEY } from "@tree/src/constants/storage-key";
 import { useRouter } from "next/router";
 import { useCacheContext } from "@tree/src/context/cache";
 import { Tree } from "@tree/src/types/tree";
+import LoginForm from "../Form/LoginForm";
+import RegisterModal from "../Modal/RegisterModal";
+import { Bio, defaultBio, defaultError as defaultErrorBio, Error as ErrorBio } from "../Form/Form";
+import * as isEmail from "email-validator";
 
 export type Error = {
   username: boolean;
   password: boolean;
 };
 
-const defaultError = { username: false, password: false };
+const defaultLoginData = { username: "", password: "" };
+const defaultRegisterData = { username: "", password: "", email: "" };
+
+const defaultErrorLogin = { username: false, password: false };
+const defaultErrorRegister = { username: false, password: false, email: false };
 
 const Login: FC = () => {
-  const { isLoggedIn, login, loading } = useAuthContext();
+  const { isLoggedIn, login } = useAuthContext();
   const { rootNodes } = useTreeNodeDataContext();
   const { get } = useCacheContext();
   const { enqueueSnackbar } = useSnackbar();
   const { pathname, replace } = useRouter();
 
-  const [data, setData] = useState<LoginType>({ username: "", password: "" });
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [error, setError] = useState<Error>(defaultError);
-  const [open, setOpen] = useState<boolean>(false);
+  const [loginData, setLoginData] = useState<LoginType>(defaultLoginData);
+  const [registerData, setRegisterData] = useState<Register>(defaultRegisterData);
+  const [bioData, setBioData] = useState<Bio>(defaultBio);
+
+  const [errorBio, setErrorBio] = useState<ErrorBio>(defaultErrorBio);
+  const [errorLogin, setErrorLogin] = useState<Error>(defaultErrorLogin);
+  const [errorRegister, setErrorRegister] = useState<Error & { email: boolean }>(defaultErrorRegister);
+
+  const [openLogin, setOpenLogin] = useState<boolean>(false);
+  const [openRegister, setOpenRegister] = useState<boolean>(false);
 
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     if (!mobile) {
-      setOpen(false);
-      setData({ username: "", password: "" });
+      setOpenLogin(false);
+      setLoginData(defaultLoginData);
     }
   }, [mobile]);
 
   const handleLogin = async (event?: KeyboardEvent) => {
     if (event && event.key !== "Enter") return;
-    if (!Boolean(data.username) || !Boolean(data.password)) {
-      return enqueueSnackbar({
-        variant: "error",
-        message: "Username or password must not be empty",
-      });
+
+    const data: Record<string, any> = loginData;
+    for (const key in data) {
+      if (!data[key]) {
+        return enqueueSnackbar({
+          variant: "error",
+          message: "Username or password must not be empty",
+        });
+      }
     }
 
-    if (error.username || error.password) {
+    if (Object.values(errorLogin).find((e) => e)) {
       return enqueueSnackbar({
         variant: "error",
         message: "Invalid username or password",
       });
     }
 
-    login(data, () => {
-      setData({ username: "", password: "" });
-      setOpen(false);
+    login(loginData, (success) => {
+      if (!success) {
+        setOpenRegister(true);
+        setOpenLogin(false);
+        setRegisterData((prev) => {
+          return {
+            ...prev,
+            username: isEmail.validate(loginData.username) ? "" : loginData.username,
+            password: loginData.password,
+            email: isEmail.validate(loginData.username) ? loginData.username : "",
+          };
+        });
+        setLoginData(defaultLoginData);
+        return;
+      }
+
+      setLoginData(defaultLoginData);
+      setOpenLogin(false);
       if (pathname === "/families") replace("/families");
       if (pathname === "/tree") {
         const tree = get<Tree>(TREE_KEY);
@@ -81,7 +110,53 @@ const Login: FC = () => {
     });
   };
 
-  const onChange = (event: ChangeEvent<HTMLInputElement>, types: string) => {
+  const handleRegister = async () => {
+    const data: Record<string, any> = { ...registerData, ...bioData };
+    for (const key in data) {
+      if (!data[key]) {
+        return enqueueSnackbar({
+          variant: "error",
+          message: "All data must not be empty",
+        });
+      }
+    }
+
+    if (Object.values(errorRegister).find((e) => e) || Object.values(errorBio).find((e) => e)) {
+      return enqueueSnackbar({
+        variant: "error",
+        message: "Invalid data",
+      });
+    }
+
+    const { name, gender, birthDate, birthCountry, birthCity } = bioData;
+
+    const names = name.replace(/\s+/g, " ").trim().split(" ");
+    const profile: Record<string, any> = {
+      name: { first: names[0] },
+      gender: gender,
+      birth: {
+        day: birthDate?.date() ?? 0,
+        month: birthDate?.month() ? birthDate.month() + 1 : 0,
+        year: birthDate?.year() ?? -1,
+        place: {
+          country: birthCountry,
+          city: birthCity,
+        },
+      },
+    };
+
+    if (names.length > 1) Object.assign(profile.name, { last: names[names.length - 1] });
+    if (names.length > 2) Object.assign(profile.name, { middle: names.slice(1, names.length - 1).join(" ") });
+
+    const payload = { ...registerData, profile };
+
+    console.log(payload);
+
+    setRegisterData(defaultRegisterData);
+    setOpenRegister(false);
+  };
+
+  const onChangeLogin = (event: ChangeEvent<HTMLInputElement>, types: string) => {
     if (types === "username") {
       let error = false;
       if (!event.target.value) {
@@ -92,8 +167,8 @@ const Login: FC = () => {
         }
       }
 
-      setError((prev) => ({ ...prev, username: error }));
-      setData((prev) => ({ ...prev, username: event.target.value.toLowerCase() }));
+      setErrorLogin((prev) => ({ ...prev, username: error }));
+      setLoginData((prev) => ({ ...prev, username: event.target.value.toLowerCase() }));
     }
 
     if (types === "password") {
@@ -102,8 +177,41 @@ const Login: FC = () => {
         error = true;
       }
 
-      setError((prev) => ({ ...prev, password: error }));
-      setData((prev) => ({ ...prev, password: event.target.value }));
+      setErrorLogin((prev) => ({ ...prev, password: error }));
+      setLoginData((prev) => ({ ...prev, password: event.target.value }));
+    }
+  };
+
+  const onChangeRegister = (event: ChangeEvent<HTMLInputElement>, types: string) => {
+    if (types === "username") {
+      let error = false;
+      if (!event.target.value) {
+        error = true;
+      } else {
+        if (event.target.value.split(" ").length > 1) {
+          error = true;
+        }
+      }
+
+      setErrorRegister((prev) => ({ ...prev, username: error }));
+      setRegisterData((prev) => ({ ...prev, username: event.target.value.toLowerCase() }));
+    }
+
+    if (types === "password") {
+      let error = false;
+      if (!event.target.value) {
+        error = true;
+      }
+
+      setErrorRegister((prev) => ({ ...prev, password: error }));
+      setRegisterData((prev) => ({ ...prev, password: event.target.value }));
+    }
+
+    if (types === "email") {
+      const error = !isEmail.validate(event.target.value);
+
+      setErrorRegister((prev) => ({ ...prev, email: error }));
+      setRegisterData((prev) => ({ ...prev, email: event.target.value.toLowerCase() }));
     }
   };
 
@@ -111,16 +219,36 @@ const Login: FC = () => {
   if (mobile) {
     return (
       <Box sx={{ m: 1, position: "relative" }}>
-        <Button color="inherit" onClick={() => setOpen(true)} sx={{ borderColor: "whitesmoke" }} variant="outlined">
+        <Button
+          color="inherit"
+          onClick={() => setOpenLogin(true)}
+          sx={{ borderColor: "whitesmoke" }}
+          variant="outlined"
+        >
           Login
         </Button>
         <LoginModal
-          open={open}
-          onClose={() => setOpen(false)}
+          open={openLogin}
+          onClose={() => setOpenLogin(false)}
           login={handleLogin}
-          value={data}
-          onChange={onChange}
-          error={error}
+          value={loginData}
+          onChange={onChangeLogin}
+          error={errorLogin}
+        />
+        <RegisterModal
+          open={openRegister}
+          onClose={() => {
+            setOpenRegister(false);
+            setRegisterData(defaultRegisterData);
+          }}
+          value={registerData}
+          error={errorRegister}
+          register={handleRegister}
+          bioValue={bioData}
+          bioError={errorBio}
+          onChange={onChangeRegister}
+          onChangeBio={setBioData}
+          onChangeBioError={setErrorBio}
         />
       </Box>
     );
@@ -128,68 +256,22 @@ const Login: FC = () => {
 
   return (
     <React.Fragment>
-      <TextField
-        required
-        error={error.username}
-        id="username"
-        label="Username"
-        size="small"
-        value={data.username}
-        onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event, "username")}
-        onKeyUp={(event) => handleLogin(event)}
-        sx={{ mr: "10px", input: { color: "whitesmoke" } }}
-        InputLabelProps={{ sx: { color: "grey" } }}
-      />
-      <TextField
-        required
-        error={error.password}
-        id="password"
-        type={showPassword ? "text" : "password"}
-        label="Password"
-        size="small"
-        value={data.password}
-        onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event, "password")}
-        onKeyUp={(event) => handleLogin(event)}
-        sx={{ mr: "10px", input: { color: "whitesmoke" } }}
-        InputLabelProps={{ sx: { color: "grey" } }}
-        InputProps={{
-          endAdornment: (
-            <IconButton
-              aria-label="toggle password visibility"
-              onClick={() => setShowPassword((show) => !show)}
-              onMouseDown={(event) => event.preventDefault()}
-              sx={{ color: "whitesmoke" }}
-              edge="end"
-            >
-              {showPassword ? <VisibilityOff /> : <Visibility />}
-            </IconButton>
-          ),
+      <LoginForm login={handleLogin} value={loginData} onChange={onChangeLogin} error={errorLogin} />
+      <RegisterModal
+        open={openRegister}
+        onClose={() => {
+          setOpenRegister(false);
+          setRegisterData(defaultRegisterData);
         }}
+        value={registerData}
+        error={errorRegister}
+        register={handleRegister}
+        bioValue={bioData}
+        bioError={errorBio}
+        onChange={onChangeRegister}
+        onChangeBio={setBioData}
+        onChangeBioError={setErrorBio}
       />
-      <Box sx={{ m: 1, position: "relative" }}>
-        <Button
-          color="inherit"
-          onClick={() => handleLogin()}
-          sx={{ borderColor: "whitesmoke" }}
-          variant="outlined"
-          disabled={loading}
-        >
-          Login
-        </Button>
-        <ShowIf condition={loading}>
-          <CircularProgress
-            size={10}
-            sx={{
-              color: green[500],
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              marginTop: "-5px",
-              marginLeft: "-5px",
-            }}
-          />
-        </ShowIf>
-      </Box>
     </React.Fragment>
   );
 };

@@ -18,7 +18,6 @@ import { makeStyles } from "@mui/styles";
 import { styled } from "@mui/material/styles";
 import { City, searchCities } from "@tree/src/lib/services/city";
 import { useDebounce } from "@tree/src/hooks/use-debounce.hook";
-import { startCase } from "lodash";
 
 export const StyledPickersLayout = styled(PickersLayout)({
   ".MuiDateCalendar-root": {

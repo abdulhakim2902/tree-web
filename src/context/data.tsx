@@ -258,7 +258,7 @@ export const TreeNodeDataContextProvider: FC = ({ children }) => {
 
     try {
       setLoading((prev) => ({ ...prev, added: true }));
-      
+
       switch (relative) {
         case "spouse":
           await addSpouse(id, data);

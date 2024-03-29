@@ -1,4 +1,4 @@
-import { Login } from "@tree/src/types/login";
+import { Login } from "@tree/src/types/auth";
 import { UserWithFullname } from "@tree/src/types/user";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { FC, createContext, useCallback, useContext, useEffect, useState } from "react";
@@ -38,18 +38,18 @@ export const AuthContextProvider: FC = ({ children }) => {
 
   const login = useCallback(
     async (data: Login, cb?: (success: boolean) => void) => {
+      let success = false;
+
       try {
         setLoading(true);
 
         await loginAPI(data, (user, token) => {
-          const success = Boolean(user) && Boolean(token);
+          success = Boolean(user) && Boolean(token);
           if (success) {
             setCookie(USER_KEY, user, { maxAge: 24 * 60 * 60 });
             setCookie(TOKEN_KEY, token, { maxAge: 24 * 60 * 60 });
             setIsLoggedIn(true);
           }
-
-          cb && cb(success);
         });
       } catch (err: any) {
         const message = err.message ? err.message : "Invalid user";
@@ -60,6 +60,8 @@ export const AuthContextProvider: FC = ({ children }) => {
       } finally {
         setLoading(false);
       }
+
+      cb && cb(success);
     },
     [enqueueSnackbar],
   );

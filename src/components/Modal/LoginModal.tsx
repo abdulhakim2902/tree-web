@@ -2,7 +2,7 @@ import { useAuthContext } from "@tree/src/context/auth";
 import { Box, Modal, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { ChangeEvent, FC, KeyboardEvent } from "react";
 import LoginForm from "../Form/LoginForm";
-import { Login as LoginType } from "@tree/src/types/login";
+import { Login as LoginType } from "@tree/src/types/auth";
 import { Error } from "../Header/Login";
 
 type LoginModalProps = {

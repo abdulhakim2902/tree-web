@@ -1,7 +1,7 @@
 import { useAuthContext } from "@tree/src/context/auth";
-import { Login } from "@tree/src/types/login";
-import { Box, Button, CircularProgress, IconButton, TextField } from "@mui/material";
-import { ChangeEvent, FC, KeyboardEvent, useState } from "react";
+import { Login } from "@tree/src/types/auth";
+import { Box, Button, CircularProgress, IconButton, TextField, useMediaQuery, useTheme } from "@mui/material";
+import React, { ChangeEvent, FC, KeyboardEvent, useState } from "react";
 
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -22,9 +22,13 @@ const LoginForm: FC<LoginFormProps> = ({ value, login, onChange, error }) => {
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
+  const theme = useTheme();
+  const mobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   return (
-    <Box>
+    <React.Fragment>
       <TextField
+        required
         error={error.username}
         id="username"
         label="Username"
@@ -33,11 +37,16 @@ const LoginForm: FC<LoginFormProps> = ({ value, login, onChange, error }) => {
         value={value.username}
         onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event, "username")}
         onKeyUp={(event) => login(event)}
-        fullWidth
-        sx={{ mb: "9px", input: { color: "whitesmoke" } }}
+        fullWidth={mobile}
+        sx={{
+          mb: mobile ? "9px" : "0px",
+          mr: mobile ? "0px" : "10px",
+          input: { color: "whitesmoke" },
+        }}
         InputLabelProps={{ sx: { color: "grey" } }}
       />
       <TextField
+        required
         error={error.password}
         id="password"
         type={showPassword ? "text" : "password"}
@@ -46,8 +55,8 @@ const LoginForm: FC<LoginFormProps> = ({ value, login, onChange, error }) => {
         value={value.password}
         onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event, "password")}
         onKeyUp={(event) => login(event)}
-        fullWidth
-        sx={{ input: { color: "whitesmoke" } }}
+        fullWidth={mobile}
+        sx={{ input: { color: "whitesmoke" }, mr: mobile ? "0px" : "10px" }}
         InputLabelProps={{ sx: { color: "grey" } }}
         InputProps={{
           endAdornment: (
@@ -63,9 +72,25 @@ const LoginForm: FC<LoginFormProps> = ({ value, login, onChange, error }) => {
           ),
         }}
       />
-      <Box sx={{ mt: 2, position: "relative", display: "flex", justifyContent: "end" }}>
+      <Box
+        sx={{
+          marginTop: mobile ? 2 : 1,
+          marginBottom: mobile ? 0 : 1,
+          marginLeft: mobile ? 0 : 1,
+          marginRight: mobile ? 0 : 1,
+          position: "relative",
+          display: "flex",
+          justifyContent: "end",
+        }}
+      >
         <Box position="relative">
-          <Button variant="contained" onClick={() => login()} disabled={loading}>
+          <Button
+            variant={mobile ? "contained" : "outlined"}
+            onClick={() => login()}
+            disabled={loading}
+            color={mobile ? "primary" : "inherit"}
+            sx={mobile ? {} : { borderColor: "whitesmoke" }}
+          >
             Login
           </Button>
           <ShowIf condition={loading}>
@@ -83,7 +108,7 @@ const LoginForm: FC<LoginFormProps> = ({ value, login, onChange, error }) => {
           </ShowIf>
         </Box>
       </Box>
-    </Box>
+    </React.Fragment>
   );
 };
 
