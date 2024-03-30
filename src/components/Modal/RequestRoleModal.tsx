@@ -22,7 +22,7 @@ import { startCase } from "lodash";
 import React, { FC, useState } from "react";
 import ShowIf from "../show-if";
 import { useAuthContext } from "@tree/src/context/auth";
-import CheckIcon from '@mui/icons-material/Check';
+import CheckIcon from "@mui/icons-material/Check";
 
 type RequestRoleModalProps = {
   open: boolean;

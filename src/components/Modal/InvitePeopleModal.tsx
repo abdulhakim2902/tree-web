@@ -18,12 +18,12 @@ import {
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { Role } from "@tree/src/types/user";
-import { startCase } from "lodash";
+import { startCase, uniqBy } from "lodash";
 import React, { FC, useEffect, useState } from "react";
 import ShowIf from "../show-if";
 import CloseIcon from "@mui/icons-material/Close";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-import CheckIcon from '@mui/icons-material/Check';
+import CheckIcon from "@mui/icons-material/Check";
 import * as isEmail from "email-validator";
 
 type Person = {
@@ -60,16 +60,35 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
   }, [open]);
 
   const handleInvite = () => {
-    const isEmailNotValid = people.some((person) => isEmail.validate(person.email) === false);
-    setError(isEmailNotValid);
-    if (isEmailNotValid) return;
+    const isPersonNotValid = people.some((person) => isEmail.validate(person.email) === false || person.error === true);
+    setError(isPersonNotValid);
+    if (isPersonNotValid) return;
     setInviting(true);
+    const uniquePeople = uniqBy(people, "email");
+    console.log(uniquePeople);
+  };
+
+  const onReset = () => {
+    onClose();
+    setPeople([{ email: "", role: Role.GUEST, error: false }]);
+    setError(false);
+    setInviting(false);
+  };
+
+  const onChangeEmail = (index: number, value: string) => {
+    setInviting(false);
+    setPeople((prev) => {
+      const isDuplicateEmail = prev.filter((e) => e.email === value).length > 1;
+      prev[index].error = !isEmail.validate(value) || isDuplicateEmail;
+      prev[index].email = value;
+      return [...prev];
+    });
   };
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={onReset}
       PaperProps={{
         style: {
           backgroundColor: "var(--background-color)",
@@ -117,14 +136,8 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
                           sx={{
                             input: { color: "whitesmoke" },
                           }}
-                          onChange={(event) => {
-                            setInviting(false);
-                            setPeople((prev) => {
-                              prev[index].error = !isEmail.validate(event.target.value);
-                              prev[index].email = event.target.value;
-                              return [...prev];
-                            });
-                          }}
+                          onPaste={(event) => onChangeEmail(index, event.clipboardData.getData("text"))}
+                          onChange={(event) => onChangeEmail(index, event.target.value)}
                         />
                       </TableCell>
                       <TableCell
@@ -264,15 +277,7 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
         )}
       </DialogContent>
       <DialogActions sx={{ marginBottom: 3, marginRight: 2 }}>
-        <Button
-          variant="outlined"
-          onClick={() => {
-            onClose();
-            setPeople([{ email: "", role: Role.GUEST, error: false }]);
-            setError(false);
-            setInviting(false);
-          }}
-        >
+        <Button variant="outlined" onClick={onReset}>
           Cancel
         </Button>
         <Button onClick={handleInvite} variant="contained" autoFocus disabled={inviting}>
