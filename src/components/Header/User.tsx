@@ -23,7 +23,9 @@ import { getNameSymbol, startCase } from "@tree/src/helper/string";
 import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
 import ShowIf from "../show-if";
 import InvitePeopleModal from "../Modal/InvitePeopleModal";
+import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import { Role } from "@tree/src/types/user";
+import RequestRoleModal from "../Modal/RequestRoleModal";
 
 const useStyles = makeStyles(() => ({
   paper: {
@@ -41,9 +43,16 @@ const User: FC = () => {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openInvite, setOpenInvite] = useState<boolean>(false);
+  const [openRequest, setOpenRequest] = useState<boolean>(false);
 
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const onReset = () => {
+    setAnchorEl(null);
+    setOpenInvite(false);
+    setOpenRequest(false);
+  };
 
   if (!isLoggedIn || !user) return <React.Fragment />;
   return (
@@ -81,7 +90,7 @@ const User: FC = () => {
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         sx={{ marginTop: "5px" }}
-        onClose={() => setAnchorEl(null)}
+        onClose={onReset}
         classes={classes}
         anchorOrigin={{
           vertical: "bottom",
@@ -115,6 +124,19 @@ const User: FC = () => {
             <ListItemText>Invite People</ListItemText>
           </MenuItem>
         </ShowIf>
+        <ShowIf condition={user.role !== Role.SUPERADMIN}>
+          <MenuItem
+            onClick={() => {
+              setAnchorEl(null);
+              setOpenRequest(true);
+            }}
+          >
+            <ListItemIcon>
+              <PersonAddAltIcon sx={{ color: "whitesmoke" }} />
+            </ListItemIcon>
+            <ListItemText>Request Role</ListItemText>
+          </MenuItem>
+        </ShowIf>
         <MenuItem
           onClick={() => {
             push("/families");
@@ -141,6 +163,7 @@ const User: FC = () => {
         </MenuItem>
       </Menu>
       <InvitePeopleModal open={openInvite} onClose={() => setOpenInvite(false)} />
+      <RequestRoleModal open={openRequest} onClose={() => setOpenRequest(false)} />
     </React.Fragment>
   );
 };

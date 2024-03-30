@@ -23,6 +23,7 @@ import React, { FC, useEffect, useState } from "react";
 import ShowIf from "../show-if";
 import CloseIcon from "@mui/icons-material/Close";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import CheckIcon from '@mui/icons-material/Check';
 import * as isEmail from "email-validator";
 
 type Person = {
@@ -138,7 +139,6 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
                       >
                         <Select
                           value={person.role}
-                          label="Role"
                           fullWidth
                           onChange={(event) => {
                             setInviting(false);
@@ -241,7 +241,24 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
               backgroundColor: "#2f2f5e",
             }}
             InputProps={{
-              startAdornment: <ErrorOutlineIcon sx={{ marginRight: 1, color: "red" }} />,
+              startAdornment: <ErrorOutlineIcon sx={{ marginRight: 1 }} color="error" />,
+            }}
+          />
+        )}
+        {inviting && (
+          <TextField
+            disabled
+            value="Invites sent successfully."
+            fullWidth
+            sx={{
+              marginTop: 2,
+              "& .MuiInputBase-input.Mui-disabled": {
+                WebkitTextFillColor: "whitesmoke",
+              },
+              backgroundColor: "#2f2f5e",
+            }}
+            InputProps={{
+              startAdornment: <CheckIcon sx={{ marginRight: 1 }} color="success" />,
             }}
           />
         )}
