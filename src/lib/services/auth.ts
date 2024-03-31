@@ -1,10 +1,27 @@
-import { Login } from "@tree/src/types/auth";
+import { Login, Register } from "@tree/src/types/auth";
 import { User } from "@tree/src/types/user";
 import { me } from "./user";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export const login = async (data: Login, cb?: (user?: User, token?: string) => void) => {
+export const register = async (data: Omit<Register, "role">) => {
+  const response = await fetch(`${API_URL}/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  const result = await response.json();
+  if (result?.statusCode) {
+    throw result;
+  }
+
+  return { user: result as User };
+};
+
+export const login = async (data: Login) => {
   const response = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
     headers: {
@@ -13,15 +30,18 @@ export const login = async (data: Login, cb?: (user?: User, token?: string) => v
     body: JSON.stringify(data),
   });
 
-  if (response.status !== 201) {
-    throw new Error(response.statusText);
+  const result = await response.json();
+  if (result?.statusCode) {
+    throw result;
   }
 
-  const { token } = await response.json();
+  const { token } = result;
 
   if (token) {
     const result = await me(token);
 
-    cb && cb(result, token);
+    return { user: result as User, token: token as string };
   }
+
+  return;
 };

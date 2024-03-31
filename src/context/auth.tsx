@@ -1,19 +1,22 @@
-import { Login } from "@tree/src/types/auth";
+import { Login, Register } from "@tree/src/types/auth";
 import { User } from "@tree/src/types/user";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { FC, createContext, useCallback, useContext, useEffect, useState } from "react";
-import { login as loginAPI } from "@tree/src/lib/services/auth";
+import { login as loginAPI, register as registerAPI } from "@tree/src/lib/services/auth";
 import { useSnackbar } from "notistack";
 import { parseJSON } from "@tree/src/helper/parse-json";
 import { TOKEN_KEY, TREE_KEY, USER_KEY } from "@tree/src/constants/storage-key";
 import { DAY } from "../helper/date";
+import { omit } from "lodash";
 
 type AuthContextValue = {
   isLoggedIn: boolean;
   loading: boolean;
+  registering: boolean;
   user: User | null;
   token: string;
 
+  register: (data: Register, cb?: (success: boolean, user?: User) => void) => void;
   login: (data: Login, cb?: (success: boolean) => void) => void;
   logout: () => void;
 };
@@ -28,6 +31,7 @@ export const AuthContextProvider: FC = ({ children }) => {
 
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(Boolean(userStr) && Boolean(tokenStr));
   const [loading, setLoading] = useState<boolean>(false);
+  const [registering, setRegistering] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string>(tokenStr);
 
@@ -43,14 +47,13 @@ export const AuthContextProvider: FC = ({ children }) => {
       try {
         setLoading(true);
 
-        await loginAPI(data, (user, token) => {
-          success = Boolean(user) && Boolean(token);
-          if (success) {
-            setCookie(USER_KEY, user, { maxAge: DAY });
-            setCookie(TOKEN_KEY, token, { maxAge: DAY });
-            setIsLoggedIn(true);
-          }
-        });
+        const result = await loginAPI(data);
+        success = Boolean(result);
+        if (result) {
+          setCookie(USER_KEY, result.user, { maxAge: DAY });
+          setCookie(TOKEN_KEY, result.token, { maxAge: DAY });
+          setIsLoggedIn(true);
+        }
       } catch (err: any) {
         const message = err.message ? err.message : "Invalid user";
         enqueueSnackbar({
@@ -59,9 +62,31 @@ export const AuthContextProvider: FC = ({ children }) => {
         });
       } finally {
         setLoading(false);
+        cb && cb(success);
+      }
+    },
+    [enqueueSnackbar],
+  );
+
+  const register = useCallback(
+    async (data: Register, cb?: (success: boolean, user?: User) => void) => {
+      let success = false;
+      let user: User | undefined = undefined;
+
+      try {
+        setRegistering(true);
+        ({ user } = await registerAPI(omit(data, "role")));
+        success = true;
+      } catch (err: any) {
+        enqueueSnackbar({
+          variant: "error",
+          message: err.message,
+        });
+      } finally {
+        setRegistering(false);
       }
 
-      cb && cb(success);
+      cb && cb(success, user);
     },
     [enqueueSnackbar],
   );
@@ -76,7 +101,9 @@ export const AuthContextProvider: FC = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ loading, isLoggedIn, user, token, login, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ loading, isLoggedIn, user, token, login, logout, register, registering }}>
+      {children}
+    </AuthContext.Provider>
   );
 };
 
