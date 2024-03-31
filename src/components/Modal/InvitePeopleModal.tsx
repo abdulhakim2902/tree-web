@@ -25,6 +25,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import CheckIcon from "@mui/icons-material/Check";
 import * as isEmail from "email-validator";
+import { invites } from "@tree/src/lib/services/user";
+import { useSnackbar } from "notistack";
 
 type Person = {
   email: string;
@@ -51,6 +53,9 @@ const useStyles = makeStyles(() => ({
 const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
   const classes = useStyles();
 
+  const { enqueueSnackbar } = useSnackbar();
+
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
   const [inviting, setInviting] = useState<boolean>(false);
   const [people, setPeople] = useState<Person[]>([{ email: "", role: Role.GUEST, error: false }]);
@@ -59,16 +64,28 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
     if (!open) setPeople([{ email: "", role: Role.GUEST, error: false }]);
   }, [open]);
 
-  const handleInvite = () => {
+  const handleInvite = async () => {
+    if (loading) return;
     const isPersonNotValid = people.some((person) => isEmail.validate(person.email) === false || person.error === true);
     setError(isPersonNotValid);
     if (isPersonNotValid) return;
-    setInviting(true);
     const uniquePeople = uniqBy(people, "email");
-    console.log(uniquePeople);
+    try {
+      setLoading(true);
+      await invites(uniquePeople);
+      setInviting(true);
+    } catch (err: any) {
+      enqueueSnackbar({
+        variant: "error",
+        message: err.message,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const onReset = () => {
+    if (loading) return;
     onClose();
     setPeople([{ email: "", role: Role.GUEST, error: false }]);
     setError(false);
@@ -76,6 +93,7 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
   };
 
   const onChangeEmail = (index: number, value: string) => {
+    if (loading) return;
     setInviting(false);
     setPeople((prev) => {
       const isDuplicateEmail = prev.filter((e) => e.email === value).length > 1;
@@ -88,7 +106,11 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
   return (
     <Dialog
       open={open}
-      onClose={onReset}
+      onClose={(event, reason) => {
+        if (loading && reason === "backdropClick") return;
+        if (loading && reason === "escapeKeyDown") return;
+        onReset();
+      }}
       PaperProps={{
         style: {
           backgroundColor: "var(--background-color)",
@@ -154,6 +176,7 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
                           value={person.role}
                           fullWidth
                           onChange={(event) => {
+                            if (loading) return;
                             setInviting(false);
                             setPeople((prev) => {
                               prev[index].role = event.target.value as Role;
@@ -185,6 +208,7 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
                           <IconButton
                             sx={{ color: "whitesmoke" }}
                             onClick={() => {
+                              if (loading) return;
                               setInviting(false);
                               setPeople((prev) => {
                                 prev.splice(index, 1);
@@ -232,6 +256,7 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
         <Button
           variant="outlined"
           onClick={() => {
+            if (loading) return;
             setInviting(false);
             setPeople((prev) => {
               return [...prev, { email: "", role: Role.GUEST, error: false }];
@@ -281,7 +306,7 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
           Cancel
         </Button>
         <Button onClick={handleInvite} variant="contained" autoFocus disabled={inviting}>
-          Send invites
+          {loading ? "Inviting..." : "Send invites"}
         </Button>
       </DialogActions>
     </Dialog>

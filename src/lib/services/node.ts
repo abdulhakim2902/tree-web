@@ -36,7 +36,7 @@ export const rootNodes = async (id: string): Promise<NodeResponse> => {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: token ? `Bearer ${token}` : "",
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -57,7 +57,7 @@ export const searchNodes = async (query: string): Promise<NodeResponse> => {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: token ? `Bearer ${token}` : "",
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -104,7 +104,7 @@ export const allFamilyNodes = async (token?: string) => {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: token ? `Bearer ${token}` : "",
+      Authorization: `Bearer ${token}`,
     },
   });
 

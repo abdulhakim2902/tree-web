@@ -4,12 +4,14 @@ import React, { ChangeEvent, FC, useState } from "react";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { Error } from "../Header/Login";
+import ShowIf from "../show-if";
+import { startCase } from "lodash";
 
 type RegisterFormProps = {
   value: Register;
-  error: Error & { email: boolean };
+  error: Error & { name: boolean; email: boolean };
 
-  onChange: (event: ChangeEvent<HTMLInputElement>, types: string) => void;
+  onChange: (event: ChangeEvent<HTMLInputElement>, type: string) => void;
 };
 
 const RegisterForm: FC<RegisterFormProps> = ({ value, onChange, error }) => {
@@ -19,17 +21,16 @@ const RegisterForm: FC<RegisterFormProps> = ({ value, onChange, error }) => {
     <React.Fragment>
       <TextField
         required
-        error={error.username}
-        id="username"
-        label="Username"
+        error={error.name}
+        id="name"
+        label="Name"
         type="text"
         variant="outlined"
-        value={value.username}
-        onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event, "username")}
-        // onKeyUp={(event) => login(event)}
+        value={value.name}
+        onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event, "name")}
         fullWidth
         sx={{
-          mb: "9px",
+          mb: "11px",
           input: { color: "whitesmoke" },
         }}
         InputLabelProps={{ sx: { color: "grey" } }}
@@ -42,11 +43,33 @@ const RegisterForm: FC<RegisterFormProps> = ({ value, onChange, error }) => {
         type="text"
         variant="outlined"
         value={value.email}
+        disabled={Boolean(value?.token)}
         onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event, "email")}
-        // onKeyUp={(event) => login(event)}
         fullWidth
         sx={{
-          mb: "9px",
+          mb: "11px",
+          input: { color: "whitesmoke" },
+          "& .MuiInputBase-input.Mui-disabled": {
+            WebkitTextFillColor: "whitesmoke",
+          },
+          "& .MuiInputLabel-root.Mui-disabled": {
+            WebkitTextFillColor: "grey",
+          },
+        }}
+        InputLabelProps={{ sx: { color: "grey" } }}
+      />
+      <TextField
+        required
+        error={error.username}
+        id="username"
+        label="Username"
+        type="text"
+        variant="outlined"
+        value={value.username}
+        onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event, "username")}
+        fullWidth
+        sx={{
+          mb: "11px",
           input: { color: "whitesmoke" },
         }}
         InputLabelProps={{ sx: { color: "grey" } }}
@@ -58,9 +81,8 @@ const RegisterForm: FC<RegisterFormProps> = ({ value, onChange, error }) => {
         label="Password"
         value={value.password}
         onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event, "password")}
-        // onKeyUp={(event) => login(event)}
         fullWidth
-        sx={{ input: { color: "whitesmoke" } }}
+        sx={{ input: { color: "whitesmoke" }, mb: "11px" }}
         InputLabelProps={{ sx: { color: "grey" } }}
         InputProps={{
           endAdornment: (
@@ -75,6 +97,26 @@ const RegisterForm: FC<RegisterFormProps> = ({ value, onChange, error }) => {
             </IconButton>
           ),
         }}
+      />
+      <TextField
+        required
+        id="role"
+        label="Role"
+        type="text"
+        variant="outlined"
+        value={startCase(value.role)}
+        disabled
+        fullWidth
+        sx={{
+          mb: "11px",
+          "& .MuiInputBase-input.Mui-disabled": {
+            WebkitTextFillColor: "whitesmoke",
+          },
+          "& .MuiInputLabel-root.Mui-disabled": {
+            WebkitTextFillColor: "grey",
+          },
+        }}
+        InputLabelProps={{ sx: { color: "grey" } }}
       />
     </React.Fragment>
   );
