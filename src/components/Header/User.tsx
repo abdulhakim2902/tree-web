@@ -89,7 +89,10 @@ const User: FC = () => {
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
-        sx={{ marginTop: "5px" }}
+        sx={{
+          marginTop: "5px",
+          "& .MuiMenu-paper": { backgroundColor: "var(--background-color)", color: "whitesmoke" },
+        }}
         onClose={onReset}
         classes={classes}
         anchorOrigin={{
