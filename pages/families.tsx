@@ -1,5 +1,6 @@
-import FamilyLink from "@tree/src/components/FamilyLink/FamilyLink";
+import { Grid, Paper, Typography } from "@mui/material";
 import { TOKEN_KEY, USER_KEY } from "@tree/src/constants/storage-key";
+import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { allFamilyNodes } from "@tree/src/lib/services/node";
 import { Family } from "@tree/src/types/tree";
 import ballS from "@tree/styles/Ball.module.css";
@@ -14,6 +15,8 @@ type FamiliesPageProps = {
 };
 
 const FamiliesPage: NextPage<FamiliesPageProps> = ({ families }) => {
+  const { rootNodes } = useTreeNodeDataContext();
+
   return (
     <div className={s.pageContainer}>
       <div className={s.content}>
@@ -25,11 +28,32 @@ const FamiliesPage: NextPage<FamiliesPageProps> = ({ families }) => {
             <span className={s.logoTitle}>FAMILIES</span>
           </div>
         </div>
-        <div className={s.familiesContainer}>
+        <Grid container columnSpacing={{ xs: 1, sm: 2 }} rowSpacing={1}>
           {families.map((family) => (
-            <FamilyLink key={family.id} familyId={family.id} familyName={family.name} />
+            <Grid key={family.id} item xs={6} sm={4} md={3}>
+              <Paper
+                onClick={() => rootNodes(family.id)}
+                sx={{
+                  padding: 2,
+                  textAlign: "center",
+                  height: "70px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#2f2f5e",
+                  cursor: "pointer",
+                  ":hover": {
+                    opacity: "80%",
+                  },
+                }}
+              >
+                <Typography fontSize={12} sx={{ color: "whitesmoke" }}>
+                  {family.name.toUpperCase()}
+                </Typography>
+              </Paper>
+            </Grid>
           ))}
-        </div>
+        </Grid>
       </div>
       <div className={s.imageContainer}>
         <div className={ballS.ball1} />
