@@ -1,10 +1,6 @@
 import React, { FC, ReactNode } from "react";
 import { PageHead } from "../Head/Head";
-import dynamic from "next/dynamic";
-
-const Header = dynamic(() => import("../Header/Header"), {
-  ssr: false,
-});
+import Header from "../Header/Header";
 
 type LayoutProps = {
   children: ReactNode;

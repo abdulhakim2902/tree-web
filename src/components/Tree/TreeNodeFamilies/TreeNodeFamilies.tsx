@@ -9,6 +9,7 @@ import { useCacheContext } from "@tree/src/context/cache";
 import { NODE_FAMILIES_KEY } from "@tree/src/constants/storage-key";
 import { DAY } from "@tree/src/helper/date";
 import { startCase } from "@tree/src/helper/string";
+import Link from "next/link";
 
 type TreeNodeFamiliesProps = {
   id: string;
@@ -77,9 +78,14 @@ export const TreeNodeFamilies: FC<TreeNodeFamiliesProps> = ({ id, fullname }) =>
           }
 
           return (
-            <a key={family.id} className={classNames(s.familyLink, s.familyItem)} onClick={() => rootNodes(family.id)}>
+            <Link
+              href=""
+              key={family.id}
+              className={classNames(s.familyLink, s.familyItem)}
+              onClick={() => rootNodes(family.id)}
+            >
               {startCase(family.name)}
-            </a>
+            </Link>
           );
         })}
       </div>

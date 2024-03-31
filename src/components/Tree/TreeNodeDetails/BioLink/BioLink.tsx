@@ -11,14 +11,13 @@ type BioLinkProps = {
 };
 
 const BioLink: FC<BioLinkProps> = ({ href, text, newTab, className }) => (
-  <Link href={href}>
-    <a
-      className={classNames(s.link, className)}
-      target={newTab ? "_blank" : undefined}
-      rel={newTab ? "noopener noreferrer" : undefined}
-    >
-      {text}
-    </a>
+  <Link
+    href={href}
+    className={classNames(s.link, className)}
+    target={newTab ? "_blank" : undefined}
+    rel={newTab ? "noopener noreferrer" : undefined}
+  >
+    {text}
   </Link>
 );
 
