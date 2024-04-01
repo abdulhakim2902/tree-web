@@ -2,16 +2,19 @@ import { useAuthContext } from "@tree/src/context/auth";
 import {
   Avatar,
   Badge,
+  Divider,
   ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
+  SxProps,
+  Theme,
   Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
 import { deepOrange } from "@mui/material/colors";
-import React, { FC, useState } from "react";
+import React, { FC, useMemo, useState } from "react";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
@@ -21,7 +24,6 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import Diversity1Icon from "@mui/icons-material/Diversity1";
 import { getNameSymbol, startCase } from "@tree/src/helper/string";
 import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
-import ShowIf from "../show-if";
 import InvitePeopleModal from "../Modal/InvitePeopleModal";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import { Role } from "@tree/src/types/user";
@@ -34,6 +36,34 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+const menus = [
+  {
+    name: "account",
+    text: "Account",
+    icon: (sx?: SxProps<Theme>) => <AccountCircleIcon sx={sx} />,
+  },
+  {
+    name: "invite",
+    text: "Invite People",
+    icon: (sx?: SxProps<Theme>) => <ForwardToInboxIcon sx={sx} />,
+  },
+  {
+    name: "request",
+    text: "Request Role",
+    icon: (sx?: SxProps<Theme>) => <PersonAddAltIcon sx={sx} />,
+  },
+  {
+    name: "families",
+    text: "Families",
+    icon: (sx?: SxProps<Theme>) => <Diversity1Icon sx={sx} />,
+  },
+  {
+    name: "logout",
+    text: "Logut",
+    icon: (sx?: SxProps<Theme>) => <LogoutIcon sx={sx} />,
+  },
+];
+
 const User: FC = () => {
   const classes = useStyles();
 
@@ -44,6 +74,7 @@ const User: FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openInvite, setOpenInvite] = useState<boolean>(false);
   const [openRequest, setOpenRequest] = useState<boolean>(false);
+  const [selectItem, setSelectItem] = useState<string>("");
 
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -91,7 +122,10 @@ const User: FC = () => {
         open={Boolean(anchorEl)}
         sx={{
           marginTop: "5px",
-          "& .MuiMenu-paper": { backgroundColor: "var(--background-color)", color: "whitesmoke" },
+          "& .MuiMenu-paper": {
+            backgroundColor: "var(--background-color)",
+            color: "whitesmoke",
+          },
         }}
         onClose={onReset}
         classes={classes}
@@ -104,66 +138,56 @@ const User: FC = () => {
           horizontal: "center",
         }}
       >
-        <MenuItem
-          onClick={() => {
-            setAnchorEl(null);
-          }}
-        >
-          <ListItemIcon>
-            <AccountCircleIcon sx={{ color: "whitesmoke" }} />
-          </ListItemIcon>
-          <ListItemText>{startCase(user.name)}</ListItemText>
-        </MenuItem>
-        <ShowIf condition={user.role === Role.SUPERADMIN}>
-          <MenuItem
-            onClick={() => {
-              setAnchorEl(null);
-              setOpenInvite(true);
-            }}
-          >
-            <ListItemIcon>
-              <ForwardToInboxIcon sx={{ color: "whitesmoke" }} />
-            </ListItemIcon>
-            <ListItemText>Invite People</ListItemText>
-          </MenuItem>
-        </ShowIf>
-        <ShowIf condition={user.role !== Role.SUPERADMIN}>
-          <MenuItem
-            onClick={() => {
-              setAnchorEl(null);
-              setOpenRequest(true);
-            }}
-          >
-            <ListItemIcon>
-              <PersonAddAltIcon sx={{ color: "whitesmoke" }} />
-            </ListItemIcon>
-            <ListItemText>Request Role</ListItemText>
-          </MenuItem>
-        </ShowIf>
-        <MenuItem
-          onClick={() => {
-            push("/families");
-            setAnchorEl(null);
-          }}
-        >
-          <ListItemIcon>
-            <Diversity1Icon sx={{ color: "whitesmoke" }} />
-          </ListItemIcon>
-          <ListItemText>Families</ListItemText>
-        </MenuItem>
-        <MenuItem
-          onClick={async () => {
-            await replace("/");
-            logout();
-            clearNodes();
-            setAnchorEl(null);
-          }}
-        >
-          <ListItemIcon>
-            <LogoutIcon sx={{ color: "whitesmoke" }} />
-          </ListItemIcon>
-          <ListItemText>Logout</ListItemText>
-        </MenuItem>
+        {menus.map((menu) => {
+          if (menu.name === "invite" && user.role !== Role.SUPERADMIN) {
+            return null;
+          }
+
+          if (menu.name === "request" && user.role === Role.SUPERADMIN) {
+            return null;
+          }
+
+          return [
+            <MenuItem
+              key={menu.name}
+              onMouseEnter={() => setSelectItem(menu.name)}
+              onMouseLeave={() => setSelectItem("")}
+              sx={{
+                ":hover": {
+                  color: "var(--background-color)",
+                  backgroundColor: "whitesmoke",
+                },
+              }}
+              onClick={() => {
+                setAnchorEl(null);
+                switch (menu.name) {
+                  case "invite":
+                    setOpenInvite(true);
+                    break;
+                  case "request":
+                    setOpenRequest(true);
+                    break;
+                  case "families":
+                    push("/families");
+                    break;
+                  case "logout":
+                    logout();
+                    clearNodes();
+                    replace("/");
+                    break;
+                }
+              }}
+            >
+              <ListItemIcon>
+                {menu.icon({
+                  color: selectItem === menu.name ? "var(--background-color)" : "whitesmoke",
+                })}
+              </ListItemIcon>
+              <ListItemText>{menu.name === "account" ? startCase(user.name) : menu.text}</ListItemText>
+            </MenuItem>,
+            menu.name === "account" && <Divider sx={{ bgcolor: "whitesmoke" }} />,
+          ];
+        })}
       </Menu>
       <InvitePeopleModal open={openInvite} onClose={() => setOpenInvite(false)} />
       <RequestRoleModal open={openRequest} onClose={() => setOpenRequest(false)} />

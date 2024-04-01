@@ -23,6 +23,10 @@ import React, { FC, useState } from "react";
 import ShowIf from "../show-if";
 import { useAuthContext } from "@tree/src/context/auth";
 import CheckIcon from "@mui/icons-material/Check";
+import { createRequest } from "@tree/src/lib/services/user";
+import { ScaleLoader } from "react-spinners";
+import { useSnackbar } from "notistack";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 
 type RequestRoleModalProps = {
   open: boolean;
@@ -44,21 +48,36 @@ const RequestRoleModal: FC<RequestRoleModalProps> = ({ open, onClose }) => {
   const classes = useStyles();
 
   const { user } = useAuthContext();
+  const { enqueueSnackbar } = useSnackbar();
 
   const [asking, setAsking] = useState<boolean>(false);
   const [role, setRole] = useState<Role>(user?.role || Role.GUEST);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
-  const handleInvite = () => {
-    if (!user) return;
-    setAsking(true);
-    const people = { email: user.email, role };
-    console.log(people);
+  const onRequest = async () => {
+    if (loading) return;
+
+    try {
+      setLoading(true);
+      await createRequest({ role });
+      setAsking(true);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={() => {
+        if (loading) return;
+        onClose();
+        setAsking(false);
+        setRole(Role.GUEST);
+      }}
       PaperProps={{
         style: {
           backgroundColor: "var(--background-color)",
@@ -66,7 +85,7 @@ const RequestRoleModal: FC<RequestRoleModalProps> = ({ open, onClose }) => {
         },
       }}
     >
-      <DialogTitle>Request to Family Tree</DialogTitle>
+      <DialogTitle>Request Permissions to Family Tree</DialogTitle>
       <DialogContent>
         <DialogContentText sx={{ color: "whitesmoke" }}>
           Ask permission to view, contribute, or edit your tree. We’ll let you know when it’s been accessed.
@@ -91,10 +110,12 @@ const RequestRoleModal: FC<RequestRoleModalProps> = ({ open, onClose }) => {
                     <Select
                       value={role}
                       fullWidth
+                      disabled={loading}
                       label="role"
                       onChange={(event) => {
                         setRole(event.target.value as Role);
                         setAsking(false);
+                        setError("");
                       }}
                       sx={{
                         color: "whitesmoke",
@@ -158,19 +179,41 @@ const RequestRoleModal: FC<RequestRoleModalProps> = ({ open, onClose }) => {
             }}
           />
         )}
+        {error && (
+          <TextField
+            disabled
+            value="Please enter valid email address"
+            fullWidth
+            sx={{
+              marginTop: 2,
+              "& .MuiInputBase-input.Mui-disabled": {
+                WebkitTextFillColor: "whitesmoke",
+              },
+              backgroundColor: "#2f2f5e",
+            }}
+            InputProps={{
+              startAdornment: <ErrorOutlineIcon sx={{ marginRight: 1 }} color="error" />,
+            }}
+          />
+        )}
       </DialogContent>
       <DialogActions sx={{ marginBottom: 3, marginRight: 2 }}>
-        <Button
-          variant="outlined"
-          onClick={() => {
-            onClose();
-            setAsking(false);
-          }}
-        >
-          Cancel
-        </Button>
-        <Button onClick={handleInvite} variant="contained" autoFocus disabled={asking}>
-          Ask role
+        {loading ? (
+          <React.Fragment />
+        ) : (
+          <Button
+            variant="outlined"
+            onClick={() => {
+              onClose();
+              setAsking(false);
+            }}
+          >
+            Cancel
+          </Button>
+        )}
+
+        <Button onClick={onRequest} variant="contained" autoFocus disabled={asking}>
+          {loading ? <ScaleLoader color="whitesmoke" height={10} /> : "Ask Role"}
         </Button>
       </DialogActions>
     </Dialog>

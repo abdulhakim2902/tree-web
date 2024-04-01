@@ -17,7 +17,7 @@ import { Role, UserStatus } from "@tree/src/types/user";
 import { acceptInvitation, getInvitation } from "@tree/src/lib/services/user";
 import RegisterModal from "@tree/src/components/Modal/RegisterModal";
 import * as emailValidation from "email-validator";
-import { omit, startCase } from "lodash";
+import { startCase } from "lodash";
 import AcceptInvitationModal from "@tree/src/components/Modal/AcceptInvitationModal";
 import AccountVerification from "@tree/src/components/Modal/AccountVerificationModal";
 
@@ -76,7 +76,6 @@ const HomePage: NextPage = () => {
             break;
           }
 
-          case UserStatus.ROLE_REQUEST:
           case UserStatus.ROLE_UPDATE: {
             setOpenInvitation(true);
             setData((prev) => ({ ...prev, email, role, token }));

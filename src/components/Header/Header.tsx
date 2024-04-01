@@ -1,12 +1,16 @@
 import React, { FC } from "react";
-import { AppBar, Toolbar } from "@mui/material";
+import { AppBar, Box, Toolbar } from "@mui/material";
 import Login from "./Login";
 import User from "./User";
 import Search from "./Search";
 import { useMounted } from "@tree/src/hooks/use-mounted.hook";
+import ShowIf from "../show-if";
+import { useAuthContext } from "@tree/src/context/auth";
+import Notification from "./Notification";
 
 const Header: FC = () => {
   const { isMounted } = useMounted();
+  const { isLoggedIn } = useAuthContext();
 
   if (!isMounted) {
     return null;
@@ -17,7 +21,10 @@ const Header: FC = () => {
       <Toolbar>
         <Search />
         <Login />
-        <User />
+        <ShowIf condition={isLoggedIn}>
+          <Notification />
+          <User />
+        </ShowIf>
       </Toolbar>
     </AppBar>
   );
