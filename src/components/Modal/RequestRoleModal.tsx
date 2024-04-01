@@ -25,7 +25,6 @@ import { useAuthContext } from "@tree/src/context/auth";
 import CheckIcon from "@mui/icons-material/Check";
 import { createRequest } from "@tree/src/lib/services/user";
 import { ScaleLoader } from "react-spinners";
-import { useSnackbar } from "notistack";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 
 type RequestRoleModalProps = {
@@ -48,7 +47,6 @@ const RequestRoleModal: FC<RequestRoleModalProps> = ({ open, onClose }) => {
   const classes = useStyles();
 
   const { user } = useAuthContext();
-  const { enqueueSnackbar } = useSnackbar();
 
   const [asking, setAsking] = useState<boolean>(false);
   const [role, setRole] = useState<Role>(user?.role || Role.GUEST);
@@ -62,7 +60,9 @@ const RequestRoleModal: FC<RequestRoleModalProps> = ({ open, onClose }) => {
       setLoading(true);
       await createRequest({ role });
       setAsking(true);
+      setError("");
     } catch (err: any) {
+      setAsking(false);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -182,7 +182,7 @@ const RequestRoleModal: FC<RequestRoleModalProps> = ({ open, onClose }) => {
         {error && (
           <TextField
             disabled
-            value="Please enter valid email address"
+            value={error}
             fullWidth
             sx={{
               marginTop: 2,

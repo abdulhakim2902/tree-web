@@ -48,9 +48,9 @@ export const getInvitation = async (token: string) => {
   });
 };
 
-export const acceptInvitation = async (token: string) => {
+export const handleInvitation = async (token: string, action: string) => {
   return new Promise((resolve, reject) => {
-    fetch(`${API_URL}/users/invitation/${token}`, {
+    fetch(`${API_URL}/users/invitation/${token}/${action}`, {
       method: "POST",
     })
       .then((response) => response.json())

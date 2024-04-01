@@ -14,7 +14,7 @@ import { useSearchParams } from "next/navigation";
 import { useSnackbar } from "notistack";
 import { Register } from "@tree/src/types/auth";
 import { Role, UserStatus } from "@tree/src/types/user";
-import { acceptInvitation, getInvitation } from "@tree/src/lib/services/user";
+import { handleInvitation, getInvitation } from "@tree/src/lib/services/user";
 import RegisterModal from "@tree/src/components/Modal/RegisterModal";
 import * as emailValidation from "email-validator";
 import { startCase } from "lodash";
@@ -204,7 +204,7 @@ const HomePage: NextPage = () => {
         throw new Error("Invalid token");
       }
 
-      await acceptInvitation(data.token);
+      await handleInvitation(data.token, "accept");
       enqueueSnackbar({
         variant: "success",
         message: `Successfully changed role to ${data.role}. Please sign in again with a new role.`,
