@@ -280,7 +280,12 @@ const Notification: FC = () => {
           })
         ) : (
           <Box sx={{ width: "440px", height: "300px", display: "flex", justifyContent: "center" }}>
-            <Typography component="div" alignItems="center" sx={{ display: "flex", flexDirection: "row" }} fontSize={14}>
+            <Typography
+              component="div"
+              alignItems="center"
+              sx={{ display: "flex", flexDirection: "row" }}
+              fontSize={14}
+            >
               No notifications
             </Typography>
           </Box>

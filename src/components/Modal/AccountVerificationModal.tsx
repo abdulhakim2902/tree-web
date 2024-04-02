@@ -8,7 +8,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { FC } from "react";
+import React, { FC, useRef } from "react";
 import { ScaleLoader } from "react-spinners";
 
 type AccountVerificationProps = {
@@ -17,10 +17,24 @@ type AccountVerificationProps = {
   loading: boolean;
 
   onClose: () => void;
-  verify: () => void;
+  verify: (cb?: () => void) => void;
 };
 
 const AccountVerification: FC<AccountVerificationProps> = ({ open, onClose, email, loading, verify }) => {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const onVerify = () => {
+    if (buttonRef.current && !buttonRef.current.disabled) {
+      buttonRef.current.disabled = true;
+
+      verify(() => {
+        if (buttonRef.current) {
+          buttonRef.current.disabled = false;
+        }
+      });
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -58,7 +72,7 @@ const AccountVerification: FC<AccountVerificationProps> = ({ open, onClose, emai
         </DialogContentText>
       </DialogContent>
       <DialogActions sx={{ display: "flex", justifyContent: "center", marginBottom: 2, marginTop: 1, paddingX: 3 }}>
-        <Button variant="contained" color="primary" onClick={verify} fullWidth>
+        <Button ref={buttonRef} variant="contained" color="primary" onClick={onVerify} fullWidth>
           {loading ? <ScaleLoader color="whitesmoke" height={10} /> : "Verify"}
         </Button>
         {loading ? (

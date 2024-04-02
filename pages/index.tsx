@@ -14,11 +14,10 @@ import { useSearchParams } from "next/navigation";
 import { useSnackbar } from "notistack";
 import { Register } from "@tree/src/types/auth";
 import { Role, UserStatus } from "@tree/src/types/user";
-import { handleInvitation, getInvitation } from "@tree/src/lib/services/user";
+import { getInvitation } from "@tree/src/lib/services/user";
 import RegisterModal from "@tree/src/components/Modal/RegisterModal";
 import * as emailValidation from "email-validator";
 import { startCase } from "lodash";
-import AcceptInvitationModal from "@tree/src/components/Modal/AcceptInvitationModal";
 import AccountVerification from "@tree/src/components/Modal/AccountVerificationModal";
 
 const defaultRegister = {
@@ -39,11 +38,9 @@ const HomePage: NextPage = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { isMounted } = useMounted();
 
-  const [accepting, setAccepting] = useState<boolean>(false);
   const [data, setData] = useState<Register>({ ...defaultRegister });
   const [error, setError] = useState({ name: false, username: false, password: false, email: false });
   const [open, setOpen] = useState<boolean>(false);
-  const [openInvitation, setOpenInvitation] = useState<boolean>(false);
   const [openVerification, setOpenVerification] = useState<boolean>(false);
 
   useEffect(() => {
@@ -76,11 +73,6 @@ const HomePage: NextPage = () => {
             break;
           }
 
-          case UserStatus.ROLE_UPDATE: {
-            setOpenInvitation(true);
-            setData((prev) => ({ ...prev, email, role, token }));
-            break;
-          }
           default:
             throw new Error("Invalid invitation status");
         }
@@ -143,9 +135,7 @@ const HomePage: NextPage = () => {
     }
   };
 
-  const onRegister = async () => {
-    if (loading) return;
-
+  const onRegister = async (cb?: () => void) => {
     for (const key in data) {
       if (data.token && key === "email") continue;
       if (data.email && key === "token") continue;
@@ -190,40 +180,9 @@ const HomePage: NextPage = () => {
 
         enqueueSnackbar(option);
         logout();
+        cb && cb();
       }
     });
-  };
-
-  const onAcceptInvitation = async () => {
-    if (accepting) return;
-
-    try {
-      setAccepting(true);
-
-      if (!data.token) {
-        throw new Error("Invalid token");
-      }
-
-      await handleInvitation(data.token, "accept");
-      enqueueSnackbar({
-        variant: "success",
-        message: `Successfully changed role to ${data.role}. Please sign in again with a new role.`,
-      });
-      logout();
-    } catch (err: any) {
-      enqueueSnackbar({
-        variant: "error",
-        message: err.message,
-        anchorOrigin: {
-          vertical: "top",
-          horizontal: "center",
-        },
-        persist: true,
-      });
-    } finally {
-      setOpenInvitation(false);
-      setAccepting(false);
-    }
   };
 
   if (!isMounted) {
@@ -253,19 +212,6 @@ const HomePage: NextPage = () => {
           <div className={ballS.ball5} />
         </div>
       </div>
-      <AcceptInvitationModal
-        open={openInvitation}
-        onClose={() => {
-          if (accepting) return;
-          setOpenInvitation(false);
-          setData({ ...defaultRegister });
-          setError({ name: false, username: false, password: false, email: false });
-        }}
-        email={data.email ?? ""}
-        role={data.role}
-        loading={accepting}
-        onAccept={onAcceptInvitation}
-      />
       <RegisterModal
         open={open}
         value={data}
@@ -274,7 +220,6 @@ const HomePage: NextPage = () => {
         register={onRegister}
         loading={loading}
         onClose={() => {
-          if (loading) return;
           setOpen(false);
           setData({ ...defaultRegister });
           setError({ name: false, username: false, password: false, email: false });
@@ -286,7 +231,6 @@ const HomePage: NextPage = () => {
         loading={loading}
         verify={onRegister}
         onClose={() => {
-          if (loading) return;
           setOpenVerification(false);
           setData({ ...defaultRegister });
           setError({ name: false, username: false, password: false, email: false });

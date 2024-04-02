@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FC } from "react";
+import React, { ChangeEvent, FC, useRef } from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
 import { Register } from "@tree/src/types/auth";
 import RegisterForm from "../Form/RegisterForm";
@@ -11,12 +11,26 @@ type RegisterModalProps = {
   error: Error & { name: boolean; email: boolean };
   loading: boolean;
 
-  register: () => void;
+  register: (cb?: () => void) => void;
   onChange: (event: ChangeEvent<HTMLInputElement>, types: string) => void;
   onClose: () => void;
 };
 
 const RegisterModal: FC<RegisterModalProps> = ({ open, value, register, onChange, error, loading, onClose }) => {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const onRegister = () => {
+    if (buttonRef.current && !buttonRef.current.disabled) {
+      buttonRef.current.disabled = true;
+
+      register(() => {
+        if (buttonRef.current) {
+          buttonRef.current.disabled = false;
+        }
+      });
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -36,7 +50,7 @@ const RegisterModal: FC<RegisterModalProps> = ({ open, value, register, onChange
         <RegisterForm value={value} onChange={onChange} error={error} />
       </DialogContent>
       <DialogActions sx={{ display: "flex", justifyContent: "center", marginBottom: 2, marginTop: 1, paddingX: 3 }}>
-        <Button variant="contained" onClick={register} color="primary" fullWidth>
+        <Button ref={buttonRef} variant="contained" onClick={onRegister} color="primary" fullWidth>
           {loading ? <ScaleLoader color="whitesmoke" height={10} /> : "Sign Up"}
         </Button>
         {loading ? (
