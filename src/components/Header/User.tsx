@@ -96,7 +96,7 @@ const User: FC = () => {
       >
         <Avatar
           sx={{
-            bgcolor: deepOrange[500],
+            bgcolor: "#2f2f5e",
             opacity: 1,
             ":hover": { opacity: 0.9 },
             height: mobile ? "30px" : "35px",
@@ -110,7 +110,6 @@ const User: FC = () => {
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         sx={{
-          width: "500px",
           marginTop: "5px",
           "& .MuiMenu-paper": {
             backgroundColor: "var(--background-color)",
@@ -140,6 +139,7 @@ const User: FC = () => {
             <MenuItem
               key={menu.name}
               sx={{
+                minHeight: "31px",
                 ":hover": {
                   backgroundColor: "#2f2f5e",
                 },
@@ -165,7 +165,9 @@ const User: FC = () => {
               }}
             >
               <ListItemIcon>{menu.icon({ color: "whitesmoke" })}</ListItemIcon>
-              <ListItemText>{menu.name === "account" ? startCase(user.name) : menu.text}</ListItemText>
+              <ListItemText>
+                <Typography fontSize={12}>{menu.name === "account" ? startCase(user.name) : menu.text}</Typography>
+              </ListItemText>
             </MenuItem>,
             menu.name === "account" && <Divider sx={{ bgcolor: "whitesmoke" }} />,
           ];

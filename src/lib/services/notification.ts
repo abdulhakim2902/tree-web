@@ -4,7 +4,7 @@ import { getCookie } from "cookies-next";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export type UpdateNotificationDto = {
-  action: boolean;
+  action?: boolean;
 };
 
 export type QueryNotificationDto = {
@@ -15,20 +15,21 @@ export type Notification = {
   _id: string;
   read: boolean;
   type: string;
-  relatedModel?: string;
-  relatedModelId?: string;
+  referenceId?: string;
   message: string;
-  additionalData: string;
   to: string;
   action: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
-export const getNotifications = async (query: QueryNotificationDto) => {
+export const getNotifications = async (query: QueryNotificationDto, signal?: AbortSignal) => {
   const token = getCookie(TOKEN_KEY)?.toString();
 
   return new Promise<Notification[]>((resolve, reject) => {
     fetch(`${API_URL}/notifications?${new URLSearchParams(query).toString()}`, {
       method: "GET",
+      signal,
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -45,12 +46,13 @@ export const getNotifications = async (query: QueryNotificationDto) => {
   });
 };
 
-export const notificationCount = async (query: QueryNotificationDto) => {
+export const notificationCount = async (query: QueryNotificationDto, signal?: AbortSignal) => {
   const token = getCookie(TOKEN_KEY)?.toString();
 
   return new Promise<{ count: number }>((resolve, reject) => {
     fetch(`${API_URL}/notifications/count?${new URLSearchParams(query).toString()}`, {
       method: "GET",
+      signal,
       headers: {
         Authorization: `Bearer ${token}`,
       },

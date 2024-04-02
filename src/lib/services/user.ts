@@ -136,11 +136,11 @@ export const createRequest = async (data: { role: string }) => {
   });
 };
 
-export const handleRequest = async (requestId: string, action: string) => {
+export const handleRequest = async (referenceId: string, action: string) => {
   const token = getCookie(TOKEN_KEY)?.toString();
 
   return new Promise((resolve, reject) => {
-    fetch(`${API_URL}/users/requests/${requestId}/${action}`, {
+    fetch(`${API_URL}/users/requests/${referenceId}/${action}`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
