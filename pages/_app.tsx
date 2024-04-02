@@ -1,7 +1,7 @@
 import Layout from "@tree/src/components/Layout/Layout";
 import { TreeNodeDataContextProvider } from "@tree/src/context/data";
 import "@tree/styles/globals.css";
-import { IconButton, createTheme, useMediaQuery, useTheme } from "@mui/material";
+import { IconButton, useMediaQuery, useTheme } from "@mui/material";
 import type { AppProps } from "next/app";
 import { SnackbarProvider, closeSnackbar } from "notistack";
 import CloseIcon from "@mui/icons-material/Close";

@@ -14,12 +14,11 @@ import {
   useTheme,
 } from "@mui/material";
 import { deepOrange } from "@mui/material/colors";
-import React, { FC, useMemo, useState } from "react";
+import React, { FC, useState } from "react";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { useRouter } from "next/router";
-import { makeStyles } from "@mui/styles";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import Diversity1Icon from "@mui/icons-material/Diversity1";
 import { getNameSymbol, startCase } from "@tree/src/helper/string";
@@ -28,13 +27,6 @@ import InvitePeopleModal from "../Modal/InvitePeopleModal";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import { Role } from "@tree/src/types/user";
 import RequestRoleModal from "../Modal/RequestRoleModal";
-
-const useStyles = makeStyles(() => ({
-  paper: {
-    background: "var(--background-color)",
-    color: "whitesmoke",
-  },
-}));
 
 const menus = [
   {
@@ -65,8 +57,6 @@ const menus = [
 ];
 
 const User: FC = () => {
-  const classes = useStyles();
-
   const { isLoggedIn, user, logout } = useAuthContext();
   const { clearNodes } = useTreeNodeDataContext();
   const { replace, push } = useRouter();
@@ -74,7 +64,6 @@ const User: FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openInvite, setOpenInvite] = useState<boolean>(false);
   const [openRequest, setOpenRequest] = useState<boolean>(false);
-  const [selectItem, setSelectItem] = useState<string>("");
 
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -121,6 +110,7 @@ const User: FC = () => {
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         sx={{
+          width: "500px",
           marginTop: "5px",
           "& .MuiMenu-paper": {
             backgroundColor: "var(--background-color)",
@@ -128,7 +118,6 @@ const User: FC = () => {
           },
         }}
         onClose={onReset}
-        classes={classes}
         anchorOrigin={{
           vertical: "bottom",
           horizontal: "left",
@@ -150,12 +139,9 @@ const User: FC = () => {
           return [
             <MenuItem
               key={menu.name}
-              onMouseEnter={() => setSelectItem(menu.name)}
-              onMouseLeave={() => setSelectItem("")}
               sx={{
                 ":hover": {
-                  color: "var(--background-color)",
-                  backgroundColor: "whitesmoke",
+                  backgroundColor: "#2f2f5e",
                 },
               }}
               onClick={() => {
@@ -178,11 +164,7 @@ const User: FC = () => {
                 }
               }}
             >
-              <ListItemIcon>
-                {menu.icon({
-                  color: selectItem === menu.name ? "var(--background-color)" : "whitesmoke",
-                })}
-              </ListItemIcon>
+              <ListItemIcon>{menu.icon({ color: "whitesmoke" })}</ListItemIcon>
               <ListItemText>{menu.name === "account" ? startCase(user.name) : menu.text}</ListItemText>
             </MenuItem>,
             menu.name === "account" && <Divider sx={{ bgcolor: "whitesmoke" }} />,

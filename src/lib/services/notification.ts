@@ -7,11 +7,49 @@ export type UpdateNotificationDto = {
   action: boolean;
 };
 
-export const notifications = async () => {
+export type QueryNotificationDto = {
+  read?: string;
+};
+
+export type Notification = {
+  _id: string;
+  read: boolean;
+  type: string;
+  relatedModel?: string;
+  relatedModelId?: string;
+  message: string;
+  additionalData: string;
+  to: string;
+  action: boolean;
+};
+
+export const getNotifications = async (query: QueryNotificationDto) => {
   const token = getCookie(TOKEN_KEY)?.toString();
 
-  return new Promise((resolve, reject) => {
-    fetch(`${API_URL}/notifications`, {
+  return new Promise<Notification[]>((resolve, reject) => {
+    fetch(`${API_URL}/notifications?${new URLSearchParams(query).toString()}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data?.statusCode) {
+          return reject(data);
+        }
+
+        return resolve(data);
+      })
+      .catch((err) => reject(err));
+  });
+};
+
+export const notificationCount = async (query: QueryNotificationDto) => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+
+  return new Promise<{ count: number }>((resolve, reject) => {
+    fetch(`${API_URL}/notifications/count?${new URLSearchParams(query).toString()}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -36,6 +74,7 @@ export const updateNotification = async (id: string, data: UpdateNotificationDto
     fetch(`${API_URL}/notifications/${id}`, {
       method: "PATCH",
       headers: {
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
