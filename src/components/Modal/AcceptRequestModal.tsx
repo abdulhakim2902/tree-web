@@ -42,7 +42,7 @@ const columns = (
       align: "center",
       width: 150,
       renderHeader: (row) => <Typography style={{ fontSize: "11px" }}>{startCase(row.field)}</Typography>,
-      renderCell: (row) => {},
+      renderCell: ({ row }) => <Typography>{row.email}</Typography>,
     },
     {
       field: "currentRole",
