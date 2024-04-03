@@ -17,7 +17,6 @@ import {
   TableRow,
   TextField,
 } from "@mui/material";
-import { makeStyles } from "@mui/styles";
 import { Role } from "@tree/src/types/user";
 import { startCase, uniqBy } from "lodash";
 import React, { FC, useEffect, useRef, useState } from "react";
@@ -42,18 +41,7 @@ type InvitePeopleModalProps = {
   onClose: () => void;
 };
 
-const useStyles = makeStyles(() => ({
-  paper: {
-    background: "var(--background-color)",
-    color: "whitesmoke",
-  },
-  noOptions: {
-    color: "whitesmoke",
-  },
-}));
-
 const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
-  const classes = useStyles();
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const { enqueueSnackbar } = useSnackbar();
@@ -154,114 +142,119 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {people.map((person, index) => {
-                return (
-                  <React.Fragment key={index}>
-                    <TableRow>
-                      <TableCell
+              {people.map((person, index) => (
+                <React.Fragment key={index}>
+                  <TableRow>
+                    <TableCell
+                      sx={{
+                        color: "whitesmoke",
+                        borderBottom: "none",
+                        paddingLeft: 0,
+                        paddingBottom: 0,
+                        width: "60%",
+                      }}
+                    >
+                      <TextField
+                        error={person.error}
+                        value={person.email}
+                        fullWidth
+                        type="text"
+                        variant="outlined"
+                        size="medium"
+                        sx={{
+                          input: { color: "whitesmoke" },
+                        }}
+                        onPaste={(event) => onChangeEmail(index, event.clipboardData.getData("text"))}
+                        onChange={(event) => onChangeEmail(index, event.target.value)}
+                      />
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        color: "whitesmoke",
+                        borderBottom: "none",
+                        paddingLeft: 0,
+                        paddingBottom: 0,
+                        paddingRight: 0,
+                        width: "30%",
+                      }}
+                    >
+                      <Select
+                        value={person.role}
+                        fullWidth
+                        onChange={(event) => onChangeRole(event, index)}
                         sx={{
                           color: "whitesmoke",
-                          borderBottom: "none",
-                          paddingLeft: 0,
-                          paddingBottom: 0,
-                          width: "60%",
+                          "& .MuiInputBase-input.Mui-disabled": {
+                            WebkitTextFillColor: "whitesmoke",
+                          },
                         }}
-                      >
-                        <TextField
-                          error={person.error}
-                          value={person.email}
-                          fullWidth
-                          type="text"
-                          variant="outlined"
-                          size="medium"
-                          sx={{
-                            input: { color: "whitesmoke" },
-                          }}
-                          onPaste={(event) => onChangeEmail(index, event.clipboardData.getData("text"))}
-                          onChange={(event) => onChangeEmail(index, event.target.value)}
-                        />
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          color: "whitesmoke",
-                          borderBottom: "none",
-                          paddingLeft: 0,
-                          paddingBottom: 0,
-                          paddingRight: 0,
-                          width: "30%",
-                        }}
-                      >
-                        <Select
-                          value={person.role}
-                          fullWidth
-                          onChange={(event) => onChangeRole(event, index)}
-                          sx={{
-                            color: "whitesmoke",
-                            "& .MuiInputBase-input.Mui-disabled": {
-                              WebkitTextFillColor: "whitesmoke",
+                        MenuProps={{
+                          sx: {
+                            "& .MuiMenu-paper": {
+                              backgroundColor: "var(--background-color)",
+                              color: "whitesmoke",
                             },
-                          }}
-                          MenuProps={{ classes }}
-                        >
-                          {[Role.GUEST, Role.CONTRIBUTOR, Role.EDITOR].map((role) => {
-                            return (
-                              <MenuItem key={role} value={role}>
-                                {startCase(role)}
-                              </MenuItem>
-                            );
-                          })}
-                        </Select>
-                      </TableCell>
-                      <ShowIf condition={people.length > 1}>
-                        <TableCell
-                          align="center"
-                          sx={{ borderBottom: "none", paddingLeft: 0, paddingBottom: 0, paddingRight: 0 }}
-                        >
-                          <IconButton
-                            sx={{ color: "whitesmoke" }}
-                            onClick={() => {
-                              if (loading) return;
-                              setInviting(false);
-                              setPeople((prev) => {
-                                prev.splice(index, 1);
-                                return [...prev];
-                              });
-                            }}
-                          >
-                            <CloseIcon />
-                          </IconButton>
-                        </TableCell>
-                      </ShowIf>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell
-                        colSpan={2}
-                        sx={{ color: "whitesmoke", padding: 0, paddingTop: 1, borderBottom: "none" }}
+                          },
+                        }}
                       >
-                        This person will be able to{" "}
-                        <ShowIf condition={person.role === Role.GUEST}>
-                          <b>
-                            <i>view this tree</i>
-                          </b>
-                          .
-                        </ShowIf>
-                        <ShowIf condition={person.role === Role.CONTRIBUTOR}>
-                          <b>
-                            <i>view this tree and add photos</i>
-                          </b>
-                          .
-                        </ShowIf>
-                        <ShowIf condition={person.role === Role.EDITOR}>
-                          <b>
-                            <i>view this tree and add photos and people</i>
-                          </b>
-                          .
-                        </ShowIf>
+                        {[Role.GUEST, Role.CONTRIBUTOR, Role.EDITOR].map((role) => {
+                          return (
+                            <MenuItem key={role} value={role}>
+                              {startCase(role)}
+                            </MenuItem>
+                          );
+                        })}
+                      </Select>
+                    </TableCell>
+                    <ShowIf condition={people.length > 1}>
+                      <TableCell
+                        align="center"
+                        sx={{ borderBottom: "none", paddingLeft: 0, paddingBottom: 0, paddingRight: 0 }}
+                      >
+                        <IconButton
+                          sx={{ color: "whitesmoke" }}
+                          onClick={() => {
+                            if (loading) return;
+                            setInviting(false);
+                            setPeople((prev) => {
+                              prev.splice(index, 1);
+                              return [...prev];
+                            });
+                          }}
+                        >
+                          <CloseIcon />
+                        </IconButton>
                       </TableCell>
-                    </TableRow>
-                  </React.Fragment>
-                );
-              })}
+                    </ShowIf>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell
+                      colSpan={2}
+                      sx={{ color: "whitesmoke", padding: 0, paddingTop: 1, borderBottom: "none" }}
+                    >
+                      This person will be able to{" "}
+                      <ShowIf condition={person.role === Role.GUEST}>
+                        <b>
+                          <i>view this tree</i>
+                        </b>
+                        .
+                      </ShowIf>
+                      <ShowIf condition={person.role === Role.CONTRIBUTOR}>
+                        <b>
+                          <i>view this tree and add photos</i>
+                        </b>
+                        .
+                      </ShowIf>
+                      <ShowIf condition={person.role === Role.EDITOR}>
+                        <b>
+                          <i>view this tree and add photos and people</i>
+                        </b>
+                        .
+                      </ShowIf>
+                    </TableCell>
+                  </TableRow>
+                </React.Fragment>
+              ))}
             </TableBody>
           </Table>
         </TableContainer>

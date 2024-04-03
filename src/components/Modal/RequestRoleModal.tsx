@@ -17,7 +17,6 @@ import {
   TableRow,
   TextField,
 } from "@mui/material";
-import { makeStyles } from "@mui/styles";
 import { Role } from "@tree/src/types/user";
 import { startCase } from "lodash";
 import React, { FC, useRef, useState } from "react";
@@ -34,19 +33,8 @@ type RequestRoleModalProps = {
   onClose: () => void;
 };
 
-const useStyles = makeStyles(() => ({
-  paper: {
-    background: "var(--background-color)",
-    color: "whitesmoke",
-  },
-  noOptions: {
-    color: "whitesmoke",
-  },
-}));
-
 const RequestRoleModal: FC<RequestRoleModalProps> = ({ open, onClose }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const classes = useStyles();
 
   const { user } = useAuthContext();
 
@@ -136,7 +124,14 @@ const RequestRoleModal: FC<RequestRoleModalProps> = ({ open, onClose }) => {
                           WebkitTextFillColor: "whitesmoke",
                         },
                       }}
-                      MenuProps={{ classes }}
+                      MenuProps={{
+                        sx: {
+                          "& .MuiMenu-paper": {
+                            backgroundColor: "var(--background-color)",
+                            color: "whitesmoke",
+                          },
+                        },
+                      }}
                     >
                       {[Role.GUEST, Role.CONTRIBUTOR, Role.EDITOR].map((role) => {
                         return (
