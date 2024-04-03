@@ -1,12 +1,9 @@
-import { useAuthContext } from "@tree/src/context/auth";
 import { Login } from "@tree/src/types/auth";
-import { Box, Button, CircularProgress, IconButton, TextField, useMediaQuery, useTheme } from "@mui/material";
+import { IconButton, TextField, useMediaQuery, useTheme } from "@mui/material";
 import React, { ChangeEvent, FC, KeyboardEvent, useState } from "react";
 
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import ShowIf from "../show-if";
-import { green } from "@mui/material/colors";
 import { Error } from "../Header/Login";
 
 type LoginFormProps = {
@@ -18,8 +15,6 @@ type LoginFormProps = {
 };
 
 const LoginForm: FC<LoginFormProps> = ({ value, login, onChange, error }) => {
-  const { loading } = useAuthContext();
-
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const theme = useTheme();
@@ -72,42 +67,6 @@ const LoginForm: FC<LoginFormProps> = ({ value, login, onChange, error }) => {
           ),
         }}
       />
-      <Box
-        sx={{
-          marginTop: mobile ? 2 : 1,
-          marginBottom: mobile ? 0 : 1,
-          marginLeft: mobile ? 0 : 1,
-          marginRight: mobile ? 0 : 1,
-          position: "relative",
-          display: "flex",
-          justifyContent: "end",
-        }}
-      >
-        <Box position="relative">
-          <Button
-            variant={mobile ? "contained" : "outlined"}
-            onClick={() => login()}
-            disabled={loading}
-            color={mobile ? "primary" : "inherit"}
-            sx={mobile ? {} : { borderColor: "whitesmoke" }}
-          >
-            Login
-          </Button>
-          <ShowIf condition={loading}>
-            <CircularProgress
-              size={10}
-              sx={{
-                color: green[500],
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                marginTop: "-5px",
-                marginLeft: "-5px",
-              }}
-            />
-          </ShowIf>
-        </Box>
-      </Box>
     </React.Fragment>
   );
 };

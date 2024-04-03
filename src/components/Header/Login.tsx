@@ -1,6 +1,6 @@
 import { useAuthContext } from "@tree/src/context/auth";
 import { Box, Button, useMediaQuery, useTheme } from "@mui/material";
-import React, { ChangeEvent, FC, KeyboardEvent, useEffect, useState } from "react";
+import React, { ChangeEvent, FC, KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Login as LoginType } from "@tree/src/types/auth";
 import { useSnackbar } from "notistack";
 import LoginModal from "../Modal/LoginModal";
@@ -10,6 +10,7 @@ import { useRouter } from "next/router";
 import { useCacheContext } from "@tree/src/context/cache";
 import { Root } from "@tree/src/types/tree";
 import LoginForm from "../Form/LoginForm";
+import { ScaleLoader } from "react-spinners";
 
 export type Error = {
   username: boolean;
@@ -17,7 +18,9 @@ export type Error = {
 };
 
 const Login: FC = () => {
-  const { isLoggedIn, login } = useAuthContext();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const { isLoggedIn, login, loading } = useAuthContext();
   const { rootNodes, tree } = useTreeNodeDataContext();
   const { get } = useCacheContext();
   const { enqueueSnackbar } = useSnackbar();
@@ -37,7 +40,7 @@ const Login: FC = () => {
     }
   }, [mobile]);
 
-  const handleLogin = async (event?: KeyboardEvent) => {
+  const handleLogin = async (event?: KeyboardEvent, cb?: () => void) => {
     if (event && event.key !== "Enter") return;
 
     const res: Record<string, any> = data;
@@ -70,6 +73,8 @@ const Login: FC = () => {
           else rootNodes(nodeId);
         }
       }
+
+      cb && cb();
     });
   };
 
@@ -108,7 +113,10 @@ const Login: FC = () => {
         </Button>
         <LoginModal
           open={open}
-          onClose={() => setOpen(false)}
+          onClose={() => {
+            setOpen(false);
+            setData({ username: "", password: "" });
+          }}
           login={handleLogin}
           value={data}
           onChange={onChange}
@@ -121,6 +129,24 @@ const Login: FC = () => {
   return (
     <React.Fragment>
       <LoginForm login={handleLogin} value={data} onChange={onChange} error={error} />
+      <Button
+        ref={buttonRef}
+        color="inherit"
+        onClick={async () => {
+          if (buttonRef.current && !buttonRef.current.disabled) {
+            buttonRef.current.disabled = true;
+            handleLogin(undefined, () => {
+              if (buttonRef.current) {
+                buttonRef.current.disabled = false;
+              }
+            });
+          }
+        }}
+        sx={{ borderColor: "whitesmoke" }}
+        variant="outlined"
+      >
+        {loading ? <ScaleLoader color="whitesmoke" height={10} width={2} /> : "Log in"}
+      </Button>
     </React.Fragment>
   );
 };

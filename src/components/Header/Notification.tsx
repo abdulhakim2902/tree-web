@@ -110,7 +110,7 @@ const Notification: FC = () => {
         setNotifications((prev) =>
           prev.map((e) => {
             if (e._id === notification._id) {
-              Object.assign(e, { read: true, action: true });
+              Object.assign(e, { read: true, action: false });
             }
 
             return e;
@@ -149,7 +149,7 @@ const Notification: FC = () => {
           newNotification,
           ...prev.map((e) => {
             if (e._id === notification._id) {
-              Object.assign(e, { read: true, action: true });
+              Object.assign(e, { read: true, action: false });
             }
 
             return e;
@@ -180,7 +180,7 @@ const Notification: FC = () => {
       buttonRef.current.disabled = true;
 
       try {
-        await updateNotification(id, {});
+        await updateNotification(id);
         setCount((prev) => {
           if (!prev) return prev;
           return prev - 1;
@@ -292,7 +292,7 @@ const Notification: FC = () => {
                     <Typography fontSize={12} sx={{ color: notification.read ? "#5C5470" : "whitesmoke" }}>
                       {notification.message}
                     </Typography>
-                    <ShowIf condition={!notification.action}>
+                    <ShowIf condition={notification.action}>
                       <Box component="span" minWidth={80}>
                         <Tooltip title="Accept request">
                           <IconButton
@@ -315,7 +315,7 @@ const Notification: FC = () => {
                         </Tooltip>
                       </Box>
                     </ShowIf>
-                    <ShowIf condition={notification.action && !notification.read}>
+                    <ShowIf condition={!notification.action && !notification.read}>
                       <Tooltip title="Mark as unread">
                         <IconButton
                           ref={buttonRefs[notification._id]}

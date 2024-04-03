@@ -180,8 +180,9 @@ const HomePage: NextPage = () => {
 
         enqueueSnackbar(option);
         logout();
-        cb && cb();
       }
+
+      cb && cb();
     });
   };
 

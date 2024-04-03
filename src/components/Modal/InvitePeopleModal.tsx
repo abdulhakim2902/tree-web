@@ -214,12 +214,13 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
                         <IconButton
                           sx={{ color: "whitesmoke" }}
                           onClick={() => {
-                            if (loading) return;
-                            setInviting(false);
-                            setPeople((prev) => {
-                              prev.splice(index, 1);
-                              return [...prev];
-                            });
+                            if (!loading) {
+                              setInviting(false);
+                              setPeople((prev) => {
+                                prev.splice(index, 1);
+                                return [...prev];
+                              });
+                            }
                           }}
                         >
                           <CloseIcon />
@@ -261,11 +262,12 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
         <Button
           variant="outlined"
           onClick={() => {
-            if (loading) return;
-            setInviting(false);
-            setPeople((prev) => {
-              return [...prev, { email: "", role: Role.GUEST, error: false }];
-            });
+            if (!loading) {
+              setInviting(false);
+              setPeople((prev) => {
+                return [...prev, { email: "", role: Role.GUEST, error: false }];
+              });
+            }
           }}
           sx={{ marginTop: 3 }}
         >

@@ -3,10 +3,6 @@ import { getCookie } from "cookies-next";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export type UpdateNotificationDto = {
-  action?: boolean;
-};
-
 export type QueryNotificationDto = {
   read?: string;
 };
@@ -74,17 +70,16 @@ export const notificationCount = async (query: QueryNotificationDto, signal?: Ab
   });
 };
 
-export const updateNotification = async (id: string, data: UpdateNotificationDto) => {
+export const updateNotification = async (id: string) => {
   const token = getCookie(TOKEN_KEY)?.toString();
 
   return new Promise((resolve, reject) => {
-    fetch(`${API_URL}/notifications/${id}`, {
+    fetch(`${API_URL}/notifications/${id}/read`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(data),
     })
       .then((response) => response.json())
       .then((data) => {
