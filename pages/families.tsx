@@ -2,11 +2,12 @@ import { Grid, Paper, Typography } from "@mui/material";
 import { TOKEN_KEY, USER_KEY } from "@tree/src/constants/storage-key";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { allFamilyNodes } from "@tree/src/lib/services/node";
+import { me } from "@tree/src/lib/services/user";
 import { Family } from "@tree/src/types/tree";
 import ballS from "@tree/styles/Ball.module.css";
 import s from "@tree/styles/FamilyPage.module.css";
 import classNames from "classnames";
-import { getCookie } from "cookies-next";
+import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import type { GetServerSidePropsContext, NextPage } from "next";
 import Image from "next/image";
 
@@ -71,27 +72,32 @@ export default FamiliesPage;
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   const families = [] as Family[];
   const token = getCookie(TOKEN_KEY, ctx)?.toString();
-  const user = getCookie(USER_KEY, ctx)?.toString();
-
-  if (!token || !user) {
-    return {
-      redirect: {
-        destination: "/",
-        permanent: false,
-      },
-    };
-  }
 
   try {
+    if (!token) throw new Error("Token not found");
+
+    const user = await me(token);
+    setCookie(USER_KEY, user, ctx);
+
     const { data } = await allFamilyNodes(token);
     families.push(...data);
+
+    return {
+      props: {
+        families,
+      },
+    };
   } catch {
     // ignore
   }
 
+  deleteCookie(USER_KEY);
+  deleteCookie(TOKEN_KEY);
+
   return {
-    props: {
-      families,
+    redirect: {
+      destination: "/",
+      permanent: false,
     },
   };
 }

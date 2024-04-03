@@ -57,15 +57,18 @@ const Login: FC = () => {
       });
     }
 
-    login(data, () => {
-      setData({ username: "", password: "" });
-      setOpen(false);
-      if (pathname === "/families") replace("/families");
-      if (pathname === "/tree") {
-        const root = get<Root>(TREE_ROOT_KEY);
-        const nodeId = root?.id ?? tree?.root?.id;
-        if (!nodeId) replace("/families");
-        else rootNodes(nodeId);
+    login(data, (success) => {
+      if (success) {
+        setData({ username: "", password: "" });
+        setOpen(false);
+
+        if (pathname === "/families") replace("/families");
+        if (pathname === "/tree") {
+          const root = get<Root>(TREE_ROOT_KEY);
+          const nodeId = root?.id ?? tree?.root?.id;
+          if (!nodeId) replace("/families");
+          else rootNodes(nodeId);
+        }
       }
     });
   };

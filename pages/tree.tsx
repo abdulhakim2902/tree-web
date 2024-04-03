@@ -5,13 +5,14 @@ import { NavigationContextProvider } from "@tree/src/context/navigation";
 import { NodeSelectionContextProvider } from "@tree/src/context/tree";
 import type { GetServerSidePropsContext, NextPage } from "next";
 import { useTreeNodeDataContext } from "@tree/src/context/data";
-import { deleteCookie, getCookie } from "cookies-next";
+import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import s from "@tree/styles/TreePage.module.css";
 import ShowIf from "@tree/src/components/show-if";
 import { TOKEN_KEY, TREE_KEY, USER_KEY } from "@tree/src/constants/storage-key";
 import { startCase } from "@tree/src/helper/string";
 import { sampleNodes } from "@tree/src/lib/services/node";
 import { Root, TreeNode } from "@tree/src/types/tree";
+import { me } from "@tree/src/lib/services/user";
 
 type TreeProps = {
   root: Root;
@@ -50,36 +51,44 @@ export default Tree;
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   const token = getCookie(TOKEN_KEY, ctx)?.toString();
-  if (!token) {
-    deleteCookie(USER_KEY, ctx);
-    deleteCookie(TOKEN_KEY, ctx);
 
-    const result = await sampleNodes();
-    if (result.nodes.length <= 0) {
+  try {
+    if (!token) throw new Error("Token not found");
+
+    const user = await me(token);
+    setCookie(USER_KEY, user, ctx);
+
+    const isDataExists = getCookie(TREE_KEY, ctx)?.toString();
+    if (!isDataExists) {
       return {
         redirect: {
-          destination: "/",
+          destination: "/families",
           permanent: false,
         },
       };
     }
 
     return {
-      props: result,
+      props: {},
     };
+  } catch {
+    // ignore
   }
 
-  const isDataExists = getCookie(TREE_KEY, ctx)?.toString();
-  if (!isDataExists) {
+  deleteCookie(USER_KEY, ctx);
+  deleteCookie(TOKEN_KEY, ctx);
+
+  const result = await sampleNodes();
+  if (result.nodes.length <= 0) {
     return {
       redirect: {
-        destination: "/families",
+        destination: "/",
         permanent: false,
       },
     };
   }
 
   return {
-    props: {},
+    props: result,
   };
 }

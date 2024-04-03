@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useEffect, useState } from "react";
 import type { GetServerSidePropsContext, NextPage } from "next";
-import { deleteCookie, getCookie } from "cookies-next";
+import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import s from "@tree/styles/HomePage.module.css";
 import ballS from "@tree/styles/Ball.module.css";
 import Button from "@tree/src/components/Button/Button";
@@ -14,7 +14,7 @@ import { useSearchParams } from "next/navigation";
 import { useSnackbar } from "notistack";
 import { Register } from "@tree/src/types/auth";
 import { Role, UserStatus } from "@tree/src/types/user";
-import { getInvitation } from "@tree/src/lib/services/user";
+import { getInvitation, me } from "@tree/src/lib/services/user";
 import RegisterModal from "@tree/src/components/Modal/RegisterModal";
 import * as emailValidation from "email-validator";
 import { startCase } from "lodash";
@@ -244,7 +244,13 @@ export default HomePage;
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   const token = getCookie(TOKEN_KEY, ctx)?.toString();
-  if (!token) {
+
+  try {
+    if (!token) throw new Error("Token not found");
+
+    const user = await me(token);
+    setCookie(USER_KEY, user, ctx);
+  } catch {
     deleteCookie(USER_KEY, ctx);
     deleteCookie(TOKEN_KEY, ctx);
   }

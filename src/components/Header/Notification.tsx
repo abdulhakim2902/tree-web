@@ -103,7 +103,6 @@ const Notification: FC = () => {
 
       try {
         await handleRequest(referenceId, action);
-        await updateNotification(notification._id, { action: true });
         setCount((prev) => {
           if (!prev) return prev;
           return prev - 1;
@@ -142,7 +141,6 @@ const Notification: FC = () => {
 
       try {
         const newNotification = await handleInvitation(referenceId, action);
-        await updateNotification(notification._id, { action: true });
         setCount((prev) => {
           if (!prev) return prev;
           return prev - 1;
