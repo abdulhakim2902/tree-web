@@ -24,10 +24,7 @@ import { useSnackbar } from "notistack";
 import { TreeNodeGalleries } from "../TreeNodeGalleries/TreeNodeGalleries";
 import GalleryModal from "../../Modal/GalleryModal";
 import { Role } from "@tree/src/types/user";
-
-const UPDATE = [Role.EDITOR, Role.CONTRIBUTOR, Role.SUPERADMIN];
-const CREATE = [Role.EDITOR, Role.SUPERADMIN];
-const DELETE = [Role.EDITOR, Role.SUPERADMIN];
+import { CREATE, DELETE, UPDATE } from "@tree/src/constants/permissions";
 
 const navigation = [
   { id: 1, title: "Biography" },
