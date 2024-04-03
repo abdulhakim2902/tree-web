@@ -13,9 +13,10 @@ import {
 } from "@mui/material";
 import React, { FC, createRef, useEffect, useMemo, useRef, useState } from "react";
 import NotificationsIcon from "@mui/icons-material/Notifications";
-import { handleRequest } from "@tree/src/lib/services/user";
+import { handleRequest, handleInvitation } from "@tree/src/lib/services/user";
 import {
   Notification as NotificationData,
+  NotificationType,
   getNotifications,
   notificationCount,
   updateNotification,
@@ -30,11 +31,14 @@ import { useSnackbar } from "notistack";
 import { NotificationSkeletons } from "../Skeleton/NotificationSkeleton";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { useRouter } from "next/router";
 
 dayjs.extend(relativeTime);
 
 const Notification: FC = () => {
-  const { isLoggedIn } = useAuthContext();
+  const router = useRouter();
+
+  const { isLoggedIn, logout } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
 
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -128,6 +132,50 @@ const Notification: FC = () => {
     }
   };
 
+  const onHandleInvitation = async (action: string, notification: NotificationData) => {
+    const referenceId = notification.referenceId;
+    if (!referenceId) return;
+
+    const buttonRef = buttonRefs[notification._id];
+    if (buttonRef.current && !buttonRef.current.disabled) {
+      buttonRef.current.disabled = true;
+
+      try {
+        const newNotification = await handleInvitation(referenceId, action);
+        await updateNotification(notification._id, { action: true });
+        setCount((prev) => {
+          if (!prev) return prev;
+          return prev - 1;
+        });
+        setNotifications((prev) => [
+          newNotification,
+          ...prev.map((e) => {
+            if (e._id === notification._id) {
+              Object.assign(e, { read: true, action: true });
+            }
+
+            return e;
+          }),
+        ]);
+        enqueueSnackbar({
+          variant: "success",
+          message: action === "accept" ? "Invitation is accepted. Please sign in again" : "Invitation is rejected",
+        });
+        if (action === "accept") {
+          logout();
+          router.replace("/");
+        }
+      } catch (err: any) {
+        enqueueSnackbar({
+          variant: "error",
+          message: err.message,
+        });
+      }
+
+      buttonRef.current.disabled = false;
+    }
+  };
+
   const onReadNotification = async (id: string) => {
     const buttonRef = buttonRefs[id];
     if (buttonRef.current && !buttonRef.current.disabled) {
@@ -153,6 +201,16 @@ const Notification: FC = () => {
       }
 
       buttonRef.current.disabled = false;
+    }
+  };
+
+  const handleAction = (action: string, notification: NotificationData) => {
+    if (notification.type === NotificationType.REQUEST) {
+      onHandleRequest(action, notification);
+    }
+
+    if (notification.type === NotificationType.INVITATION) {
+      onHandleInvitation(action, notification);
     }
   };
 
@@ -242,7 +300,7 @@ const Notification: FC = () => {
                           <IconButton
                             ref={buttonRefs[notification._id]}
                             color="primary"
-                            onClick={() => onHandleRequest("accept", notification)}
+                            onClick={() => handleAction("accept", notification)}
                             sx={{ mr: "2px" }}
                           >
                             <CheckIcon />
@@ -252,7 +310,7 @@ const Notification: FC = () => {
                           <IconButton
                             ref={buttonRefs[notification._id]}
                             color="error"
-                            onClick={() => onHandleRequest("reject", notification)}
+                            onClick={() => handleAction("reject", notification)}
                           >
                             <CloseIcon />
                           </IconButton>

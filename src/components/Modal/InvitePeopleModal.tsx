@@ -8,6 +8,7 @@ import {
   IconButton,
   MenuItem,
   Select,
+  SelectChangeEvent,
   Table,
   TableBody,
   TableCell,
@@ -19,7 +20,7 @@ import {
 import { makeStyles } from "@mui/styles";
 import { Role } from "@tree/src/types/user";
 import { startCase, uniqBy } from "lodash";
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 import ShowIf from "../show-if";
 import CloseIcon from "@mui/icons-material/Close";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
@@ -27,6 +28,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import * as isEmail from "email-validator";
 import { invites } from "@tree/src/lib/services/user";
 import { useSnackbar } from "notistack";
+import { ScaleLoader } from "react-spinners";
 
 type Person = {
   email: string;
@@ -52,6 +54,7 @@ const useStyles = makeStyles(() => ({
 
 const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
   const classes = useStyles();
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -65,52 +68,68 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
   }, [open]);
 
   const handleInvite = async () => {
-    if (loading) return;
-    const isPersonNotValid = people.some((person) => isEmail.validate(person.email) === false || person.error === true);
-    setError(isPersonNotValid);
-    if (isPersonNotValid) return;
-    const uniquePeople = uniqBy(people, "email");
-    try {
-      setLoading(true);
-      await invites(uniquePeople);
-      setInviting(true);
-    } catch (err: any) {
-      enqueueSnackbar({
-        variant: "error",
-        message: err.message,
-      });
-    } finally {
-      setLoading(false);
+    if (buttonRef.current && !buttonRef.current.disabled) {
+      buttonRef.current.disabled = true;
+
+      const isPersonNotValid = people.some(
+        (person) => isEmail.validate(person.email) === false || person.error === true,
+      );
+      setError(isPersonNotValid);
+      if (!isPersonNotValid) {
+        const uniquePeople = uniqBy(people, "email");
+        try {
+          setLoading(true);
+          await invites(uniquePeople);
+          setInviting(true);
+        } catch (err: any) {
+          enqueueSnackbar({
+            variant: "error",
+            message: err.message,
+          });
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      buttonRef.current.disabled = false;
     }
   };
 
   const onReset = () => {
-    if (loading) return;
-    onClose();
-    setPeople([{ email: "", role: Role.GUEST, error: false }]);
-    setError(false);
-    setInviting(false);
+    if (!loading) {
+      onClose();
+      setPeople([{ email: "", role: Role.GUEST, error: false }]);
+      setError(false);
+      setInviting(false);
+    }
   };
 
   const onChangeEmail = (index: number, value: string) => {
-    if (loading) return;
-    setInviting(false);
-    setPeople((prev) => {
-      const isDuplicateEmail = prev.filter((e) => e.email === value).length > 1;
-      prev[index].error = !isEmail.validate(value) || isDuplicateEmail;
-      prev[index].email = value;
-      return [...prev];
-    });
+    if (!loading) {
+      setInviting(false);
+      setPeople((prev) => {
+        const isDuplicateEmail = prev.filter((e) => e.email === value).length > 1;
+        prev[index].error = !isEmail.validate(value) || isDuplicateEmail;
+        prev[index].email = value;
+        return [...prev];
+      });
+    }
+  };
+
+  const onChangeRole = (event: SelectChangeEvent, index: number) => {
+    if (!loading) {
+      setInviting(false);
+      setPeople((prev) => {
+        prev[index].role = event.target.value as Role;
+        return [...prev];
+      });
+    }
   };
 
   return (
     <Dialog
       open={open}
-      onClose={(event, reason) => {
-        if (loading && reason === "backdropClick") return;
-        if (loading && reason === "escapeKeyDown") return;
-        onReset();
-      }}
+      onClose={onReset}
       PaperProps={{
         style: {
           backgroundColor: "var(--background-color)",
@@ -175,14 +194,7 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
                         <Select
                           value={person.role}
                           fullWidth
-                          onChange={(event) => {
-                            if (loading) return;
-                            setInviting(false);
-                            setPeople((prev) => {
-                              prev[index].role = event.target.value as Role;
-                              return [...prev];
-                            });
-                          }}
+                          onChange={(event) => onChangeRole(event, index)}
                           sx={{
                             color: "whitesmoke",
                             "& .MuiInputBase-input.Mui-disabled": {
@@ -302,11 +314,16 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
         )}
       </DialogContent>
       <DialogActions sx={{ marginBottom: 3, marginRight: 2 }}>
-        <Button variant="outlined" onClick={onReset}>
-          Cancel
-        </Button>
-        <Button onClick={handleInvite} variant="contained" autoFocus disabled={inviting}>
-          {loading ? "Inviting..." : "Send invites"}
+        {loading ? (
+          <React.Fragment />
+        ) : (
+          <Button variant="outlined" onClick={onReset}>
+            Cancel
+          </Button>
+        )}
+
+        <Button ref={buttonRef} onClick={handleInvite} variant="contained" autoFocus disabled={inviting}>
+          {loading ? <ScaleLoader color="whitesmoke" height={10} /> : "Send invites"}
         </Button>
       </DialogActions>
     </Dialog>

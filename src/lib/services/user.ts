@@ -1,6 +1,7 @@
 import { TOKEN_KEY } from "@tree/src/constants/storage-key";
 import { Role, User, UserInvitation } from "@tree/src/types/user";
 import { getCookie } from "cookies-next";
+import { Notification } from "./notification";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -49,7 +50,7 @@ export const getInvitation = async (token: string) => {
 };
 
 export const handleInvitation = async (token: string, action: string) => {
-  return new Promise((resolve, reject) => {
+  return new Promise<Notification>((resolve, reject) => {
     fetch(`${API_URL}/users/invitation/${token}/${action}`, {
       method: "POST",
     })

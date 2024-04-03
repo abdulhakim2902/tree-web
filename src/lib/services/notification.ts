@@ -11,10 +11,15 @@ export type QueryNotificationDto = {
   read?: string;
 };
 
+export enum NotificationType {
+  REQUEST = "request",
+  INVITATION = "invitation",
+}
+
 export type Notification = {
   _id: string;
   read: boolean;
-  type: string;
+  type: NotificationType;
   referenceId?: string;
   message: string;
   to: string;

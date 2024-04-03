@@ -9,6 +9,7 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  SelectChangeEvent,
   Table,
   TableBody,
   TableCell,
@@ -19,7 +20,7 @@ import {
 import { makeStyles } from "@mui/styles";
 import { Role } from "@tree/src/types/user";
 import { startCase } from "lodash";
-import React, { FC, useState } from "react";
+import React, { FC, useRef, useState } from "react";
 import ShowIf from "../show-if";
 import { useAuthContext } from "@tree/src/context/auth";
 import CheckIcon from "@mui/icons-material/Check";
@@ -44,6 +45,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 const RequestRoleModal: FC<RequestRoleModalProps> = ({ open, onClose }) => {
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const classes = useStyles();
 
   const { user } = useAuthContext();
@@ -54,30 +56,45 @@ const RequestRoleModal: FC<RequestRoleModalProps> = ({ open, onClose }) => {
   const [error, setError] = useState<string>("");
 
   const onRequest = async () => {
-    if (loading) return;
+    if (buttonRef.current && !buttonRef.current.disabled) {
+      buttonRef.current.disabled = true;
 
-    try {
-      setLoading(true);
-      await createRequest({ role });
-      setAsking(true);
-      setError("");
-    } catch (err: any) {
+      try {
+        setLoading(true);
+        await createRequest({ role });
+        setAsking(true);
+        setError("");
+      } catch (err: any) {
+        setAsking(false);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+
+      buttonRef.current.disabled = false;
+    }
+  };
+
+  const onReset = () => {
+    if (!loading) {
+      onClose();
       setAsking(false);
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      setRole(Role.GUEST);
+    }
+  };
+
+  const onChangeRole = (event: SelectChangeEvent) => {
+    if (!loading) {
+      setRole(event.target.value as Role);
+      setAsking(false);
+      setError("");
     }
   };
 
   return (
     <Dialog
       open={open}
-      onClose={() => {
-        if (loading) return;
-        onClose();
-        setAsking(false);
-        setRole(Role.GUEST);
-      }}
+      onClose={onReset}
       PaperProps={{
         style: {
           backgroundColor: "var(--background-color)",
@@ -112,11 +129,7 @@ const RequestRoleModal: FC<RequestRoleModalProps> = ({ open, onClose }) => {
                       fullWidth
                       disabled={loading}
                       label="role"
-                      onChange={(event) => {
-                        setRole(event.target.value as Role);
-                        setAsking(false);
-                        setError("");
-                      }}
+                      onChange={onChangeRole}
                       sx={{
                         color: "whitesmoke",
                         "& .MuiInputBase-input.Mui-disabled": {
@@ -212,7 +225,7 @@ const RequestRoleModal: FC<RequestRoleModalProps> = ({ open, onClose }) => {
           </Button>
         )}
 
-        <Button onClick={onRequest} variant="contained" autoFocus disabled={asking}>
+        <Button ref={buttonRef} onClick={onRequest} variant="contained" autoFocus disabled={asking}>
           {loading ? <ScaleLoader color="whitesmoke" height={10} /> : "Ask Role"}
         </Button>
       </DialogActions>
