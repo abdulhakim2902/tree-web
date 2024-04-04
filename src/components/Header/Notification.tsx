@@ -22,7 +22,8 @@ import {
   NotificationType,
   getNotifications,
   notificationCount,
-  updateNotification,
+  readNotification,
+  readAllNotification,
 } from "@tree/src/lib/services/notification";
 import { useAuthContext } from "@tree/src/context/auth";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
@@ -35,12 +36,14 @@ import { NotificationSkeletons } from "../Skeleton/NotificationSkeleton";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useRouter } from "next/router";
-import parse from 'html-react-parser';
+import parse from "html-react-parser";
+import MarkAsUnreadIcon from "@mui/icons-material/MarkAsUnread";
 
 dayjs.extend(relativeTime);
 
 const Notification: FC = () => {
   const router = useRouter();
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const { isLoggedIn, logout } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
@@ -184,7 +187,7 @@ const Notification: FC = () => {
       buttonRef.current.disabled = true;
 
       try {
-        await updateNotification(id);
+        await readNotification(id);
         setCount((prev) => {
           if (!prev) return prev;
           return prev - 1;
@@ -221,14 +224,34 @@ const Notification: FC = () => {
     setNotifications([]);
   };
 
+  const onReadAllNotification = async () => {
+    console.log(buttonRef.current);
+    if (buttonRef.current && !buttonRef.current.disabled) {
+      buttonRef.current.disabled = true;
+
+      try {
+        await readAllNotification();
+        setCount(0);
+        setNotifications((prev) => prev.map((e) => Object.assign(e, { read: true })));
+      } catch (err) {
+        // ignore
+      }
+
+      buttonRef.current.disabled = false;
+    }
+  };
+
   return (
     <React.Fragment>
       <Badge
         badgeContent={count}
         overlap="circular"
-        sx={{ cursor: "pointer", mr: "10px" }}
         color="success"
         onClick={(event) => setAnchorEl(event.currentTarget)}
+        sx={{
+          cursor: "pointer",
+          mr: "10px",
+        }}
       >
         <Box
           component="span"
@@ -270,9 +293,20 @@ const Notification: FC = () => {
           horizontal: "center",
         }}
       >
-        <Typography padding={2} variant="h4">
-          Notifications
-        </Typography>
+        <Box display="flex" justifyContent="space-between" padding={2}>
+          <Typography variant="h4">Notifications</Typography>
+          <ShowIf condition={notifications.length > 0}>
+            <Tooltip title="Mark read all">
+              <IconButton
+                ref={buttonRef}
+                sx={{ color: count <= 0 ? "#5C5470" : "whitesmoke" }}
+                onClick={count <= 0 ? undefined : onReadAllNotification}
+              >
+                <MarkAsUnreadIcon />
+              </IconButton>
+            </Tooltip>
+          </ShowIf>
+        </Box>
         {loading ? (
           NotificationSkeletons(5)
         ) : notifications.length > 0 ? (
@@ -291,17 +325,21 @@ const Notification: FC = () => {
                 }}
               >
                 <MenuList key={notification._id}>
-                  <MenuItem style={{ whiteSpace: "normal" }} sx={{ "&:hover": { backgroundColor: "transparent" } }}>
+                  <MenuItem style={{ whiteSpace: "normal" }} disableRipple sx={{ cursor: "default" }}>
                     <ListItemIcon>
                       <AccountCircleIcon sx={{ color: "whitesmoke" }} fontSize="large" />
                     </ListItemIcon>
                     <ListItemText>
                       <Box display="flex" justifyContent="space-between" alignItems="center" minHeight={31}>
-                        <Typography fontSize={12} sx={{ color: notification.read ? "#5C5470" : "whitesmoke" }}>
+                        <Typography
+                          fontSize={12}
+                          sx={{ color: notification.read ? "#5C5470" : "whitesmoke" }}
+                          width={180}
+                        >
                           {parse(notification.message)}
                         </Typography>
                         <ShowIf condition={notification.action}>
-                          <Box minWidth={60}>
+                          <Box component="div">
                             <Tooltip title="Accept request">
                               <IconButton
                                 ref={buttonRefs[notification._id]}
@@ -345,14 +383,12 @@ const Notification: FC = () => {
             );
           })
         ) : (
-          <Box sx={{ width: "440px", height: "300px", display: "flex", justifyContent: "center" }}>
-            <Typography
-              component="div"
-              alignItems="center"
-              sx={{ display: "flex", flexDirection: "row" }}
-              fontSize={14}
-            >
-              No notifications
+          <Box sx={{ width: "336px", height: "400px", display: "flex", justifyContent: "center", flexDirection: "column", alignItems: "center" }}>
+            <Typography variant="h4" component="div">
+              No notification
+            </Typography>
+            <Typography variant="h5" component="div" sx={{ color: "#5C5470" }}>
+              You don&apos;t have notification
             </Typography>
           </Box>
         )}

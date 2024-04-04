@@ -70,11 +70,34 @@ export const notificationCount = async (query: QueryNotificationDto, signal?: Ab
   });
 };
 
-export const updateNotification = async (id: string) => {
+export const readNotification = async (id: string) => {
   const token = getCookie(TOKEN_KEY)?.toString();
 
   return new Promise((resolve, reject) => {
     fetch(`${API_URL}/notifications/${id}/read`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data?.statusCode) {
+          return reject(data);
+        }
+
+        return resolve(data);
+      })
+      .catch((err) => reject(err));
+  });
+};
+
+export const readAllNotification = async () => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+
+  return new Promise((resolve, reject) => {
+    fetch(`${API_URL}/notifications/read/all`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
