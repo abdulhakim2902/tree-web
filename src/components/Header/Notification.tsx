@@ -291,7 +291,7 @@ const Notification: FC = () => {
                 }}
               >
                 <MenuList key={notification._id}>
-                  <MenuItem style={{ whiteSpace: "normal" }} sx={{}}>
+                  <MenuItem style={{ whiteSpace: "normal" }} sx={{ "&:hover": { backgroundColor: "transparent" } }}>
                     <ListItemIcon>
                       <AccountCircleIcon sx={{ color: "whitesmoke" }} fontSize="large" />
                     </ListItemIcon>
