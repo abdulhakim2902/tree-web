@@ -1,11 +1,14 @@
 import {
   Badge,
   Box,
+  Divider,
   IconButton,
   ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
+  MenuList,
+  Paper,
   Tooltip,
   Typography,
   useMediaQuery,
@@ -250,7 +253,6 @@ const Notification: FC = () => {
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         sx={{
-          width: "440px",
           marginTop: "5px",
           "& .MuiMenu-paper": {
             backgroundColor: "var(--background-color)",
@@ -270,68 +272,76 @@ const Notification: FC = () => {
         <Typography padding={2} variant="h4">
           Notifications
         </Typography>
+        <Divider sx={{ bgcolor: "whitesmoke" }} />
         {loading ? (
           NotificationSkeletons(5)
         ) : notifications.length > 0 ? (
           notifications.map((notification) => {
             return (
-              <MenuItem
+              <Paper
                 key={notification._id}
-                style={{ whiteSpace: "normal", width: "420px" }}
                 sx={{
+                  width: 320,
+                  maxWidth: "100%",
+                  margin: 1,
+                  backgroundColor: "#1d1d3b",
                   ":hover": {
                     backgroundColor: "#2f2f5e",
                   },
                 }}
               >
-                <ListItemIcon>
-                  <AccountCircleIcon sx={{ color: "whitesmoke" }} fontSize="large" />
-                </ListItemIcon>
-                <ListItemText>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" minHeight={31}>
-                    <Typography fontSize={12} sx={{ color: notification.read ? "#5C5470" : "whitesmoke" }}>
-                      {notification.message}
-                    </Typography>
-                    <ShowIf condition={notification.action}>
-                      <Box component="span" minWidth={80}>
-                        <Tooltip title="Accept request">
-                          <IconButton
-                            ref={buttonRefs[notification._id]}
-                            color="primary"
-                            onClick={() => handleAction("accept", notification)}
-                            sx={{ mr: "2px" }}
-                          >
-                            <CheckIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Reject request">
-                          <IconButton
-                            ref={buttonRefs[notification._id]}
-                            color="error"
-                            onClick={() => handleAction("reject", notification)}
-                          >
-                            <CloseIcon />
-                          </IconButton>
-                        </Tooltip>
+                <MenuList key={notification._id}>
+                  <MenuItem style={{ whiteSpace: "normal" }} sx={{}}>
+                    <ListItemIcon>
+                      <AccountCircleIcon sx={{ color: "whitesmoke" }} fontSize="large" />
+                    </ListItemIcon>
+                    <ListItemText>
+                      <Box display="flex" justifyContent="space-between" alignItems="center" minHeight={31}>
+                        <Typography fontSize={12} sx={{ color: notification.read ? "#5C5470" : "whitesmoke" }}>
+                          {notification.message}
+                        </Typography>
+                        <ShowIf condition={notification.action}>
+                          <Box minWidth={60}>
+                            <Tooltip title="Accept request">
+                              <IconButton
+                                ref={buttonRefs[notification._id]}
+                                color="primary"
+                                onClick={() => handleAction("accept", notification)}
+                                sx={{ mr: "2px" }}
+                              >
+                                <CheckIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Reject request">
+                              <IconButton
+                                ref={buttonRefs[notification._id]}
+                                color="error"
+                                onClick={() => handleAction("reject", notification)}
+                              >
+                                <CloseIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        </ShowIf>
+                        <ShowIf condition={!notification.action && !notification.read}>
+                          <Tooltip title="Mark as unread">
+                            <IconButton
+                              ref={buttonRefs[notification._id]}
+                              onClick={() => onReadNotification(notification._id)}
+                              sx={{ mr: "2px", color: "whitesmoke" }}
+                            >
+                              <MarkunreadIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </ShowIf>
                       </Box>
-                    </ShowIf>
-                    <ShowIf condition={!notification.action && !notification.read}>
-                      <Tooltip title="Mark as unread">
-                        <IconButton
-                          ref={buttonRefs[notification._id]}
-                          onClick={() => onReadNotification(notification._id)}
-                          sx={{ mr: "2px", color: "whitesmoke" }}
-                        >
-                          <MarkunreadIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </ShowIf>
-                  </Box>
-                  <Typography sx={{ color: !notification.read ? "#2196f3" : "#e3e1d9", mt: "8px" }}>
-                    {dayjs(notification.createdAt).fromNow()}
-                  </Typography>
-                </ListItemText>
-              </MenuItem>
+                      <Typography sx={{ color: !notification.read ? "#2196f3" : "#e3e1d9", mt: "8px" }}>
+                        {dayjs(notification.createdAt).fromNow()}
+                      </Typography>
+                    </ListItemText>
+                  </MenuItem>
+                </MenuList>
+              </Paper>
             );
           })
         ) : (
