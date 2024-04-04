@@ -13,7 +13,6 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import { deepOrange } from "@mui/material/colors";
 import React, { FC, useState } from "react";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import LogoutIcon from "@mui/icons-material/Logout";

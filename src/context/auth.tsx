@@ -40,6 +40,10 @@ export const AuthContextProvider: FC = ({ children }) => {
     setUser(user);
   }, [userStr]);
 
+  useEffect(() => {
+    setIsLoggedIn(Boolean(user));
+  }, [user])
+
   const login = useCallback(
     async (data: Login, cb?: (success: boolean) => void) => {
       let success = false;

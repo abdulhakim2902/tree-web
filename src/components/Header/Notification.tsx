@@ -35,6 +35,7 @@ import { NotificationSkeletons } from "../Skeleton/NotificationSkeleton";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useRouter } from "next/router";
+import parse from 'html-react-parser';
 
 dayjs.extend(relativeTime);
 
@@ -272,7 +273,6 @@ const Notification: FC = () => {
         <Typography padding={2} variant="h4">
           Notifications
         </Typography>
-        <Divider sx={{ bgcolor: "whitesmoke" }} />
         {loading ? (
           NotificationSkeletons(5)
         ) : notifications.length > 0 ? (
@@ -298,7 +298,7 @@ const Notification: FC = () => {
                     <ListItemText>
                       <Box display="flex" justifyContent="space-between" alignItems="center" minHeight={31}>
                         <Typography fontSize={12} sx={{ color: notification.read ? "#5C5470" : "whitesmoke" }}>
-                          {notification.message}
+                          {parse(notification.message)}
                         </Typography>
                         <ShowIf condition={notification.action}>
                           <Box minWidth={60}>
