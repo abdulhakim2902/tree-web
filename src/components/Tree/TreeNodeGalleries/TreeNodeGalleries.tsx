@@ -48,8 +48,9 @@ export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile,
   }, [nodeId]);
 
   useEffect(() => {
-    if (!newFile) return;
-    if (newFile._id === "new") {
+    if (!newFile) {
+      setGalleries((prev) => prev.filter((e) => e._id !== "new"));
+    } else if (newFile._id === "new") {
       setGalleries((prev) => [...prev, newFile]);
     } else {
       setGalleries((prev) =>

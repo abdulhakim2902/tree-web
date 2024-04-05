@@ -9,7 +9,7 @@ import { TreeNode } from "@tree/src/types/tree";
 import Fab from "@mui/material/Fab";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
-import { Box, Tooltip } from "@mui/material";
+import { Box, SpeedDial, SpeedDialAction, SpeedDialIcon, Tooltip } from "@mui/material";
 import { useAuthContext } from "@tree/src/context/auth";
 import ShowIf from "@tree/src/components/show-if";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -23,13 +23,19 @@ import { File, upload } from "@tree/src/lib/services/file";
 import { useSnackbar } from "notistack";
 import { TreeNodeGalleries } from "../TreeNodeGalleries/TreeNodeGalleries";
 import GalleryModal from "../../Modal/GalleryModal";
-import { Role } from "@tree/src/types/user";
 import { CREATE, DELETE, UPDATE } from "@tree/src/constants/permissions";
+import { Role } from "@tree/src/types/user";
 
 const navigation = [
   { id: 1, title: "Biography" },
   { id: 2, title: "Galleries" },
   { id: 3, title: "Families" },
+];
+
+const actions = [
+  { icon: <AddIcon />, name: 'Add relative' },
+  { icon: <AddPhotoAlternateIcon />, name: 'Update profile image' },
+  { icon: <DeleteIcon />, name: 'Remove relative' },
 ];
 
 type TreeNodeDetailsProps = {
@@ -81,6 +87,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
         return prev;
       });
     } catch (err: any) {
+      setNewFile(undefined);
       enqueueSnackbar({
         variant: "error",
         message: err.message,
@@ -142,7 +149,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
               <TreeNodeFamilies id={node.id} fullname={node.fullname} />
             </ShowIf>
           </Box>
-          <ShowIf condition={navId === 1}>
+          <ShowIf condition={navId === 1 && user.role !== Role.GUEST}>
             <Box sx={{ display: "flex", justifyContent: "end" }}>
               <ShowIf condition={UPDATE.some((e) => e === user.role)}>
                 <Tooltip title="Update profile image" placement="bottom-end" sx={{ mr: "10px" }}>
@@ -180,7 +187,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
               </ShowIf>
             </Box>
           </ShowIf>
-          <ShowIf condition={navId === 2}>
+          <ShowIf condition={navId === 2 && user.role !== Role.GUEST}>
             <Box sx={{ display: "flex", justifyContent: "end" }}>
               <ShowIf condition={UPDATE.some((e) => e === user.role)}>
                 <Tooltip title="Add galleries" placement="bottom-end">
