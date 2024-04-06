@@ -36,12 +36,12 @@ const ConnectNodeModal: FC<ConnectNodeModalProps> = ({ node, open, onClose }) =>
       buttonRef.current.disabled = true;
 
       try {
-        setError("");
         setLoading(true);
         await connectNode({ nodeId: node.id });
-        onClose();
-        setSuccess("Claim request is sent");
+        setError("");
+        setSuccess("Connect request is sent");
       } catch (error: any) {
+        setSuccess("");
         setError(error.message);
       } finally {
         setLoading(false);
@@ -142,7 +142,7 @@ const ConnectNodeModal: FC<ConnectNodeModalProps> = ({ node, open, onClose }) =>
         )}
 
         <Button ref={buttonRef} variant="contained" onClick={onConnect} autoFocus>
-          {loading ? <ScaleLoader color="whitesmoke" height={10} /> : "Claim"}
+          {loading ? <ScaleLoader color="whitesmoke" height={10} /> : "Connect"}
         </Button>
       </DialogActions>
     </Dialog>

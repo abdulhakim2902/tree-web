@@ -33,7 +33,7 @@ type AcceptConnectNodeModalProps = {
   loading: boolean;
 
   onClose: () => void;
-  onClaimRequest: (action: string) => void;
+  onConnectRequest: (action: string) => void;
 };
 
 const options = ["Accept", "Reject"];
@@ -42,7 +42,7 @@ const AcceptConnectNodeModal: FC<AcceptConnectNodeModalProps> = ({
   node,
   open,
   onClose,
-  onClaimRequest,
+  onConnectRequest,
   loading,
   ref,
 }) => {
@@ -201,11 +201,15 @@ const AcceptConnectNodeModal: FC<AcceptConnectNodeModalProps> = ({
             </Button>
           )}
 
-          <ButtonGroup ref={anchorRef} variant="contained">
+          <ButtonGroup
+            ref={anchorRef}
+            variant="contained"
+            color={options[selectedIndex] === "Accept" ? "primary" : "error"}
+          >
             <Button
               ref={ref}
               onClick={() => {
-                onClaimRequest(options[selectedIndex].toLowerCase());
+                onConnectRequest(options[selectedIndex].toLowerCase());
                 onClose();
                 setOpenAction(false);
               }}

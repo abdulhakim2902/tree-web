@@ -205,8 +205,8 @@ export const handleConnectNode = async (referenceId: string, action: string) => 
 
   return new Promise((resolve, reject) => {
     fetch(`${API_URL}/users/connect-node/${referenceId}/${action}`, {
+      method: "POST",
       headers: {
-        method: "POST",
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },

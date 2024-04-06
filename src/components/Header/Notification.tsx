@@ -223,7 +223,7 @@ const Notification: FC = () => {
           ]);
           enqueueSnackbar({
             variant: "success",
-            message: action === "accept" ? "Claim request is accepted" : "Claim request is rejected",
+            message: action === "accept" ? "Connect request is accepted" : "Connect request is rejected",
           });
         })
         .catch((err) => {
@@ -280,6 +280,7 @@ const Notification: FC = () => {
   };
 
   const onReadAllNotification = async () => {
+    if (count <= 0) return;
     if (buttonRef.current && !buttonRef.current.disabled) {
       buttonRef.current.disabled = true;
 
@@ -501,7 +502,7 @@ const Notification: FC = () => {
         open={openConnectRequest}
         onClose={() => setOpenConnectRequest(false)}
         loading={loadingConnect}
-        onClaimRequest={(action) => onHandleConnectRequest(action, selectedNotification)}
+        onConnectRequest={(action) => onHandleConnectRequest(action, selectedNotification)}
       />
     </React.Fragment>
   );

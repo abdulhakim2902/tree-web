@@ -14,6 +14,7 @@ import { ScaleLoader } from "react-spinners";
 import { useSnackbar } from "notistack";
 import { disconnectNode } from "@tree/src/lib/services/user";
 import { useAuthContext } from "@tree/src/context/auth";
+import { useRouter } from "next/navigation";
 
 type DisconnectNodeModal = {
   nodeId: string;
@@ -23,6 +24,7 @@ type DisconnectNodeModal = {
 
 const DisconnectNodeModal: FC<DisconnectNodeModal> = ({ nodeId, open, onClose }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const router = useRouter();
 
   const { enqueueSnackbar } = useSnackbar();
   const { logout } = useAuthContext();
@@ -38,6 +40,7 @@ const DisconnectNodeModal: FC<DisconnectNodeModal> = ({ nodeId, open, onClose })
 
         await disconnectNode(nodeId);
 
+        router.replace("/");
         logout();
         enqueueSnackbar({
           variant: "success",
