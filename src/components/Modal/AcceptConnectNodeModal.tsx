@@ -26,7 +26,7 @@ import ShowIf from "../show-if";
 import { Gender } from "@tree/src/lib/relatives-tree/types";
 import { ArrowDropDownIcon } from "@mui/x-date-pickers";
 
-type ClaimRequestModalProps = {
+type AcceptConnectNodeModalProps = {
   ref?: RefObject<HTMLButtonElement>;
   node?: TreeNodeData;
   open: boolean;
@@ -38,7 +38,14 @@ type ClaimRequestModalProps = {
 
 const options = ["Accept", "Reject"];
 
-const ClaimRequestModal: FC<ClaimRequestModalProps> = ({ node, open, onClose, onClaimRequest, loading, ref }) => {
+const AcceptConnectNodeModal: FC<AcceptConnectNodeModalProps> = ({
+  node,
+  open,
+  onClose,
+  onClaimRequest,
+  loading,
+  ref,
+}) => {
   const anchorRef = useRef<HTMLDivElement>(null);
 
   const [openAction, setOpenAction] = useState<boolean>(false);
@@ -99,7 +106,7 @@ const ClaimRequestModal: FC<ClaimRequestModalProps> = ({ node, open, onClose, on
       >
         <DialogTitle>
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Typography sx={{ fontSize: "20px" }}>Accept Claim Request</Typography>
+            <Typography sx={{ fontSize: "20px" }}>Accept Connect Request</Typography>
           </Box>
         </DialogTitle>
         <DialogContent dividers>
@@ -242,4 +249,4 @@ const ClaimRequestModal: FC<ClaimRequestModalProps> = ({ node, open, onClose, on
   );
 };
 
-export default ClaimRequestModal;
+export default AcceptConnectNodeModal;

@@ -153,11 +153,11 @@ export const handleRequest = async (referenceId: string, action: string) => {
   });
 };
 
-export const createClaimRequest = async (data: { nodeId: string }) => {
+export const connectNode = async (data: { nodeId: string }) => {
   const token = getCookie(TOKEN_KEY)?.toString();
 
   return new Promise((resolve, reject) => {
-    fetch(`${API_URL}/users/claim-requests`, {
+    fetch(`${API_URL}/users/connect-node`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -177,16 +177,39 @@ export const createClaimRequest = async (data: { nodeId: string }) => {
   });
 };
 
-export const handleClaimRequest = async (referenceId: string, action: string) => {
+export const disconnectNode = async (id: string) => {
   const token = getCookie(TOKEN_KEY)?.toString();
 
   return new Promise((resolve, reject) => {
-    fetch(`${API_URL}/users/claim-requests/${referenceId}/${action}`, {
+    fetch(`${API_URL}/users/disconnect-node/${id}`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       method: "POST",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data?.statusCode) {
+          return reject(data);
+        }
+
+        return resolve(data);
+      })
+      .catch((err) => reject(err));
+  });
+};
+
+export const handleConnectNode = async (referenceId: string, action: string) => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+
+  return new Promise((resolve, reject) => {
+    fetch(`${API_URL}/users/connect-node/${referenceId}/${action}`, {
+      headers: {
+        method: "POST",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
     })
       .then((response) => response.json())
       .then((data) => {

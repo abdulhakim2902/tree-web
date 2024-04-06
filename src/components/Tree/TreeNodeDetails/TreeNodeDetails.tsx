@@ -36,7 +36,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
-import PinModal from "../../Modal/PinModal";
+import ConnectNodeModal from "../../Modal/ConnectNodeModal";
+import DisconnectNodeModal from "../../Modal/DisconnectNodeModal";
 
 const navigation = [
   { id: 1, title: "Biography" },
@@ -58,7 +59,8 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openGalleries, setOpenGalleries] = useState<boolean>(false);
-  const [openPinned, setOpenPinned] = useState<boolean>(false);
+  const [openConnect, setOpenConnect] = useState<boolean>(false);
+  const [openDisconnect, setOpenDisconnect] = useState<boolean>(false);
   const [uploading, setUploading] = useState<boolean>(false);
   const [newFile, setNewFile] = useState<File>();
   const [navId, setNavId] = useState<number>(1);
@@ -176,13 +178,14 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
                 </Tooltip>
               </ShowIf>
               <ShowIf condition={node.id === user.nodeId && node.userId === user.id}>
-                <Tooltip title="Unpin this people" placement="bottom-end">
+                <Tooltip title="Disconnect" placement="bottom-end">
                   <Fab
                     color="success"
                     aria-label="unpin-people"
                     sx={{ marginLeft: "10px" }}
                     size="small"
                     component="label"
+                    onClick={() => setOpenDisconnect(true)}
                   >
                     <RadioButtonCheckedIcon />
                   </Fab>
@@ -193,14 +196,14 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
                   node.id !== user.nodeId && node.userId !== user.id && !Boolean(node.userId) && !Boolean(user.nodeId)
                 }
               >
-                <Tooltip title="Pin this people" placement="bottom-end">
+                <Tooltip title="Connect" placement="bottom-end">
                   <Fab
                     color="success"
                     aria-label="pin-people"
                     sx={{ marginLeft: "10px" }}
                     size="small"
                     component="label"
-                    onClick={() => setOpenPinned(true)}
+                    onClick={() => setOpenConnect(true)}
                   >
                     <RadioButtonUncheckedIcon />
                   </Fab>
@@ -239,7 +242,8 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
       <AddMemberDrawer open={openAdd} onClose={() => setOpenAdd(false)} node={node} />
       <EditMemberDrawer open={openEdit} onClose={() => setOpenEdit(false)} node={node} />
       <DeleteMemberModal nodeId={selectedNodeId} open={openDelete} onClose={() => setOpenDelete(false)} />
-      <PinModal node={node} open={openPinned} onClose={() => setOpenPinned(false)} />
+      <ConnectNodeModal node={node} open={openConnect} onClose={() => setOpenConnect(false)} />
+      <DisconnectNodeModal open={openDisconnect} onClose={() => setOpenDisconnect(false)} nodeId={node.id} />
       <GalleryModal
         open={openGalleries}
         onClose={() => setOpenGalleries(false)}

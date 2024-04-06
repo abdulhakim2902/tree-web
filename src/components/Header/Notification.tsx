@@ -21,12 +21,12 @@ import ShowIf from "../show-if";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import parse from "html-react-parser";
-import ClaimRequestModal from "../Modal/ClaimRequest.modal";
+import AcceptConnectNodeModal from "../Modal/AcceptConnectNodeModal";
 import { TreeNodeData } from "@tree/src/types/tree";
 import { nodeById } from "@tree/src/lib/services/node";
 
 /* API Services */
-import { handleRequest, handleInvitation, handleClaimRequest } from "@tree/src/lib/services/user";
+import { handleRequest, handleInvitation, handleConnectNode } from "@tree/src/lib/services/user";
 import {
   Notification as NotificationData,
   NotificationType,
@@ -62,10 +62,10 @@ const Notification: FC = () => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [count, setCount] = useState<number>(0);
-  const [openClaimRequest, setOpenClaimRequest] = useState<boolean>(false);
+  const [openConnectRequest, setOpenConnectRequest] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
 
-  const [loadingClaim, setLoadingClaim] = useState<boolean>(false);
+  const [loadingConnect, setLoadingConnect] = useState<boolean>(false);
   const [selectedNode, setSelectedNode] = useState<TreeNodeData>();
   const [selectedNotification, setSelectedNotification] = useState<NotificationData>();
 
@@ -197,7 +197,7 @@ const Notification: FC = () => {
     }
   };
 
-  const onHandleClaimRequest = (action: string, notification?: NotificationData) => {
+  const onHandleConnectRequest = (action: string, notification?: NotificationData) => {
     if (!notification) return;
     const referenceId = notification.referenceId;
     if (!referenceId) return;
@@ -206,7 +206,7 @@ const Notification: FC = () => {
     if (buttonRef.current && !buttonRef.current.disabled) {
       buttonRef.current.disabled = true;
 
-      handleClaimRequest(referenceId, action)
+      handleConnectNode(referenceId, action)
         .then(() => {
           setCount((prev) => {
             if (!prev) return prev;
@@ -295,7 +295,7 @@ const Notification: FC = () => {
     }
   };
 
-  const onOpenClaimRequest = async (notification: NotificationData) => {
+  const onOpenConnectRequest = async (notification: NotificationData) => {
     if (!notification.additionalReferenceId) return;
 
     const buttonRef = buttonRefs[notification._id];
@@ -303,18 +303,18 @@ const Notification: FC = () => {
       buttonRef.current.disabled = true;
 
       try {
-        setLoadingClaim(true);
+        setLoadingConnect(true);
         const node = await nodeById(notification.additionalReferenceId);
         setSelectedNode(node);
         setSelectedNotification(notification);
-        setOpenClaimRequest(true);
+        setOpenConnectRequest(true);
       } catch {
         enqueueSnackbar({
           variant: "error",
           message: "Data not found",
         });
       } finally {
-        setLoadingClaim(false);
+        setLoadingConnect(false);
       }
 
       buttonRef.current.disabled = false;
@@ -446,7 +446,7 @@ const Notification: FC = () => {
                             <Tooltip title="See request">
                               <IconButton
                                 ref={buttonRefs[notification._id]}
-                                onClick={() => onOpenClaimRequest(notification)}
+                                onClick={() => onOpenConnectRequest(notification)}
                                 sx={{ mr: "2px", color: "whitesmoke" }}
                               >
                                 <VisibilityIcon />
@@ -495,13 +495,13 @@ const Notification: FC = () => {
           </Box>
         )}
       </Menu>
-      <ClaimRequestModal
+      <AcceptConnectNodeModal
         ref={buttonRefs[selectedNotification?._id ?? ""]}
         node={selectedNode}
-        open={openClaimRequest}
-        onClose={() => setOpenClaimRequest(false)}
-        loading={loadingClaim}
-        onClaimRequest={(action) => onHandleClaimRequest(action, selectedNotification)}
+        open={openConnectRequest}
+        onClose={() => setOpenConnectRequest(false)}
+        loading={loadingConnect}
+        onClaimRequest={(action) => onHandleConnectRequest(action, selectedNotification)}
       />
     </React.Fragment>
   );

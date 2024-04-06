@@ -12,33 +12,33 @@ import {
 import React, { FC, useRef, useState } from "react";
 import { TreeNodeDataWithRelations } from "@tree/src/types/tree";
 import { ScaleLoader } from "react-spinners";
-import { createClaimRequest } from "@tree/src/lib/services/user";
+import { connectNode } from "@tree/src/lib/services/user";
 
 /* Icons */
 import CheckIcon from "@mui/icons-material/Check";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 
-type PinModalProps = {
+type ConnectNodeModalProps = {
   node: TreeNodeDataWithRelations;
   open: boolean;
   onClose: () => void;
 };
 
-const PinModal: FC<PinModalProps> = ({ node, open, onClose }) => {
+const ConnectNodeModal: FC<ConnectNodeModalProps> = ({ node, open, onClose }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const [loading, setLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<string>("");
   const [error, setError] = useState<string>("");
 
-  const onClaim = async () => {
+  const onConnect = async () => {
     if (buttonRef.current && !buttonRef.current.disabled) {
       buttonRef.current.disabled = true;
 
       try {
         setError("");
         setLoading(true);
-        await createClaimRequest({ nodeId: node.id });
+        await connectNode({ nodeId: node.id });
         onClose();
         setSuccess("Claim request is sent");
       } catch (error: any) {
@@ -72,13 +72,13 @@ const PinModal: FC<PinModalProps> = ({ node, open, onClose }) => {
     >
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Typography sx={{ fontSize: "20px" }}>Claim this people?</Typography>
+          <Typography sx={{ fontSize: "20px" }}>Connect Request</Typography>
         </Box>
       </DialogTitle>
       <DialogContent dividers>
         <DialogContentText sx={{ color: "whitesmoke" }}>
           <Typography id="modal-modal-description" sx={{ fontSize: "15px" }}>
-            You are going to request to claim this people.
+            You are going to connect to this people.
           </Typography>
         </DialogContentText>
         <TextField
@@ -141,7 +141,7 @@ const PinModal: FC<PinModalProps> = ({ node, open, onClose }) => {
           </Button>
         )}
 
-        <Button ref={buttonRef} variant="contained" onClick={onClaim} autoFocus>
+        <Button ref={buttonRef} variant="contained" onClick={onConnect} autoFocus>
           {loading ? <ScaleLoader color="whitesmoke" height={10} /> : "Claim"}
         </Button>
       </DialogActions>
@@ -149,4 +149,4 @@ const PinModal: FC<PinModalProps> = ({ node, open, onClose }) => {
   );
 };
 
-export default PinModal;
+export default ConnectNodeModal;
