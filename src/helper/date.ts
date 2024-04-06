@@ -48,10 +48,17 @@ export const getDate = (year?: number, month?: number, day?: number) => {
     : undefined;
 };
 
-export const getAge = (year?: number, month?: number, day?: number): [number, string] => {
-  const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth();
-  const currentDay = new Date().getDate();
+export const getAge = (
+  year?: number,
+  month?: number,
+  day?: number,
+  deathYear?: number,
+  deathMonth?: number,
+  deathDay?: number,
+): [number, string] => {
+  const currentYear = deathYear ?? new Date().getFullYear();
+  const currentMonth = deathMonth ?? new Date().getMonth();
+  const currentDay = deathDay ?? new Date().getDate();
 
   if (year && year > 0) {
     if (month && month > 0) {

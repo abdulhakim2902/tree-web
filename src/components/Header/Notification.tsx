@@ -1,7 +1,9 @@
+import React, { FC, createRef, useEffect, useMemo, useRef, useState } from "react";
+
+import { NotificationSkeletons } from "../Skeleton/NotificationSkeleton";
 import {
   Badge,
   Box,
-  Divider,
   IconButton,
   ListItemIcon,
   ListItemText,
@@ -14,9 +16,17 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import React, { FC, createRef, useEffect, useMemo, useRef, useState } from "react";
-import NotificationsIcon from "@mui/icons-material/Notifications";
-import { handleRequest, handleInvitation } from "@tree/src/lib/services/user";
+
+import ShowIf from "../show-if";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import parse from "html-react-parser";
+import ClaimRequestModal from "../Modal/ClaimRequest.modal";
+import { TreeNodeData } from "@tree/src/types/tree";
+import { nodeById } from "@tree/src/lib/services/node";
+
+/* API Services */
+import { handleRequest, handleInvitation, handleClaimRequest } from "@tree/src/lib/services/user";
 import {
   Notification as NotificationData,
   NotificationType,
@@ -25,19 +35,20 @@ import {
   readNotification,
   readAllNotification,
 } from "@tree/src/lib/services/notification";
+
+/* Hooks */
 import { useAuthContext } from "@tree/src/context/auth";
+import { useSnackbar } from "notistack";
+import { useRouter } from "next/router";
+
+/* Icons */
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import MarkunreadIcon from "@mui/icons-material/Markunread";
-import ShowIf from "../show-if";
-import { useSnackbar } from "notistack";
-import { NotificationSkeletons } from "../Skeleton/NotificationSkeleton";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-import { useRouter } from "next/router";
-import parse from "html-react-parser";
 import MarkAsUnreadIcon from "@mui/icons-material/MarkAsUnread";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 dayjs.extend(relativeTime);
 
@@ -51,7 +62,12 @@ const Notification: FC = () => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [count, setCount] = useState<number>(0);
+  const [openClaimRequest, setOpenClaimRequest] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
+
+  const [loadingClaim, setLoadingClaim] = useState<boolean>(false);
+  const [selectedNode, setSelectedNode] = useState<TreeNodeData>();
+  const [selectedNotification, setSelectedNotification] = useState<NotificationData>();
 
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -181,6 +197,49 @@ const Notification: FC = () => {
     }
   };
 
+  const onHandleClaimRequest = (action: string, notification?: NotificationData) => {
+    if (!notification) return;
+    const referenceId = notification.referenceId;
+    if (!referenceId) return;
+
+    const buttonRef = buttonRefs[notification._id];
+    if (buttonRef.current && !buttonRef.current.disabled) {
+      buttonRef.current.disabled = true;
+
+      handleClaimRequest(referenceId, action)
+        .then(() => {
+          setCount((prev) => {
+            if (!prev) return prev;
+            return prev - 1;
+          });
+          setNotifications((prev) => [
+            ...prev.map((e) => {
+              if (e._id === selectedNotification?._id) {
+                Object.assign(e, { read: true, action: false });
+              }
+
+              return e;
+            }),
+          ]);
+          enqueueSnackbar({
+            variant: "success",
+            message: action === "accept" ? "Claim request is accepted" : "Claim request is rejected",
+          });
+        })
+        .catch((err) => {
+          enqueueSnackbar({
+            variant: "error",
+            message: err.message,
+          });
+        })
+        .finally(() => {
+          if (buttonRef.current) {
+            buttonRef.current.disabled = false;
+          }
+        });
+    }
+  };
+
   const onReadNotification = async (id: string) => {
     const buttonRef = buttonRefs[id];
     if (buttonRef.current && !buttonRef.current.disabled) {
@@ -203,6 +262,7 @@ const Notification: FC = () => {
         );
       } catch (err) {
         // ignore
+        console.log(err);
       }
 
       buttonRef.current.disabled = false;
@@ -219,13 +279,7 @@ const Notification: FC = () => {
     }
   };
 
-  const onClose = () => {
-    setAnchorEl(null);
-    setNotifications([]);
-  };
-
   const onReadAllNotification = async () => {
-    console.log(buttonRef.current);
     if (buttonRef.current && !buttonRef.current.disabled) {
       buttonRef.current.disabled = true;
 
@@ -235,6 +289,32 @@ const Notification: FC = () => {
         setNotifications((prev) => prev.map((e) => Object.assign(e, { read: true })));
       } catch (err) {
         // ignore
+      }
+
+      buttonRef.current.disabled = false;
+    }
+  };
+
+  const onOpenClaimRequest = async (notification: NotificationData) => {
+    if (!notification.additionalReferenceId) return;
+
+    const buttonRef = buttonRefs[notification._id];
+    if (buttonRef.current && !buttonRef.current.disabled) {
+      buttonRef.current.disabled = true;
+
+      try {
+        setLoadingClaim(true);
+        const node = await nodeById(notification.additionalReferenceId);
+        setSelectedNode(node);
+        setSelectedNotification(notification);
+        setOpenClaimRequest(true);
+      } catch {
+        enqueueSnackbar({
+          variant: "error",
+          message: "Data not found",
+        });
+      } finally {
+        setLoadingClaim(false);
       }
 
       buttonRef.current.disabled = false;
@@ -283,7 +363,7 @@ const Notification: FC = () => {
             color: "whitesmoke",
           },
         }}
-        onClose={onClose}
+        onClose={() => setAnchorEl(null)}
         anchorOrigin={{
           vertical: "bottom",
           horizontal: "left",
@@ -334,32 +414,45 @@ const Notification: FC = () => {
                         <Typography
                           fontSize={12}
                           sx={{ color: notification.read ? "#5C5470" : "whitesmoke" }}
-                          width={180}
+                          width={!notification.action && notification.read ? "100%" : !notification.read ? 200 : 180}
                         >
                           {parse(notification.message)}
                         </Typography>
                         <ShowIf condition={notification.action}>
-                          <Box component="div">
-                            <Tooltip title="Accept request">
+                          <ShowIf condition={notification.type !== NotificationType.CLAIM}>
+                            <Box component="div">
+                              <Tooltip title="Accept request">
+                                <IconButton
+                                  ref={buttonRefs[notification._id]}
+                                  color="primary"
+                                  onClick={() => handleAction("accept", notification)}
+                                  sx={{ mr: "2px" }}
+                                >
+                                  <CheckIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Reject request">
+                                <IconButton
+                                  ref={buttonRefs[notification._id]}
+                                  color="error"
+                                  onClick={() => handleAction("reject", notification)}
+                                >
+                                  <CloseIcon />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          </ShowIf>
+                          <ShowIf condition={notification.type === NotificationType.CLAIM}>
+                            <Tooltip title="See request">
                               <IconButton
                                 ref={buttonRefs[notification._id]}
-                                color="primary"
-                                onClick={() => handleAction("accept", notification)}
-                                sx={{ mr: "2px" }}
+                                onClick={() => onOpenClaimRequest(notification)}
+                                sx={{ mr: "2px", color: "whitesmoke" }}
                               >
-                                <CheckIcon />
+                                <VisibilityIcon />
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="Reject request">
-                              <IconButton
-                                ref={buttonRefs[notification._id]}
-                                color="error"
-                                onClick={() => handleAction("reject", notification)}
-                              >
-                                <CloseIcon />
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
+                          </ShowIf>
                         </ShowIf>
                         <ShowIf condition={!notification.action && !notification.read}>
                           <Tooltip title="Mark as unread">
@@ -402,6 +495,14 @@ const Notification: FC = () => {
           </Box>
         )}
       </Menu>
+      <ClaimRequestModal
+        ref={buttonRefs[selectedNotification?._id ?? ""]}
+        node={selectedNode}
+        open={openClaimRequest}
+        onClose={() => setOpenClaimRequest(false)}
+        loading={loadingClaim}
+        onClaimRequest={(action) => onHandleClaimRequest(action, selectedNotification)}
+      />
     </React.Fragment>
   );
 };

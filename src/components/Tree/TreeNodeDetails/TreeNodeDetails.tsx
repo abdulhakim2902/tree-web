@@ -36,6 +36,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
+import PinModal from "../../Modal/PinModal";
 
 const navigation = [
   { id: 1, title: "Biography" },
@@ -57,6 +58,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [openGalleries, setOpenGalleries] = useState<boolean>(false);
+  const [openPinned, setOpenPinned] = useState<boolean>(false);
   const [uploading, setUploading] = useState<boolean>(false);
   const [newFile, setNewFile] = useState<File>();
   const [navId, setNavId] = useState<number>(1);
@@ -198,6 +200,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
                     sx={{ marginLeft: "10px" }}
                     size="small"
                     component="label"
+                    onClick={() => setOpenPinned(true)}
                   >
                     <RadioButtonUncheckedIcon />
                   </Fab>
@@ -236,6 +239,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
       <AddMemberDrawer open={openAdd} onClose={() => setOpenAdd(false)} node={node} />
       <EditMemberDrawer open={openEdit} onClose={() => setOpenEdit(false)} node={node} />
       <DeleteMemberModal nodeId={selectedNodeId} open={openDelete} onClose={() => setOpenDelete(false)} />
+      <PinModal node={node} open={openPinned} onClose={() => setOpenPinned(false)} />
       <GalleryModal
         open={openGalleries}
         onClose={() => setOpenGalleries(false)}

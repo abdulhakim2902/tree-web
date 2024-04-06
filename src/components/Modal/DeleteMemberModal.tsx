@@ -47,7 +47,7 @@ const DeleteMemberModal: FC<DeleteMemberModalProps> = ({ nodeId, open, onClose }
           </Box>
         </Typography>
         <Typography id="modal-modal-description" sx={{ mt: 2, fontSize: "15px" }}>
-          You are about to delete this member
+          You are about to delete this people.
         </Typography>
         <Box sx={{ mt: "30px" }} textAlign="end">
           <Button

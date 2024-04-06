@@ -169,7 +169,6 @@ const HomePage: NextPage = () => {
             vertical: "top",
             horizontal: "center",
           },
-          persist: true,
         };
 
         if (user?.role) {

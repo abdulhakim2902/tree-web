@@ -16,7 +16,6 @@ import {
 import { GridColDef, GridSlots, GridValidRowModel } from "@mui/x-data-grid";
 import React, { FC } from "react";
 import { CustomNoRowsOverlay, CustomPagination, StyledDataGrid } from "../DataGrid";
-import { UserRequest } from "@tree/src/lib/services/user";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import { startCase } from "lodash";
@@ -117,7 +116,7 @@ type AcceptRequestModalProps = {
   success: string;
   loading: boolean;
   loadingAction: boolean;
-  requestLists: UserRequest[];
+  requestLists: any[];
 
   onClose: () => void;
   onHandleRequest: (id: string, action: string) => void;

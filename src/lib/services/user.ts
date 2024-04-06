@@ -152,3 +152,50 @@ export const handleRequest = async (referenceId: string, action: string) => {
       .catch((err) => reject(err));
   });
 };
+
+export const createClaimRequest = async (data: { nodeId: string }) => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+
+  return new Promise((resolve, reject) => {
+    fetch(`${API_URL}/users/claim-requests`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data?.statusCode) {
+          return reject(data);
+        }
+
+        return resolve(data);
+      })
+      .catch((err) => reject(err));
+  });
+};
+
+export const handleClaimRequest = async (referenceId: string, action: string) => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+
+  return new Promise((resolve, reject) => {
+    fetch(`${API_URL}/users/claim-requests/${referenceId}/${action}`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      method: "POST",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data?.statusCode) {
+          return reject(data);
+        }
+
+        return resolve(data);
+      })
+      .catch((err) => reject(err));
+  });
+};

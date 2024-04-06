@@ -343,3 +343,23 @@ export const deleteNode = async (id: string) => {
     throw new Error(response.statusText);
   }
 };
+
+export const nodeById = async (id: string) => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+  const response = await fetch(`${API_URL}/nodes/${id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const result = await response.json();
+  if (result?.statusCode) {
+    throw result;
+  }
+
+  const node = result;
+
+  return node as TreeNodeData;
+};

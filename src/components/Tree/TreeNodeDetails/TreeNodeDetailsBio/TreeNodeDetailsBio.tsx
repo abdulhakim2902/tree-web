@@ -46,7 +46,7 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
 
   const birthDate = getDate(birth?.year, birth?.month, birth?.day);
   const deathDate = getDate(death?.year, death?.month, death?.day);
-  const [age, info] = getAge(birth?.year, birth?.month, birth?.day);
+  const [age, info] = getAge(birth?.year, birth?.month, birth?.day, death?.year, death?.month, death?.day);
 
   return (
     <React.Fragment>

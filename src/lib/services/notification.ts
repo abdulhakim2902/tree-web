@@ -9,6 +9,7 @@ export type QueryNotificationDto = {
 
 export enum NotificationType {
   REQUEST = "request",
+  CLAIM = "claim",
   INVITATION = "invitation",
 }
 
@@ -17,6 +18,7 @@ export type Notification = {
   read: boolean;
   type: NotificationType;
   referenceId?: string;
+  additionalReferenceId?: string;
   message: string;
   to: string;
   action: boolean;
