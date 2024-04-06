@@ -1,3 +1,6 @@
+import React, { FC, useEffect, useState } from "react";
+import ShowIf from "../../show-if";
+
 import {
   Box,
   CircularProgress,
@@ -9,10 +12,12 @@ import {
   useTheme,
 } from "@mui/material";
 import { File, removeFile, nodeFiles } from "@tree/src/lib/services/file";
-import React, { FC, useEffect, useState } from "react";
-import DeleteIcon from "@mui/icons-material/Delete";
+
+/* Hooks */
 import { useSnackbar } from "notistack";
-import ShowIf from "../../show-if";
+
+/* Icons */
+import DeleteIcon from "@mui/icons-material/Delete";
 
 type TreeNodeGalleriesProps = {
   nodeId: string;

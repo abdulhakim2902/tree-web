@@ -1,16 +1,27 @@
-import { TreeNodeDataWithRelations } from "@tree/src/types/tree";
-import classNames from "classnames";
 import React, { FC } from "react";
+import classNames from "classnames";
 import BioRelationButtons from "../BioRelationButtons/BioRelationButtons";
-import { getAge, getDate } from "@tree/src/helper/date";
-import s from "./TreeNodeDetailsBio.module.css";
 import ShowIf from "@tree/src/components/show-if";
-import { useTreeNodeDataContext } from "@tree/src/context/data";
+import s from "./TreeNodeDetailsBio.module.css";
+
+import { TreeNodeDataWithRelations } from "@tree/src/types/tree";
+import { getAge, getDate } from "@tree/src/helper/date";
 import { startCase } from "@tree/src/helper/string";
-import { Box } from "@mui/material";
+import { Box, IconButton } from "@mui/material";
+import { UPDATE } from "@tree/src/constants/permissions";
+
+/* Hooks */
+import { useAuthContext } from "@tree/src/context/auth";
+import { useTreeNodeDataContext } from "@tree/src/context/data";
+
+/* Icons */
+import AddPhotoAlternate from "@mui/icons-material/AddPhotoAlternate";
+import ImageIcon from "@mui/icons-material/Image";
+import EditIcon from "@mui/icons-material/Edit";
 
 type TreeNodeDetailsBioProps = TreeNodeDataWithRelations & {
   onRelationNodeClick: (id: string) => void;
+  onOpen: () => void;
 };
 
 export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
@@ -28,7 +39,9 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
   onRelationNodeClick,
   metadata,
   profileImageURL,
+  onOpen,
 }) => {
+  const { user } = useAuthContext();
   const { expandNode, loading } = useTreeNodeDataContext();
 
   const birthDate = getDate(birth?.year, birth?.month, birth?.day);
@@ -140,12 +153,62 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
             <span className={s.gridItemValue}>{rewards?.join(", ")}</span>
           </ShowIf>
         </div>
+        <Box
+          height={150}
+          width={150}
+          sx={{
+            mb: "10px",
+            backgroundColor: "grey",
+            cursor: (() => {
+              if (UPDATE.some((e) => e === user?.role) && !profileImageURL) {
+                return "pointer";
+              }
 
-        <ShowIf condition={Boolean(profileImageURL)}>
-          <Box height={150} width={150} sx={{ mb: "10px" }} borderRadius={1} borderColor="whitesmoke">
-            <img src={profileImageURL ?? ""} width={150} alt={profileImageURL} loading="lazy" />
-          </Box>
-        </ShowIf>
+              return "default";
+            })(),
+          }}
+          borderRadius={1}
+          borderColor="whitesmoke"
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          onClick={() => {
+            if (UPDATE.some((e) => e === user?.role) && !profileImageURL) {
+              return onOpen();
+            }
+
+            return;
+          }}
+          position="relative"
+        >
+          {profileImageURL ? (
+            <React.Fragment>
+              <ShowIf condition={UPDATE.some((e) => e === user?.role)}>
+                <IconButton
+                  onClick={onOpen}
+                  sx={{
+                    position: "absolute",
+                    color: "whitesmoke",
+                    backgroundColor: "var(--background-color)",
+                    right: 10,
+                    bottom: 10,
+                    "&:hover": {
+                      backgroundColor: "var(--background-color)",
+                      opacity: 0.5,
+                    },
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
+              </ShowIf>
+              <img src={profileImageURL ?? ""} width={150} alt={profileImageURL} loading="lazy" />
+            </React.Fragment>
+          ) : UPDATE.some((e) => e === user?.role) ? (
+            <AddPhotoAlternate style={{ fontSize: 35 }} />
+          ) : (
+            <ImageIcon style={{ fontSize: 35 }} />
+          )}
+        </Box>
       </div>
     </React.Fragment>
   );

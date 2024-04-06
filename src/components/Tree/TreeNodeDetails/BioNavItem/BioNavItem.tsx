@@ -1,7 +1,7 @@
 import classNames from "classnames";
-import Link from "next/link";
-import { FC } from "react";
 import s from "./BioNavItem.module.css";
+
+import { FC } from "react";
 
 type BioNavItemProps = {
   isSelected: boolean;

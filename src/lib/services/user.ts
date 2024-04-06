@@ -1,19 +1,12 @@
 import { TOKEN_KEY } from "@tree/src/constants/storage-key";
-import { Role, User, UserInvitation } from "@tree/src/types/user";
+import { Role, UserProfile, UserInvitation } from "@tree/src/types/user";
 import { getCookie } from "cookies-next";
 import { Notification } from "./notification";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export interface UserRequest {
-  _id: string;
-  email: string;
-  currentRole: Role;
-  requestedRole: Role;
-}
-
 export const me = async (token: string) => {
-  return new Promise<User>((resolve, reject) => {
+  return new Promise<UserProfile>((resolve, reject) => {
     fetch(`${API_URL}/users/me`, {
       method: "GET",
       headers: {
@@ -69,7 +62,7 @@ export const handleInvitation = async (token: string, action: string) => {
 export const invites = async (data: { email: string; role: Role }[]) => {
   const token = getCookie(TOKEN_KEY)?.toString();
 
-  return new Promise<UserRequest[]>((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     fetch(`${API_URL}/users/invites`, {
       headers: {
         "Content-Type": "application/json",
@@ -93,7 +86,7 @@ export const invites = async (data: { email: string; role: Role }[]) => {
 export const getRequest = async () => {
   const token = getCookie(TOKEN_KEY)?.toString();
 
-  return new Promise<UserRequest[]>((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     fetch(`${API_URL}/users/requests`, {
       headers: {
         "Content-Type": "application/json",

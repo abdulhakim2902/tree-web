@@ -1,5 +1,5 @@
 import { Login, Register } from "@tree/src/types/auth";
-import { User } from "@tree/src/types/user";
+import { UserProfile } from "@tree/src/types/user";
 import { me } from "./user";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -18,7 +18,7 @@ export const register = async (data: Omit<Register, "role">) => {
     throw result;
   }
 
-  return { user: result as User };
+  return { user: result as UserProfile };
 };
 
 export const login = async (data: Login) => {
@@ -40,7 +40,7 @@ export const login = async (data: Login) => {
   if (token) {
     const result = await me(token);
 
-    return { user: result as User, token: token as string };
+    return { user: result as UserProfile, token: token as string };
   }
 
   return;

@@ -1,41 +1,46 @@
-import { useNodeSelectionContext } from "@tree/src/context/tree";
-import { CloseIcon } from "@tree/src/components/Icon/CloseIcon";
 import React, { ChangeEvent, FC, useState } from "react";
 import BioNavItem from "./BioNavItem/BioNavItem";
+import ShowIf from "@tree/src/components/show-if";
+import Fab from "@mui/material/Fab";
 import s from "./TreeNodeDetails.module.css";
+
 import { TreeNodeDetailsBio } from "./TreeNodeDetailsBio/TreeNodeDetailsBio";
 import { getTreeNodeDetails } from "@tree/src/helper/tree";
 import { TreeNode } from "@tree/src/types/tree";
-import Fab from "@mui/material/Fab";
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
 import { Box, Tooltip } from "@mui/material";
-import { useAuthContext } from "@tree/src/context/auth";
-import ShowIf from "@tree/src/components/show-if";
-import DeleteIcon from "@mui/icons-material/Delete";
-import DeleteMemberModal from "@tree/src/components/Modal/DeleteMemberModal";
 import { TreeNodeFamilies } from "../TreeNodeFamilies/TreeNodeFamilies";
-import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
-import { useTreeNodeDataContext } from "@tree/src/context/data";
-import AddMemberDrawer from "../../Drawer/AddMemberDrawer";
-import EditMemberDrawer from "../../Drawer/EditMemberDrawer";
 import { File, upload } from "@tree/src/lib/services/file";
-import { useSnackbar } from "notistack";
 import { TreeNodeGalleries } from "../TreeNodeGalleries/TreeNodeGalleries";
-import GalleryModal from "../../Modal/GalleryModal";
 import { CREATE, DELETE, UPDATE } from "@tree/src/constants/permissions";
 import { Role } from "@tree/src/types/user";
+import { CloseIcon } from "@tree/src/components/Icon/CloseIcon";
+
+/* Hooks */
+import { useNodeSelectionContext } from "@tree/src/context/tree";
+import { useTreeNodeDataContext } from "@tree/src/context/data";
+import { useAuthContext } from "@tree/src/context/auth";
+import { useSnackbar } from "notistack";
+
+/* Drawers */
+import AddMemberDrawer from "../../Drawer/AddMemberDrawer";
+import EditMemberDrawer from "../../Drawer/EditMemberDrawer";
+
+/* Modals */
+import GalleryModal from "../../Modal/GalleryModal";
+import DeleteMemberModal from "@tree/src/components/Modal/DeleteMemberModal";
+
+/* Icons */
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
+import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
+import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 
 const navigation = [
   { id: 1, title: "Biography" },
   { id: 2, title: "Galleries" },
   { id: 3, title: "Families" },
-];
-
-const actions = [
-  { icon: <AddIcon />, name: 'Add relative' },
-  { icon: <AddPhotoAlternateIcon />, name: 'Update profile image' },
-  { icon: <DeleteIcon />, name: 'Remove relative' },
 ];
 
 type TreeNodeDetailsProps = {
@@ -133,7 +138,11 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
             </nav>
 
             <ShowIf condition={navId === 1}>
-              <TreeNodeDetailsBio {...node} onRelationNodeClick={(id) => selectNode(id)} />
+              <TreeNodeDetailsBio
+                {...node}
+                onRelationNodeClick={(id) => selectNode(id)}
+                onOpen={() => setOpenGalleries(true)}
+              />
             </ShowIf>
 
             <ShowIf condition={navId === 2}>
@@ -149,39 +158,62 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
               <TreeNodeFamilies id={node.id} fullname={node.fullname} />
             </ShowIf>
           </Box>
-          <ShowIf condition={navId === 1 && user.role !== Role.GUEST}>
+          <ShowIf condition={navId === 1}>
             <Box sx={{ display: "flex", justifyContent: "end" }}>
-              <ShowIf condition={UPDATE.some((e) => e === user.role)}>
-                <Tooltip title="Update profile image" placement="bottom-end" sx={{ mr: "10px" }}>
+              <ShowIf condition={DELETE.some((e) => e === user.role) || node.id === user.nodeId}>
+                <Tooltip title="Delete relative" placement="bottom-end">
                   <Fab
-                    color="secondary"
-                    aria-label="update-profile"
+                    color="error"
+                    aria-label="add"
+                    sx={{ ml: "10px" }}
+                    size="small"
+                    onClick={() => setOpenDelete(true)}
+                  >
+                    <DeleteIcon />
+                  </Fab>
+                </Tooltip>
+              </ShowIf>
+              <ShowIf condition={node.id === user.nodeId && node.userId === user.id}>
+                <Tooltip title="Unpin this people" placement="bottom-end">
+                  <Fab
+                    color="success"
+                    aria-label="unpin-people"
+                    sx={{ marginLeft: "10px" }}
                     size="small"
                     component="label"
-                    onClick={() => setOpenGalleries(true)}
                   >
-                    <AddPhotoAlternateIcon />
+                    <RadioButtonCheckedIcon />
+                  </Fab>
+                </Tooltip>
+              </ShowIf>
+              <ShowIf
+                condition={
+                  node.id !== user.nodeId && node.userId !== user.id && !Boolean(node.userId) && !Boolean(user.nodeId)
+                }
+              >
+                <Tooltip title="Pin this people" placement="bottom-end">
+                  <Fab
+                    color="success"
+                    aria-label="pin-people"
+                    sx={{ marginLeft: "10px" }}
+                    size="small"
+                    component="label"
+                  >
+                    <RadioButtonUncheckedIcon />
                   </Fab>
                 </Tooltip>
               </ShowIf>
               <ShowIf condition={CREATE.some((e) => e === user.role)}>
                 <Tooltip title="Add relative" placement="bottom-end">
-                  <Fab color="primary" aria-label="add" size="small" onClick={() => setOpenAdd(true)}>
-                    <AddIcon />
-                  </Fab>
-                </Tooltip>
-              </ShowIf>
-
-              <ShowIf condition={DELETE.some((e) => e === user.role)}>
-                <Tooltip title="Delete relative" placement="bottom-end">
                   <Fab
-                    color="error"
+                    color="primary"
                     aria-label="add"
+                    sx={{ marginLeft: "10px" }}
                     size="small"
-                    onClick={() => setOpenDelete(true)}
-                    sx={{ ml: "10px" }}
+                    component="label"
+                    onClick={() => setOpenAdd(true)}
                   >
-                    <DeleteIcon />
+                    <AddIcon />
                   </Fab>
                 </Tooltip>
               </ShowIf>

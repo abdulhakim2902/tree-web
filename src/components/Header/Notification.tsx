@@ -383,7 +383,16 @@ const Notification: FC = () => {
             );
           })
         ) : (
-          <Box sx={{ width: "336px", height: "400px", display: "flex", justifyContent: "center", flexDirection: "column", alignItems: "center" }}>
+          <Box
+            sx={{
+              width: "336px",
+              height: "400px",
+              display: "flex",
+              justifyContent: "center",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
             <Typography variant="h4" component="div">
               No notification
             </Typography>

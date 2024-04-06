@@ -1,5 +1,5 @@
 import { Login, Register } from "@tree/src/types/auth";
-import { User } from "@tree/src/types/user";
+import { UserProfile } from "@tree/src/types/user";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { FC, createContext, useCallback, useContext, useEffect, useState } from "react";
 import { login as loginAPI, register as registerAPI } from "@tree/src/lib/services/auth";
@@ -13,10 +13,10 @@ type AuthContextValue = {
   isLoggedIn: boolean;
   loading: boolean;
   registering: boolean;
-  user: User | null;
+  user: UserProfile | null;
   token: string;
 
-  register: (data: Register, cb?: (success: boolean, user?: User) => void) => void;
+  register: (data: Register, cb?: (success: boolean, user?: UserProfile) => void) => void;
   login: (data: Login, cb?: (success: boolean) => void) => void;
   logout: () => void;
 };
@@ -32,11 +32,11 @@ export const AuthContextProvider: FC = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(Boolean(userStr) && Boolean(tokenStr));
   const [loading, setLoading] = useState<boolean>(false);
   const [registering, setRegistering] = useState<boolean>(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [token, setToken] = useState<string>(tokenStr);
 
   useEffect(() => {
-    const user = parseJSON<User>(userStr);
+    const user = parseJSON<UserProfile>(userStr);
     setUser(user);
   }, [userStr]);
 
@@ -73,9 +73,9 @@ export const AuthContextProvider: FC = ({ children }) => {
   );
 
   const register = useCallback(
-    async (data: Register, cb?: (success: boolean, user?: User) => void) => {
+    async (data: Register, cb?: (success: boolean, user?: UserProfile) => void) => {
       let success = false;
-      let user: User | undefined = undefined;
+      let user: UserProfile | undefined = undefined;
 
       try {
         setRegistering(true);

@@ -1,7 +1,8 @@
-import Tree from "@tree/src/components/Tree/Tree";
-import { TreeNode } from "@tree/src/types/tree";
-import dynamic from "next/dynamic";
 import React, { FC } from "react";
+import Tree from "@tree/src/components/Tree/Tree";
+import dynamic from "next/dynamic";
+
+import { TreeNode } from "@tree/src/types/tree";
 
 const PinchZoomPan = dynamic(() => import("@tree/src/components/PinchZoomPan/PinchZoomPan"), {
   ssr: false,

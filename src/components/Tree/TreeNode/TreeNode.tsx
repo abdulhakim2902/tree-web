@@ -1,10 +1,13 @@
-import { TreeExternalNode } from "@tree/src/types/tree";
 import classNames from "classnames";
-import { FC, memo, useState } from "react";
 import s from "./TreeNode.module.css";
+
+import { TreeExternalNode } from "@tree/src/types/tree";
+import { FC, memo, useState } from "react";
 import { TreeNodeYears } from "./TreeNodeYears";
 import { getTreeNodeStyleTransform } from "./utils";
 import { capitalize } from "lodash";
+
+/* Hooks */
 import { useTreeNodeDataContext } from "@tree/src/context/data";
 
 interface TreeNodeProps {

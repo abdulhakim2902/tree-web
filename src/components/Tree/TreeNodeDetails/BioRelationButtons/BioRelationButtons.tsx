@@ -1,10 +1,13 @@
-import { RelationInfo } from "@tree/src/types/tree";
-import { FC } from "react";
 import s from "./BioRelationButtons.module.css";
-import VisibilityIcon from "@mui/icons-material/Visibility";
+
+import { FC } from "react";
+import { RelationInfo } from "@tree/src/types/tree";
 import { CircularProgress, IconButton } from "@mui/material";
 import { RelType } from "@tree/src/lib/relatives-tree/types";
 import { startCase } from "@tree/src/helper/string";
+
+/* Icons */
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 type BioRelationButtonsProps = {
   relationType: string;

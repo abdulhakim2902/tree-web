@@ -12,12 +12,13 @@ export enum UserStatus {
   ROLE_REQUEST = "role_request",
 }
 
-export type User = {
+export type UserProfile = {
   id: string;
   name: string;
   email: string;
   username: string;
   role: Role;
+  nodeId?: string;
 };
 
 export type UserInvitation = {

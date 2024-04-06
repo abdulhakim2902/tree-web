@@ -1,12 +1,15 @@
-import { useNodeSelectionContext } from "@tree/src/context/tree";
+import React, { FC, memo } from "react";
+import dynamic from "next/dynamic";
+import s from "./Tree.module.css";
+import TreeNode from "./TreeNode/TreeNode";
+
 import { TREE_NODE_SIZE } from "@tree/src/lib/react-family-tree/constants";
 import { ExtNode } from "@tree/src/lib/relatives-tree/types";
 import { TreeExternalNode, TreeNode as TreeNodeType } from "@tree/src/types/tree";
-import dynamic from "next/dynamic";
-import React, { FC, memo } from "react";
-import s from "./Tree.module.css";
-import TreeNode from "./TreeNode/TreeNode";
+
+/* Hooks */
 import { useTreeNodeDataContext } from "@tree/src/context/data";
+import { useNodeSelectionContext } from "@tree/src/context/tree";
 
 const ReactFamilyTree = dynamic(() => import("@tree/src/lib/react-family-tree"), {
   ssr: false,

@@ -45,7 +45,7 @@ const menus = [
   },
   {
     name: "families",
-    text: "Families",
+    text: "View Family",
     icon: (sx?: SxProps<Theme>) => <Diversity1Icon sx={sx} />,
   },
   {
