@@ -1,4 +1,4 @@
-import { useAuthContext } from "@tree/src/context/auth";
+import React, { FC, useState } from "react";
 import {
   Avatar,
   Badge,
@@ -13,19 +13,25 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import React, { FC, useState } from "react";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import LogoutIcon from "@mui/icons-material/Logout";
-import { useTreeNodeDataContext } from "@tree/src/context/data";
-import { useRouter } from "next/router";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import Diversity1Icon from "@mui/icons-material/Diversity1";
-import { getNameSymbol, startCase } from "@tree/src/helper/string";
-import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
-import InvitePeopleModal from "../Modal/InvitePeopleModal";
-import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import { Role } from "@tree/src/types/user";
+import { getNameSymbol, startCase } from "@tree/src/helper/string";
+
+/* Modals */
+import InvitePeopleModal from "../Modal/InvitePeopleModal";
 import RequestRoleModal from "../Modal/RequestRoleModal";
+
+/* Hooks */
+import { useTreeNodeDataContext } from "@tree/src/context/data";
+import { useAuthContext } from "@tree/src/context/auth";
+import { useRouter } from "next/router";
+
+/* Icons */
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
+import Diversity1Icon from "@mui/icons-material/Diversity1";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 const menus = [
   {
