@@ -118,7 +118,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
             <div className={s.rootItem}>
               <h2 className={s.name}>
                 {node.fullname}
-                <ShowIf condition={UPDATE.some((e) => e === user.role)}>
+                <ShowIf condition={UPDATE.some((e) => e === user.role) || node.id === user.nodeId}>
                   <Tooltip title="Edit the information for this person" placement="bottom-start">
                     <EditIcon
                       fontSize="small"
@@ -225,9 +225,9 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
               </ShowIf>
             </Box>
           </ShowIf>
-          <ShowIf condition={navId === 2 && user.role !== Role.GUEST}>
+          <ShowIf condition={navId === 2}>
             <Box sx={{ display: "flex", justifyContent: "end" }}>
-              <ShowIf condition={UPDATE.some((e) => e === user.role)}>
+              <ShowIf condition={UPDATE.some((e) => e === user.role) || user.nodeId === node.id}>
                 <Tooltip title="Add galleries" placement="bottom-end">
                   <Fab color="secondary" aria-label="add-galleries" size="small" component="label">
                     <AddPhotoAlternateIcon />

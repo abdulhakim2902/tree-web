@@ -160,7 +160,8 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
             mb: "10px",
             backgroundColor: "grey",
             cursor: (() => {
-              if (UPDATE.some((e) => e === user?.role) && !profileImageURL) {
+              const canUpdate = UPDATE.some((e) => e === user?.role) || user?.nodeId === id;
+              if (canUpdate && !profileImageURL) {
                 return "pointer";
               }
 
@@ -173,7 +174,8 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
           justifyContent="center"
           alignItems="center"
           onClick={() => {
-            if (UPDATE.some((e) => e === user?.role) && !profileImageURL) {
+            const canUpdate = UPDATE.some((e) => e === user?.role) || user?.nodeId === id;
+            if (canUpdate && !profileImageURL) {
               return onOpen();
             }
 
@@ -183,7 +185,7 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
         >
           {profileImageURL ? (
             <React.Fragment>
-              <ShowIf condition={UPDATE.some((e) => e === user?.role)}>
+              <ShowIf condition={UPDATE.some((e) => e === user?.role) || user?.nodeId === id}>
                 <IconButton
                   onClick={onOpen}
                   sx={{
@@ -203,7 +205,7 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
               </ShowIf>
               <img src={profileImageURL ?? ""} width={150} alt={profileImageURL} loading="lazy" />
             </React.Fragment>
-          ) : UPDATE.some((e) => e === user?.role) ? (
+          ) : UPDATE.some((e) => e === user?.role) || user?.nodeId === id ? (
             <AddPhotoAlternate style={{ fontSize: 35 }} />
           ) : (
             <ImageIcon style={{ fontSize: 35 }} />

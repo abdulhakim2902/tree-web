@@ -12,9 +12,11 @@ import {
   useTheme,
 } from "@mui/material";
 import { File, removeFile, nodeFiles } from "@tree/src/lib/services/file";
+import { UPDATE } from "@tree/src/constants/permissions";
 
 /* Hooks */
 import { useSnackbar } from "notistack";
+import { useAuthContext } from "@tree/src/context/auth";
 
 /* Icons */
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -31,6 +33,7 @@ export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile,
   const mobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const { enqueueSnackbar } = useSnackbar();
+  const { user } = useAuthContext();
 
   const [galleries, setGalleries] = useState<File[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -98,18 +101,20 @@ export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile,
         <ImageListItem key={item._id}>
           <Box position="relative">
             {current !== item.url && item._id !== "new" && (
-              <IconButton
-                sx={{
-                  position: "absolute",
-                  color: "whitesmoke",
-                  right: "2%",
-                  bottom: "2%",
-                  backgroundColor: "grey",
-                }}
-                onClick={() => removeGallery(item._id)}
-              >
-                <DeleteIcon />
-              </IconButton>
+              <ShowIf condition={UPDATE.some((e) => e === user?.role) || user?.nodeId === nodeId}>
+                <IconButton
+                  sx={{
+                    position: "absolute",
+                    color: "whitesmoke",
+                    right: "2%",
+                    bottom: "2%",
+                    backgroundColor: "grey",
+                  }}
+                  onClick={() => removeGallery(item._id)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </ShowIf>
             )}
 
             <img src={item.url} alt={item.publicId} loading="lazy" />
