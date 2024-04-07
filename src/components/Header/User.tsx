@@ -50,7 +50,7 @@ const menus = [
   },
   {
     name: "logout",
-    text: "Logut",
+    text: "Logout",
     icon: (sx?: SxProps<Theme>) => <LogoutIcon sx={sx} />,
   },
 ];
