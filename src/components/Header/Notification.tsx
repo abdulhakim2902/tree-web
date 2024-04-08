@@ -305,7 +305,9 @@ const Notification: FC = () => {
 
       try {
         setLoadingConnect(true);
-        const node = await nodeById(notification.additionalReferenceId);
+        const [nodeId, email] = notification.additionalReferenceId.split(":");
+        const node = await nodeById(nodeId);
+        node.email = email;
         setSelectedNode(node);
         setSelectedNotification(notification);
         setOpenConnectRequest(true);
@@ -500,8 +502,8 @@ const Notification: FC = () => {
         ref={buttonRefs[selectedNotification?._id ?? ""]}
         node={selectedNode}
         open={openConnectRequest}
-        onClose={() => setOpenConnectRequest(false)}
         loading={loadingConnect}
+        onClose={() => setOpenConnectRequest(false)}
         onConnectRequest={(action) => onHandleConnectRequest(action, selectedNotification)}
       />
     </React.Fragment>

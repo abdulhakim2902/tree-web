@@ -174,7 +174,7 @@ const User: FC = () => {
                 <Typography fontSize={12}>{menu.name === "account" ? startCase(user.name) : menu.text}</Typography>
               </ListItemText>
             </MenuItem>,
-            menu.name === "account" && <Divider sx={{ bgcolor: "whitesmoke" }} />,
+            menu.name === "account" && <Divider variant="middle" />,
           ];
         })}
       </Menu>

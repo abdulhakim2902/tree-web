@@ -6,7 +6,10 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Modal,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import React, { FC, useRef, useState } from "react";
 import WarningIcon from "@mui/icons-material/Warning";
@@ -25,6 +28,9 @@ type DisconnectNodeModal = {
 const DisconnectNodeModal: FC<DisconnectNodeModal> = ({ nodeId, open, onClose }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
+
+  const theme = useTheme();
+  const mobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const { enqueueSnackbar } = useSnackbar();
   const { logout } = useAuthContext();
@@ -60,43 +66,49 @@ const DisconnectNodeModal: FC<DisconnectNodeModal> = ({ nodeId, open, onClose })
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={loading ? undefined : onClose}
-      PaperProps={{
-        style: {
-          backgroundColor: "var(--background-color)",
-          color: "whitesmoke",
-        },
-      }}
-    >
-      <DialogTitle>
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <WarningIcon fontSize="large" sx={{ mr: "10px" }} />
-          <Typography fontSize="17px">Are your sure to disconnect?</Typography>
-        </Box>
-      </DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          <Typography fontSize="15px" sx={{ color: "whitesmoke" }}>
-            You are about to disconnect to this people.
-          </Typography>
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions sx={{ marginBottom: 3, marginRight: 2 }}>
-        {loading ? (
-          <React.Fragment />
-        ) : (
-          <Button variant="outlined" onClick={onClose} color="primary">
-            Cancel
+    <Modal open={open} onClose={loading ? undefined : onClose}>
+      <Box
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: mobile ? "80%" : 400,
+          bgcolor: "var(--background-color)",
+          borderRadius: "10px",
+          p: 4,
+        }}
+      >
+        <Typography id="modal-modal-title" variant="h6" component="h2" sx={{ fontSize: "18px" }}>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <WarningIcon fontSize="large" sx={{ mr: "10px" }} />
+            Are your sure?
+          </Box>
+        </Typography>
+        <Typography id="modal-modal-description" sx={{ mt: 2, fontSize: "15px" }}>
+          You are about to disconnect this people.
+        </Typography>
+        <Box sx={{ mt: "30px" }} textAlign="end">
+          {loading ? (
+            <React.Fragment />
+          ) : (
+            <Button variant="outlined" onClick={onClose} color="primary">
+              Cancel
+            </Button>
+          )}
+          <Button
+            ref={buttonRef}
+            onClick={onDisconnect}
+            variant="contained"
+            color="error"
+            sx={{ ml: "10px" }}
+            autoFocus
+          >
+            {loading ? <ScaleLoader color="whitesmoke" height={10} /> : "Disconnect"}
           </Button>
-        )}
-
-        <Button ref={buttonRef} onClick={onDisconnect} variant="contained" color="error" autoFocus>
-          {loading ? <ScaleLoader color="whitesmoke" height={10} /> : "Disconnect"}
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </Box>
+      </Box>
+    </Modal>
   );
 };
 

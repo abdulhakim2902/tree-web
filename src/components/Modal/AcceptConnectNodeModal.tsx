@@ -6,7 +6,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   Grow,
   MenuItem,
@@ -17,12 +16,11 @@ import {
   Typography,
 } from "@mui/material";
 import React, { FC, RefObject, useRef, useState } from "react";
+import ShowIf from "../show-if";
 import { TreeNodeData } from "@tree/src/types/tree";
 import { ScaleLoader } from "react-spinners";
-import parse from "html-react-parser";
 import { startCase } from "lodash";
 import { getDate } from "@tree/src/helper/date";
-import ShowIf from "../show-if";
 import { Gender } from "@tree/src/lib/relatives-tree/types";
 import { ArrowDropDownIcon } from "@mui/x-date-pickers";
 
@@ -31,7 +29,6 @@ type AcceptConnectNodeModalProps = {
   node?: TreeNodeData;
   open: boolean;
   loading: boolean;
-
   onClose: () => void;
   onConnectRequest: (action: string) => void;
 };
@@ -39,12 +36,12 @@ type AcceptConnectNodeModalProps = {
 const options = ["Accept", "Reject"];
 
 const AcceptConnectNodeModal: FC<AcceptConnectNodeModalProps> = ({
+  ref,
   node,
   open,
+  loading,
   onClose,
   onConnectRequest,
-  loading,
-  ref,
 }) => {
   const anchorRef = useRef<HTMLDivElement>(null);
 

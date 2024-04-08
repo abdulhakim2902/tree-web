@@ -16,6 +16,7 @@ export type TreeNodeDataFromJson = {
   };
 } & Partial<{
   userId: string;
+  email: string;
   profileImageURL: string;
   gender: string;
   birth: {

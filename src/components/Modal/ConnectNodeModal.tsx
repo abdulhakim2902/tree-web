@@ -17,6 +17,7 @@ import { connectNode } from "@tree/src/lib/services/user";
 /* Icons */
 import CheckIcon from "@mui/icons-material/Check";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import HubIcon from "@mui/icons-material/Hub";
 
 type ConnectNodeModalProps = {
   node: TreeNodeDataWithRelations;
@@ -72,13 +73,14 @@ const ConnectNodeModal: FC<ConnectNodeModalProps> = ({ node, open, onClose }) =>
     >
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Typography sx={{ fontSize: "20px" }}>Connect Request</Typography>
+          <HubIcon sx={{ color: "whitesmoke", mr: "10px" }} />
+          <Typography sx={{ fontSize: "20px" }}>Connect?</Typography>
         </Box>
       </DialogTitle>
       <DialogContent dividers>
         <DialogContentText sx={{ color: "whitesmoke" }}>
           <Typography id="modal-modal-description" sx={{ fontSize: "15px" }}>
-            You are going to connect to this people.
+            You are about to connect this people.
           </Typography>
         </DialogContentText>
         <TextField
