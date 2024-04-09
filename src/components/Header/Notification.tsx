@@ -324,6 +324,32 @@ const Notification: FC = () => {
     }
   };
 
+  const notificationTextWidth = (notification: NotificationData) => {
+    if (!notification.action) {
+      if (notification.read) return "100%";
+      return "85%";
+    }
+
+    if (notification.type !== NotificationType.CONNECT) {
+      return "75%";
+    }
+
+    return "85%";
+  };
+
+  const notificationIconWidth = (notification: NotificationData) => {
+    if (!notification.action) {
+      if (notification.read) return "0%";
+      return "15%";
+    }
+
+    if (notification.type !== NotificationType.CONNECT) {
+      return "25%";
+    }
+
+    return "15%";
+  };
+
   return (
     <React.Fragment>
       <Badge
@@ -417,13 +443,18 @@ const Notification: FC = () => {
                         <Typography
                           fontSize={12}
                           sx={{ color: notification.read ? "#5C5470" : "whitesmoke" }}
-                          width={!notification.action && notification.read ? "100%" : !notification.read ? 200 : 180}
+                          width={notificationTextWidth(notification)}
                         >
                           {parse(notification.message)}
                         </Typography>
                         <ShowIf condition={notification.action}>
-                          <ShowIf condition={notification.type !== NotificationType.CLAIM}>
-                            <Box component="div">
+                          <Box
+                            component="div"
+                            display="flex"
+                            justifyContent="space-evenly"
+                            width={notificationIconWidth(notification)}
+                          >
+                            <ShowIf condition={notification.type !== NotificationType.CONNECT}>
                               <Tooltip title="Accept request">
                                 <IconButton
                                   ref={buttonRefs[notification._id]}
@@ -443,30 +474,37 @@ const Notification: FC = () => {
                                   <CloseIcon />
                                 </IconButton>
                               </Tooltip>
-                            </Box>
-                          </ShowIf>
-                          <ShowIf condition={notification.type === NotificationType.CLAIM}>
-                            <Tooltip title="See request">
-                              <IconButton
-                                ref={buttonRefs[notification._id]}
-                                onClick={() => onOpenConnectRequest(notification)}
-                                sx={{ mr: "2px", color: "whitesmoke" }}
-                              >
-                                <VisibilityIcon />
-                              </IconButton>
-                            </Tooltip>
-                          </ShowIf>
+                            </ShowIf>
+                            <ShowIf condition={notification.type === NotificationType.CONNECT}>
+                              <Tooltip title="See request">
+                                <IconButton
+                                  ref={buttonRefs[notification._id]}
+                                  onClick={() => onOpenConnectRequest(notification)}
+                                  sx={{ mr: "2px", color: "whitesmoke" }}
+                                >
+                                  <VisibilityIcon />
+                                </IconButton>
+                              </Tooltip>
+                            </ShowIf>
+                          </Box>
                         </ShowIf>
                         <ShowIf condition={!notification.action && !notification.read}>
-                          <Tooltip title="Mark as unread">
-                            <IconButton
-                              ref={buttonRefs[notification._id]}
-                              onClick={() => onReadNotification(notification._id)}
-                              sx={{ mr: "2px", color: "whitesmoke" }}
-                            >
-                              <MarkunreadIcon />
-                            </IconButton>
-                          </Tooltip>
+                          <Box
+                            component="div"
+                            display="flex"
+                            justifyContent="space-evenly"
+                            width={notificationIconWidth(notification)}
+                          >
+                            <Tooltip title="Mark as unread">
+                              <IconButton
+                                ref={buttonRefs[notification._id]}
+                                onClick={() => onReadNotification(notification._id)}
+                                sx={{ mr: "2px", color: "whitesmoke" }}
+                              >
+                                <MarkunreadIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
                         </ShowIf>
                       </Box>
                       <Typography sx={{ color: !notification.read ? "#2196f3" : "#e3e1d9", mt: "8px" }}>
