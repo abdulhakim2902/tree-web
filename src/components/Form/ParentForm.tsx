@@ -1,14 +1,17 @@
-import { Box, Button, CircularProgress, Typography } from "@mui/material";
-import React, { FC, useEffect, useState } from "react";
+import { Box, Button, Typography } from "@mui/material";
+import React, { FC, useEffect, useRef, useState } from "react";
 import Form, { Bio, Error, defaultBio, defaultError } from "./Form";
+import { ScaleLoader } from "react-spinners";
 
 type ParentFormProps = {
   loading: boolean;
-  onSave: (data: any) => void;
+  onSave: (data: any) => Promise<void>;
   onCancel: () => void;
 };
 
 const ParentForm: FC<ParentFormProps> = ({ onSave, onCancel, loading }) => {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
   const [fatherBio, setFatherBio] = useState<Bio>(defaultBio);
   const [fatherError, setFatherError] = useState<Error>(defaultError);
 
@@ -20,44 +23,50 @@ const ParentForm: FC<ParentFormProps> = ({ onSave, onCancel, loading }) => {
     setMotherBio((prev) => ({ ...prev, gender: "female" }));
   }, []);
 
-  const handleSave = () => {
-    const result = [fatherBio, motherBio].map((bio, index) => {
-      const { name, gender, birthDate, birthCountry, birthCity } = bio;
-      const error = {
-        name: !Boolean(name),
-        gender: !Boolean(gender),
-      };
+  const handleSave = async () => {
+    if (buttonRef.current && !buttonRef.current.disabled) {
+      buttonRef.current.disabled = true;
 
-      const setError = index === 0 ? setFatherError : setMotherError;
-      setError(error);
+      const result = [fatherBio, motherBio].map((bio, index) => {
+        const { name, gender, birthDate, birthCountry, birthCity } = bio;
+        const error = {
+          name: !Boolean(name),
+          gender: !Boolean(gender),
+        };
 
-      if (Object.values(error).includes(true)) {
-        return null;
-      }
+        const setError = index === 0 ? setFatherError : setMotherError;
+        setError(error);
 
-      const names = name.replace(/\s+/g, " ").trim().split(" ");
-      const data: Record<string, any> = {
-        name: { first: names[0] },
-        gender: gender,
-        birth: {
-          day: birthDate?.date() ?? 0,
-          month: birthDate?.month() ? birthDate.month() + 1 : 0,
-          year: birthDate?.year() ?? -1,
-          place: {
-            country: birthCountry,
-            city: birthCity,
+        if (Object.values(error).includes(true)) {
+          return null;
+        }
+
+        const names = name.replace(/\s+/g, " ").trim().split(" ");
+        const data: Record<string, any> = {
+          name: { first: names[0] },
+          gender: gender,
+          birth: {
+            day: birthDate?.date() ?? 0,
+            month: birthDate?.month() ? birthDate.month() + 1 : 0,
+            year: birthDate?.year() ?? -1,
+            place: {
+              country: birthCountry,
+              city: birthCity,
+            },
           },
-        },
-      };
+        };
 
-      if (names.length > 1) Object.assign(data.name, { last: names[names.length - 1] });
-      if (names.length > 2) Object.assign(data.name, { middle: names.slice(1, names.length - 1).join(" ") });
-      return data;
-    });
+        if (names.length > 1) Object.assign(data.name, { last: names[names.length - 1] });
+        if (names.length > 2) Object.assign(data.name, { middle: names.slice(1, names.length - 1).join(" ") });
+        return data;
+      });
 
-    if (result.includes(null)) return;
+      if (result.includes(null)) return;
 
-    onSave({ father: result[0], mother: result[1] });
+      await onSave({ father: result[0], mother: result[1] });
+
+      buttonRef.current.disabled = false;
+    }
   };
 
   const handleCancel = () => {
@@ -97,8 +106,8 @@ const ParentForm: FC<ParentFormProps> = ({ onSave, onCancel, loading }) => {
         <Button color="info" variant="outlined" sx={{ mr: "10px" }} onClick={handleCancel} disabled={loading}>
           Cancel
         </Button>
-        <Button variant="contained" onClick={handleSave} disabled={loading}>
-          {loading ? <CircularProgress size={15} /> : "Save"}
+        <Button ref={buttonRef} variant="contained" onClick={handleSave}>
+          {loading ? <ScaleLoader color="whitesmoke" height={10} width={2} /> : "Save"}
         </Button>
       </Box>
     </React.Fragment>

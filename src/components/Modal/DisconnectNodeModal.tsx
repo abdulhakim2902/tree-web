@@ -1,16 +1,4 @@
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Modal,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
+import { Box, Button, Modal, Typography, useMediaQuery, useTheme } from "@mui/material";
 import React, { FC, useRef, useState } from "react";
 import WarningIcon from "@mui/icons-material/Warning";
 import { ScaleLoader } from "react-spinners";
@@ -18,14 +6,15 @@ import { useSnackbar } from "notistack";
 import { disconnectNode } from "@tree/src/lib/services/user";
 import { useAuthContext } from "@tree/src/context/auth";
 import { useRouter } from "next/navigation";
+import { TreeNodeDataWithRelations } from "@tree/src/types/tree";
 
 type DisconnectNodeModal = {
-  nodeId: string;
+  node: TreeNodeDataWithRelations;
   open: boolean;
   onClose: () => void;
 };
 
-const DisconnectNodeModal: FC<DisconnectNodeModal> = ({ nodeId, open, onClose }) => {
+const DisconnectNodeModal: FC<DisconnectNodeModal> = ({ node, open, onClose }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
 
@@ -44,7 +33,7 @@ const DisconnectNodeModal: FC<DisconnectNodeModal> = ({ nodeId, open, onClose })
       try {
         setLoading(true);
 
-        await disconnectNode(nodeId);
+        await disconnectNode(node.id);
 
         router.replace("/");
         logout();

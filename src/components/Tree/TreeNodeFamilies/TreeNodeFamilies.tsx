@@ -11,21 +11,24 @@ import { startCase } from "@tree/src/helper/string";
 import { Family } from "@tree/src/types/tree";
 
 /* Hooks */
+import { useRouter } from "next/navigation";
 import { useCacheContext } from "@tree/src/context/cache";
-import { useTreeNodeDataContext } from "@tree/src/context/data";
 
 type TreeNodeFamiliesProps = {
   id: string;
+  rootId: string;
   fullname: string;
 };
 
-export const TreeNodeFamilies: FC<TreeNodeFamiliesProps> = ({ id, fullname }) => {
-  const { tree, rootNodes } = useTreeNodeDataContext();
+export const TreeNodeFamilies: FC<TreeNodeFamiliesProps> = ({ id, rootId, fullname }) => {
+  const router = useRouter();
+
   const { get, set } = useCacheContext();
 
   const [loading, setLoading] = useState<boolean>(true);
   const [families, setFamilies] = useState<Family[]>([]);
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     const getFamilyNodes = async (id: string) => {
       setLoading(true);
@@ -71,7 +74,7 @@ export const TreeNodeFamilies: FC<TreeNodeFamiliesProps> = ({ id, fullname }) =>
       <span className={s.familyLinksTitle}>{`${fullname} is a descendant of families:`}</span>
       <div className={s.familyLinksContainer}>
         {families.map((family) => {
-          if (tree?.root.id === family.id) {
+          if (rootId === family.id) {
             return (
               <span
                 key={family.id}
@@ -85,7 +88,9 @@ export const TreeNodeFamilies: FC<TreeNodeFamiliesProps> = ({ id, fullname }) =>
               href=""
               key={family.id}
               className={classNames(s.familyLink, s.familyItem)}
-              onClick={() => rootNodes(family.id)}
+              onClick={() => {
+                router.push(`/tree?nodeId=${family.id}`);
+              }}
             >
               {startCase(family.name)}
             </Link>

@@ -1,8 +1,9 @@
-import React, { FC } from "react";
+import React, { FC, useState } from "react";
 import classNames from "classnames";
 import BioRelationButtons from "../BioRelationButtons/BioRelationButtons";
 import ShowIf from "@tree/src/components/show-if";
 import s from "./TreeNodeDetailsBio.module.css";
+import { Relative } from "@tree/src/lib/services/node";
 
 import { TreeNodeDataWithRelations } from "@tree/src/types/tree";
 import { getAge, getDate } from "@tree/src/helper/date";
@@ -12,16 +13,26 @@ import { UPDATE } from "@tree/src/constants/permissions";
 
 /* Hooks */
 import { useAuthContext } from "@tree/src/context/auth";
-import { useTreeNodeDataContext } from "@tree/src/context/data";
+import { useSnackbar } from "notistack";
 
 /* Icons */
 import AddPhotoAlternate from "@mui/icons-material/AddPhotoAlternate";
 import ImageIcon from "@mui/icons-material/Image";
 import EditIcon from "@mui/icons-material/Edit";
 
+const defaultLoading = {
+  parents: false,
+  siblings: false,
+  children: false,
+  spouses: false,
+};
+
+type Loading = Record<Relative, boolean>;
+
 type TreeNodeDetailsBioProps = TreeNodeDataWithRelations & {
   onRelationNodeClick: (id: string) => void;
   onOpen: () => void;
+  onAction: (id: string, relative: Relative) => Promise<void>;
 };
 
 export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
@@ -40,13 +51,39 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
   metadata,
   profileImageURL,
   onOpen,
+  onAction,
 }) => {
   const { user } = useAuthContext();
-  const { expandNode, loading } = useTreeNodeDataContext();
+  const { enqueueSnackbar } = useSnackbar();
 
   const birthDate = getDate(birth?.year, birth?.month, birth?.day);
   const deathDate = getDate(death?.year, death?.month, death?.day);
   const [age, info] = getAge(birth?.year, birth?.month, birth?.day, death?.year, death?.month, death?.day);
+
+  const [loading, setLoading] = useState<Loading>(defaultLoading);
+
+  const onExpandNode = async (id: string, type: string) => {
+    let relative: Relative;
+    if (type === "parent") relative = "parents";
+    else if (type === "child") relative = "children";
+    else if (type === "spouse") relative = "spouses";
+    else if (type === "sibling") relative = "siblings";
+    else if (type === "brother") relative = "siblings";
+    else relative = "siblings";
+
+    try {
+      setLoading((prev) => ({ ...prev, [relative]: true }));
+
+      await onAction(id, relative);
+    } catch (err: any) {
+      enqueueSnackbar({
+        variant: "error",
+        message: err.message,
+      });
+    } finally {
+      setLoading((prev) => ({ ...prev, [relative]: false }));
+    }
+  };
 
   return (
     <React.Fragment>
@@ -89,11 +126,11 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
             <div className={classNames(s.gridItemValue)}>
               <BioRelationButtons
                 onClick={onRelationNodeClick}
-                onExpandNode={(type) => expandNode(id, type)}
+                onExpandNode={(type) => onExpandNode(id, type)}
                 items={parents}
                 relationType="parent"
                 expandable={Boolean(metadata?.expandable?.parents)}
-                loading={loading.expanded.parents}
+                loading={loading.parents}
               />
             </div>
           </ShowIf>
@@ -102,11 +139,11 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
             <div className={classNames(s.gridItemValue)}>
               <BioRelationButtons
                 onClick={onRelationNodeClick}
-                onExpandNode={(type) => expandNode(id, type)}
+                onExpandNode={(type) => onExpandNode(id, type)}
                 items={siblings}
                 relationType="sibling"
                 expandable={Boolean(metadata?.expandable?.siblings)}
-                loading={loading.expanded.siblings}
+                loading={loading.siblings}
               />
             </div>
           </ShowIf>
@@ -115,11 +152,11 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
             <div className={classNames(s.gridItemValue)}>
               <BioRelationButtons
                 onClick={onRelationNodeClick}
-                onExpandNode={(type) => expandNode(id, type)}
+                onExpandNode={(type) => onExpandNode(id, type)}
                 items={spouses}
                 relationType="spouse"
                 expandable={Boolean(metadata?.expandable?.spouses)}
-                loading={loading.expanded.spouses}
+                loading={loading.spouses}
               />
             </div>
           </ShowIf>
@@ -128,11 +165,11 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
             <div className={classNames(s.gridItemValue)}>
               <BioRelationButtons
                 onClick={onRelationNodeClick}
-                onExpandNode={(type) => expandNode(id, type)}
+                onExpandNode={(type) => onExpandNode(id, type)}
                 items={children}
                 relationType="child"
                 expandable={Boolean(metadata?.expandable?.children)}
-                loading={loading.expanded.children}
+                loading={loading.children}
               />
             </div>
           </ShowIf>
@@ -203,6 +240,7 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
                   <EditIcon />
                 </IconButton>
               </ShowIf>
+              {/* eslint-disable @next/next/no-img-element */}
               <img src={profileImageURL ?? ""} width={150} alt={profileImageURL} loading="lazy" />
             </React.Fragment>
           ) : UPDATE.some((e) => e === user?.role) || user?.nodeId === id ? (

@@ -1,30 +1,60 @@
 import { Box, Button, Modal, Typography, useMediaQuery, useTheme } from "@mui/material";
-import { FC } from "react";
+import { FC, useRef, useState } from "react";
 import WarningIcon from "@mui/icons-material/Warning";
-import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { useNodeSelectionContext } from "@tree/src/context/tree";
+import { TreeNodeDataWithRelations } from "@tree/src/types/tree";
+import { useSnackbar } from "notistack";
+import { ScaleLoader } from "react-spinners";
 
 type DeleteMemberModalProps = {
-  nodeId?: string;
+  node: TreeNodeDataWithRelations;
   open: boolean;
   onClose: () => void;
+  onAction: (id: string) => Promise<void>;
 };
 
-const DeleteMemberModal: FC<DeleteMemberModalProps> = ({ nodeId, open, onClose }) => {
-  const { deleteNode, loading } = useTreeNodeDataContext();
-  const { unselectNode } = useNodeSelectionContext();
-
+const DeleteMemberModal: FC<DeleteMemberModalProps> = ({ node, open, onClose, onAction }) => {
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const { enqueueSnackbar } = useSnackbar();
+  const { unselectNode } = useNodeSelectionContext();
+
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const handleRemove = async () => {
+    if (buttonRef.current && !buttonRef.current.disabled) {
+      buttonRef.current.disabled = true;
+
+      try {
+        setLoading(true);
+
+        await onAction(node.id);
+
+        unselectNode();
+        onClose();
+        enqueueSnackbar({
+          variant: "success",
+          message: "Relative is deleted from the family",
+        });
+      } catch (err: any) {
+        enqueueSnackbar({
+          variant: "error",
+          message: err.message,
+        });
+      } finally {
+        setLoading(false);
+      }
+
+      buttonRef.current.disabled = false;
+    }
+  };
 
   return (
     <Modal
       open={open}
-      onClose={(event, reason) => {
-        if (loading.deleted && reason === "backdropClick") return;
-        if (loading.deleted && reason === "escapeKeyDown") return;
-        onClose();
-      }}
+      onClose={loading ? undefined : onClose}
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
@@ -50,32 +80,11 @@ const DeleteMemberModal: FC<DeleteMemberModalProps> = ({ nodeId, open, onClose }
           You are about to delete this people.
         </Typography>
         <Box sx={{ mt: "30px" }} textAlign="end">
-          <Button
-            color="info"
-            variant="outlined"
-            sx={{ mr: "10px" }}
-            onClick={() => {
-              if (loading.deleted) return;
-              onClose();
-            }}
-          >
+          <Button color="info" variant="outlined" sx={{ mr: "10px" }} disabled={loading} onClick={onClose}>
             Cancel
           </Button>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => {
-              if (loading.deleted) return;
-              deleteNode(nodeId ?? "", (success) => {
-                if (success) {
-                  unselectNode();
-                }
-
-                onClose();
-              });
-            }}
-          >
-            {loading.deleted ? "Deleting..." : "Delete"}
+          <Button ref={buttonRef} variant="contained" color="error" onClick={handleRemove}>
+            {loading ? <ScaleLoader color="whitesmoke" height={10} width={2} /> : "Delete"}
           </Button>
         </Box>
       </Box>

@@ -1,6 +1,5 @@
-import Layout from "@tree/src/components/Layout/Layout";
-import { TreeNodeDataContextProvider } from "@tree/src/context/data";
 import "@tree/styles/globals.css";
+import Layout from "@tree/src/components/Layout/Layout";
 import { IconButton, useMediaQuery, useTheme } from "@mui/material";
 import type { AppProps } from "next/app";
 import { SnackbarProvider, closeSnackbar } from "notistack";
@@ -37,11 +36,9 @@ const App = ({ Component, pageProps }: AppProps) => {
       >
         <LoadingBarContextProvider>
           <AuthContextProvider>
-            <TreeNodeDataContextProvider>
-              <Layout>
-                <Component {...pageProps} />
-              </Layout>
-            </TreeNodeDataContextProvider>
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
           </AuthContextProvider>
         </LoadingBarContextProvider>
       </SnackbarProvider>

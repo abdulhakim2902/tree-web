@@ -13,57 +13,76 @@ import {
 } from "@mui/material";
 import { TreeNodeDataWithRelations } from "@tree/src/types/tree";
 import { FC, useEffect, useState } from "react";
+import { capitalize } from "lodash";
+
 import ShowIf from "../show-if";
 import ChildForm from "../Form/ChildForm";
 import SpouseForm from "../Form/SpouseForm";
 import SiblingForm from "../Form/SiblingForm";
 import ParentForm from "../Form/ParentForm";
-import { useTreeNodeDataContext } from "@tree/src/context/data";
-import { capitalize } from "lodash";
-import SearchIcon from "@mui/icons-material/Search";
+
+/* Hooks */
 import { useCacheContext } from "@tree/src/context/cache";
+import { useSnackbar } from "notistack";
+
+/* Icons */
+import SearchIcon from "@mui/icons-material/Search";
 
 type AddMemberDrawerProps = {
   node: TreeNodeDataWithRelations;
   open: boolean;
+
   onClose: () => void;
+  onAction: (id: string, data: any, type: string) => Promise<void>;
 };
 
-const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
-  const { addNode, loading } = useTreeNodeDataContext();
+const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose, onAction }) => {
+  const { enqueueSnackbar } = useSnackbar();
   const { del } = useCacheContext();
 
-  const [relative, setRelative] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [type, setType] = useState<string>("");
   const [option, setOption] = useState<"new" | "tree">("new");
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (open) {
-      setRelative("");
+      setType("");
       setOption("new");
       del(`spouse-${node.id}`);
     }
-  }, [open]);
+  }, [open, node]);
 
-  const onAddNode = (data: any) => {
-    if (!node?.id) return;
-    addNode(node.id, data, relative, (success, error) => {
-      if (success) onClose();
-    });
+  const onAddNode = async (data: any) => {
+    try {
+      setLoading(true);
+
+      await onAction(node.id, data, type);
+
+      onClose();
+      enqueueSnackbar({
+        variant: "error",
+        message: "New member is added to the family",
+      });
+    } catch (err: any) {
+      enqueueSnackbar({
+        variant: "error",
+        message: err.message,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Drawer
       open={open}
-      onClose={(event, reason) => {
-        if (loading.added && reason === "backdropClick") return;
-        if (loading.added && reason === "escapeKeyDown") return;
-        onClose();
-      }}
+      onClose={loading ? undefined : onClose}
       anchor="right"
       PaperProps={{ sx: { backgroundColor: "var(--background-color)", width: "350px" } }}
     >
       <Box sx={{ p: 3 }}>
-        <ShowIf condition={!Boolean(relative)}>
+        <ShowIf condition={!Boolean(type)}>
           <Typography variant="h5" component="h3" sx={{ color: "whitesmoke" }}>
             Add relative for {node.fullname}
           </Typography>
@@ -114,7 +133,7 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
                   break;
               }
               return (
-                <Grid item xs={6} key={e} onClick={() => setRelative(e)}>
+                <Grid item xs={6} key={e} onClick={() => setType(e)}>
                   <Paper
                     sx={{
                       p: 1,
@@ -134,9 +153,9 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
             })}
           </Grid>
         </ShowIf>
-        <ShowIf condition={Boolean(relative)}>
+        <ShowIf condition={Boolean(type)}>
           <Typography variant="h5" component="h3" sx={{ color: "whitesmoke" }}>
-            {`Add a ${relative} for ${node.fullname}`}
+            {`Add a ${type} for ${node.fullname}`}
           </Typography>
 
           <FormControl sx={{ mt: 3 }}>
@@ -162,35 +181,20 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose }) => {
           </FormControl>
 
           <ShowIf condition={option === "new"}>
-            <ShowIf condition={relative === "parent"}>
-              <ParentForm onSave={(data) => onAddNode(data)} onCancel={onClose} loading={loading.added} />
+            <ShowIf condition={type === "parent"}>
+              <ParentForm onSave={onAddNode} onCancel={onClose} loading={loading} />
             </ShowIf>
 
-            <ShowIf condition={relative === "brother" || relative === "sister"}>
-              <SiblingForm
-                relative={relative}
-                onSave={(data) => onAddNode(data)}
-                onCancel={onClose}
-                loading={loading.added}
-              />
+            <ShowIf condition={type === "brother" || type === "sister"}>
+              <SiblingForm onSave={onAddNode} onCancel={onClose} loading={loading} relative={type} />
             </ShowIf>
 
-            <ShowIf condition={relative === "spouse"}>
-              <SpouseForm
-                node={node}
-                onSave={(data) => onAddNode(DataTransferItemList)}
-                onCancel={onClose}
-                loading={loading.added}
-              />
+            <ShowIf condition={type === "spouse"}>
+              <SpouseForm onSave={onAddNode} onCancel={onClose} loading={loading} node={node} />
             </ShowIf>
 
-            <ShowIf condition={relative === "child"}>
-              <ChildForm
-                onSave={(data) => onAddNode(data)}
-                onCancel={onClose}
-                nodeId={node.id}
-                loading={loading.added}
-              />
+            <ShowIf condition={type === "child"}>
+              <ChildForm onSave={onAddNode} onCancel={onClose} loading={loading} nodeId={node.id} />
             </ShowIf>
           </ShowIf>
 

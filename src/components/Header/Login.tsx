@@ -2,15 +2,17 @@ import { useAuthContext } from "@tree/src/context/auth";
 import { Box, Button, useMediaQuery, useTheme } from "@mui/material";
 import React, { ChangeEvent, FC, KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Login as LoginType } from "@tree/src/types/auth";
-import { useSnackbar } from "notistack";
 import LoginModal from "../Modal/LoginModal";
-import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { TREE_ROOT_KEY } from "@tree/src/constants/storage-key";
-import { useRouter } from "next/router";
-import { useCacheContext } from "@tree/src/context/cache";
+
 import { Root } from "@tree/src/types/tree";
 import LoginForm from "../Form/LoginForm";
 import { ScaleLoader } from "react-spinners";
+
+/* Hooks */
+import { useRouter } from "next/router";
+import { useSnackbar } from "notistack";
+import { useCacheContext } from "@tree/src/context/cache";
 
 export type Error = {
   username: boolean;
@@ -20,11 +22,10 @@ export type Error = {
 const Login: FC = () => {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const { isLoggedIn, login, loading } = useAuthContext();
-  const { rootNodes, tree } = useTreeNodeDataContext();
   const { get } = useCacheContext();
   const { enqueueSnackbar } = useSnackbar();
   const { pathname, replace } = useRouter();
+  const { isLoggedIn, login, loading } = useAuthContext();
 
   const [data, setData] = useState<LoginType>({ username: "", password: "" });
   const [error, setError] = useState<Error>({ username: false, password: false });
@@ -68,9 +69,9 @@ const Login: FC = () => {
         if (pathname === "/families") replace("/families");
         if (pathname === "/tree") {
           const root = get<Root>(TREE_ROOT_KEY);
-          const nodeId = root?.id ?? tree?.root?.id;
+          const nodeId = root?.id;
           if (!nodeId) replace("/families");
-          else rootNodes(nodeId);
+          else replace(`/tree?nodeId=${nodeId}`);
         }
       }
 

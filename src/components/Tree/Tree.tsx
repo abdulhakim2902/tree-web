@@ -8,7 +8,6 @@ import { ExtNode } from "@tree/src/lib/relatives-tree/types";
 import { TreeExternalNode, TreeNode as TreeNodeType } from "@tree/src/types/tree";
 
 /* Hooks */
-import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { useNodeSelectionContext } from "@tree/src/context/tree";
 
 const ReactFamilyTree = dynamic(() => import("@tree/src/lib/react-family-tree"), {
@@ -21,16 +20,7 @@ type TreeProps = {
 };
 
 const Tree: FC<TreeProps> = ({ rootId, nodes }) => {
-  const { init } = useTreeNodeDataContext();
-  const { selectNode, selectedNodeId, unselectNode } = useNodeSelectionContext();
-
-  const handleSelectNode = (id: string, hasSubtree?: boolean) => {
-    if (selectedNodeId === id && !init) {
-      unselectNode();
-    } else {
-      selectNode(id, hasSubtree);
-    }
-  };
+  const { selectNode, selectedNodeId } = useNodeSelectionContext();
 
   return (
     <ReactFamilyTree
@@ -44,7 +34,7 @@ const Tree: FC<TreeProps> = ({ rootId, nodes }) => {
           isSelected={selectedNodeId === node.id}
           key={node.id}
           node={node as TreeExternalNode}
-          onClick={handleSelectNode}
+          onClick={selectNode}
           width={TREE_NODE_SIZE}
           height={TREE_NODE_SIZE}
         />

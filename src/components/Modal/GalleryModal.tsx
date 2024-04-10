@@ -10,53 +10,53 @@ import {
   useTheme,
 } from "@mui/material";
 import { File, nodeFiles, upload } from "@tree/src/lib/services/file";
-import { updateNodeProfile } from "@tree/src/lib/services/node";
 import React, { ChangeEvent, FC, useCallback, useEffect, useState } from "react";
 import Divider from "@mui/material/Divider";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { useSnackbar } from "notistack";
-import { useTreeNodeDataContext } from "@tree/src/context/data";
 import ShowIf from "../show-if";
+import { TreeNodeDataWithRelations } from "@tree/src/types/tree";
+import { ScaleLoader } from "react-spinners";
 
 type GalleryModalProps = {
-  current?: string;
-  nodeId: string;
+  node: TreeNodeDataWithRelations;
   open: boolean;
 
   onClose: () => void;
+  onAction: (id: string, data?: File) => Promise<void>;
 };
 
-const GalleryModal: FC<GalleryModalProps> = ({ current, nodeId, open, onClose }) => {
-  const { enqueueSnackbar } = useSnackbar();
-  const { updateNodeProfile: setNodeProfile } = useTreeNodeDataContext();
-
+const GalleryModal: FC<GalleryModalProps> = ({ node, open, onClose, onAction }) => {
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const { enqueueSnackbar } = useSnackbar();
 
   const [loadGalleries, setLoadGalleries] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [galleries, setGalleries] = useState<File[]>([]);
 
   const fetchGalleries = useCallback(() => {
-    if (!nodeId) return;
     setLoadGalleries(true);
-    nodeFiles(nodeId)
+    nodeFiles(node.id)
       .then(setGalleries)
       .finally(() => setLoadGalleries(false));
-  }, [nodeId]);
+  }, [node.id]);
 
   useEffect(() => {
-    if (!open) return;
-    fetchGalleries();
+    if (open) {
+      fetchGalleries();
+    }
   }, [open, fetchGalleries]);
 
   const onUploadImage = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files || files?.length <= 0) return;
+    if (!files || files.length <= 0 || loading) return;
+
     const file = files[0];
     const form = new FormData();
     form.append("file", file);
-    form.set("nodeId", nodeId);
+    form.set("nodeId", node.id);
 
     try {
       setLoading(true);
@@ -84,11 +84,11 @@ const GalleryModal: FC<GalleryModalProps> = ({ current, nodeId, open, onClose })
   };
 
   const onSelect = async (file: File) => {
-    if (file.url === current) return;
+    if (file.url === node.profileImageURL) return;
 
     try {
-      await updateNodeProfile(nodeId, file._id);
-      setNodeProfile(nodeId, file);
+      await onAction(node.id, file);
+
       onClose();
       enqueueSnackbar({
         variant: "success",
@@ -104,8 +104,8 @@ const GalleryModal: FC<GalleryModalProps> = ({ current, nodeId, open, onClose })
 
   const onRemove = async () => {
     try {
-      await updateNodeProfile(nodeId);
-      setNodeProfile(nodeId);
+      await onAction(node.id);
+
       onClose();
       enqueueSnackbar({
         variant: "success",
@@ -120,14 +120,7 @@ const GalleryModal: FC<GalleryModalProps> = ({ current, nodeId, open, onClose })
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={(event, reason) => {
-        if (loading && reason === "backdropClick") return;
-        if (loading && reason === "escapeKeyDown") return;
-        onClose();
-      }}
-    >
+    <Modal open={open} onClose={loading ? undefined : onClose}>
       <Box
         sx={{
           position: "absolute",
@@ -162,14 +155,15 @@ const GalleryModal: FC<GalleryModalProps> = ({ current, nodeId, open, onClose })
                 <ImageListItem
                   key={item._id}
                   sx={{
-                    opacity: current === item.url ? "50%" : "100%",
-                    cursor: current === item.url ? "default" : "pointer",
+                    opacity: node.profileImageURL === item.url ? "50%" : "100%",
+                    cursor: node.profileImageURL === item.url ? "default" : "pointer",
                     ":hover": {
-                      opacity: current === item.url ? "50%" : "75%",
+                      opacity: node.profileImageURL === item.url ? "50%" : "75%",
                     },
                   }}
-                  onClick={!loading ? () => onSelect(item) : () => {}}
+                  onClick={!loading ? () => onSelect(item) : undefined}
                 >
+                  {/* eslint-disable @next/next/no-img-element */}
                   <Box position="relative">
                     <img src={item.url} alt={item.publicId} loading="lazy" />
                     <ShowIf condition={item._id === "new" && loading}>
@@ -184,10 +178,10 @@ const GalleryModal: FC<GalleryModalProps> = ({ current, nodeId, open, onClose })
         <Divider sx={{ backgroundColor: "whitesmoke", mt: "20px" }} />
         <Box sx={{ display: "flex", justifyContent: "space-between", mt: "20px" }}>
           <Button variant="contained" startIcon={<CloudUploadIcon />} component="label">
-            {loading ? "Uploading..." : "Upload media"}
+            {loading ? <ScaleLoader color="whitesmoke" height={10} width={2} /> : "Upload media"}
             <input type="file" hidden={true} onChange={onUploadImage} disabled={loading} />
           </Button>
-          <Button variant="outlined" onClick={onRemove}>
+          <Button variant="outlined" onClick={onRemove} disabled={loading}>
             Remove profile image
           </Button>
         </Box>

@@ -28,21 +28,13 @@ export const AuthContextProvider: FC = ({ children }) => {
 
   const userStr = getCookie(USER_KEY)?.toString();
   const tokenStr = getCookie(TOKEN_KEY)?.toString() ?? "";
+  const user = parseJSON<UserProfile>(userStr);
+  const isValid = Boolean(userStr) && Boolean(tokenStr);
 
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(Boolean(userStr) && Boolean(tokenStr));
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(isValid);
   const [loading, setLoading] = useState<boolean>(false);
   const [registering, setRegistering] = useState<boolean>(false);
-  const [user, setUser] = useState<UserProfile | null>(null);
   const [token, setToken] = useState<string>(tokenStr);
-
-  useEffect(() => {
-    const user = parseJSON<UserProfile>(userStr);
-    setUser(user);
-  }, [userStr]);
-
-  useEffect(() => {
-    setIsLoggedIn(Boolean(user));
-  }, [user]);
 
   const login = useCallback(
     async (data: Login, cb?: (success: boolean) => void) => {
@@ -101,7 +93,6 @@ export const AuthContextProvider: FC = ({ children }) => {
     deleteCookie(TREE_KEY);
     setIsLoggedIn(false);
     setToken("");
-    setUser(null);
   };
 
   return (

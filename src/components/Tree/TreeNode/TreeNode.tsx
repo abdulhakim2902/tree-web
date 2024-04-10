@@ -7,9 +7,6 @@ import { TreeNodeYears } from "./TreeNodeYears";
 import { getTreeNodeStyleTransform } from "./utils";
 import { capitalize } from "lodash";
 
-/* Hooks */
-import { useTreeNodeDataContext } from "@tree/src/context/data";
-
 interface TreeNodeProps {
   width: number;
   height: number;
@@ -19,8 +16,6 @@ interface TreeNodeProps {
 }
 
 const TreeNode: FC<TreeNodeProps> = ({ isSelected, node, onClick, width, height }) => {
-  const { init } = useTreeNodeDataContext();
-
   const { data, gender } = node;
   const { name, birth, death, metadata } = data;
   const { first, middle, last } = name;
@@ -38,7 +33,7 @@ const TreeNode: FC<TreeNodeProps> = ({ isSelected, node, onClick, width, height 
     >
       <div
         className={classNames(s.scalingWrapper, {
-          [s.selected]: (isSelected && init) || isSelected,
+          [s.selected]: isSelected,
         })}
         onMouseEnter={() => setMouseOver(true)}
         onMouseLeave={() => setMouseOver(false)}

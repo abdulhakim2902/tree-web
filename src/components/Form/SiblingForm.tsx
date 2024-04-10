@@ -1,20 +1,22 @@
-import { Box, Button, CircularProgress } from "@mui/material";
-import React, { FC, useEffect, useState } from "react";
+import { Box, Button } from "@mui/material";
+import React, { FC, useEffect, useRef, useState } from "react";
 import Form, { Bio, defaultBio, Error, defaultError } from "./Form";
+import { ScaleLoader } from "react-spinners";
 
 type SiblingFormProps = {
-  relative?: string;
+  relative: string;
   loading: boolean;
-  onSave: (data: any) => void;
+  onSave: (data: any) => Promise<void>;
   onCancel: () => void;
 };
 
 const SiblingForm: FC<SiblingFormProps> = ({ relative, onSave, onCancel, loading }) => {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
   const [bio, setBio] = useState<Bio>(defaultBio);
   const [error, setError] = useState<Error>(defaultError);
 
   useEffect(() => {
-    if (!relative) return;
     if (relative === "brother") {
       setBio((prev) => ({ ...prev, gender: "male" }));
     } else {
@@ -22,38 +24,44 @@ const SiblingForm: FC<SiblingFormProps> = ({ relative, onSave, onCancel, loading
     }
   }, [relative]);
 
-  const handleSave = () => {
-    const { name, gender, birthDate, birthCountry, birthCity } = bio;
+  const handleSave = async () => {
+    if (buttonRef.current && !buttonRef.current.disabled) {
+      buttonRef.current.disabled = true;
 
-    const error = {
-      name: !Boolean(name),
-      gender: !Boolean(gender),
-    };
+      const { name, gender, birthDate, birthCountry, birthCity } = bio;
 
-    setError(error);
-    if (Object.values(error).includes(true)) {
-      return;
-    }
+      const error = {
+        name: !Boolean(name),
+        gender: !Boolean(gender),
+      };
 
-    const names = name.replace(/\s+/g, " ").trim().split(" ");
-    const data: Record<string, any> = {
-      name: { first: names[0] },
-      gender: gender,
-      birth: {
-        day: birthDate?.date() ?? 0,
-        month: birthDate?.month() ? birthDate.month() + 1 : 0,
-        year: birthDate?.year() ?? -1,
-        place: {
-          country: birthCountry,
-          city: birthCity,
+      setError(error);
+      if (Object.values(error).includes(true)) {
+        return;
+      }
+
+      const names = name.replace(/\s+/g, " ").trim().split(" ");
+      const data: Record<string, any> = {
+        name: { first: names[0] },
+        gender: gender,
+        birth: {
+          day: birthDate?.date() ?? 0,
+          month: birthDate?.month() ? birthDate.month() + 1 : 0,
+          year: birthDate?.year() ?? -1,
+          place: {
+            country: birthCountry,
+            city: birthCity,
+          },
         },
-      },
-    };
+      };
 
-    if (names.length > 1) Object.assign(data.name, { last: names[names.length - 1] });
-    if (names.length > 2) Object.assign(data.name, { middle: names.slice(1, names.length - 1).join(" ") });
+      if (names.length > 1) Object.assign(data.name, { last: names[names.length - 1] });
+      if (names.length > 2) Object.assign(data.name, { middle: names.slice(1, names.length - 1).join(" ") });
 
-    onSave(data);
+      await onSave(data);
+
+      buttonRef.current.disabled = false;
+    }
   };
 
   const handleCancel = () => {
@@ -69,8 +77,8 @@ const SiblingForm: FC<SiblingFormProps> = ({ relative, onSave, onCancel, loading
         <Button color="info" variant="outlined" sx={{ mr: "10px" }} onClick={handleCancel} disabled={loading}>
           Cancel
         </Button>
-        <Button variant="contained" onClick={handleSave} disabled={loading}>
-          {loading ? <CircularProgress size={15} /> : "Save"}
+        <Button ref={buttonRef} variant="contained" onClick={handleSave}>
+          {loading ? <ScaleLoader color="whitesmoke" height={10} width={2} /> : "Save"}
         </Button>
       </Box>
     </React.Fragment>

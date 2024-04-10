@@ -1,6 +1,5 @@
 import { Grid, Paper, Typography } from "@mui/material";
 import { TOKEN_KEY, USER_KEY } from "@tree/src/constants/storage-key";
-import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { allFamilyNodes } from "@tree/src/lib/services/node";
 import { me } from "@tree/src/lib/services/user";
 import { Family } from "@tree/src/types/tree";
@@ -10,13 +9,14 @@ import classNames from "classnames";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import type { GetServerSidePropsContext, NextPage } from "next";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 type FamiliesPageProps = {
   families: Family[];
 };
 
 const FamiliesPage: NextPage<FamiliesPageProps> = ({ families }) => {
-  const { rootNodes } = useTreeNodeDataContext();
+  const router = useRouter();
 
   return (
     <div className={s.pageContainer}>
@@ -33,7 +33,7 @@ const FamiliesPage: NextPage<FamiliesPageProps> = ({ families }) => {
           {families.map((family) => (
             <Grid key={family.id} item xs={6} sm={4} md={3}>
               <Paper
-                onClick={() => rootNodes(family.id)}
+                onClick={() => router.push(`/tree?nodeId=${family.id}`)}
                 sx={{
                   padding: 2,
                   textAlign: "center",

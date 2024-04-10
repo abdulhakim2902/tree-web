@@ -1,16 +1,31 @@
 import { Box, InputAdornment, TextField } from "@mui/material";
 import Image from "next/image";
-import { FC } from "react";
+import { FC, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 import ShowIf from "../show-if";
-import { useTreeNodeDataContext } from "@tree/src/context/data";
 import Link from "next/link";
 import { useAuthContext } from "@tree/src/context/auth";
+import { useRouter } from "next/router";
 
 const Search: FC = () => {
-  const { query, setQuery, searchNodes } = useTreeNodeDataContext();
+  const router = useRouter();
+
   const { isLoggedIn } = useAuthContext();
+
+  const [query, setQuery] = useState<string>("");
+
+  const goToTree = () => {
+    if (query.length > 0) {
+      if (router.pathname === "/tree") {
+        router.replace(`/tree?search=${query}`);
+      } else {
+        router.push(`/tree?search=${query}`);
+      }
+
+      setQuery("");
+    }
+  };
 
   if (!isLoggedIn) {
     return (
@@ -37,14 +52,14 @@ const Search: FC = () => {
         size="small"
         placeholder="Search Family"
         value={query}
-        onKeyUp={(event) => searchNodes(event)}
+        onKeyUp={(event) => (event.key === "Enter" ? goToTree() : undefined)}
         onChange={(event) => setQuery(event.target.value)}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
               <SearchIcon
                 sx={{ color: "whitesmoke", cursor: "pointer", opacity: 0.8, ":hover": { opacity: 1 } }}
-                onClick={() => searchNodes()}
+                onClick={goToTree}
               />
             </InputAdornment>
           ),

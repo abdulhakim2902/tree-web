@@ -1,18 +1,18 @@
-import React, { useEffect } from "react";
+import React from "react";
 import TreeNodeDetails from "@tree/src/components/Tree/TreeNodeDetails/TreeNodeDetails";
 import TreeWithNavigation from "@tree/src/components/Tree/TreeWithNavigation/TreeWithNavigation";
 import { NavigationContextProvider } from "@tree/src/context/navigation";
-import { NodeSelectionContextProvider } from "@tree/src/context/tree";
+import { NodeSelectionContextProvider, useNodeSelectionContext } from "@tree/src/context/tree";
 import type { GetServerSidePropsContext, NextPage } from "next";
-import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import s from "@tree/styles/TreePage.module.css";
 import ShowIf from "@tree/src/components/show-if";
 import { TOKEN_KEY, TREE_KEY, USER_KEY } from "@tree/src/constants/storage-key";
 import { startCase } from "@tree/src/helper/string";
-import { sampleNodes } from "@tree/src/lib/services/node";
+import { rootNodes, sampleNodes, searchNodes } from "@tree/src/lib/services/node";
 import { Root, TreeNode } from "@tree/src/types/tree";
 import { me } from "@tree/src/lib/services/user";
+import { useTree } from "@tree/src/hooks/use-tree.hook";
 
 type TreeProps = {
   root: Root;
@@ -20,12 +20,9 @@ type TreeProps = {
 };
 
 const Tree: NextPage<TreeProps> = (props: TreeProps) => {
-  const { tree, initNodes } = useTreeNodeDataContext();
-  const { root, nodes, nodeMap } = tree;
+  const { tree, addNode, removeNode, editNode, editProfileImageNode, expandNode } = useTree(props);
 
-  useEffect(() => {
-    initNodes(props);
-  }, [props]);
+  const { root, nodes, nodeMap } = tree;
 
   return (
     <React.Fragment>
@@ -40,7 +37,15 @@ const Tree: NextPage<TreeProps> = (props: TreeProps) => {
             </div>
           </ShowIf>
           <TreeWithNavigation rootId={root.id} nodes={nodes} />
-          <TreeNodeDetails nodeMap={nodeMap} />
+          <TreeNodeDetails
+            root={root}
+            nodeMap={nodeMap}
+            addNode={addNode}
+            editNode={editNode}
+            removeNode={removeNode}
+            expandNode={expandNode}
+            editImageNode={editProfileImageNode}
+          />
         </NavigationContextProvider>
       </NodeSelectionContextProvider>
     </React.Fragment>
@@ -58,7 +63,27 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     const user = await me(token);
     setCookie(USER_KEY, user, ctx);
 
-    const isDataExists = getCookie(TREE_KEY, ctx)?.toString();
+    const { search, nodeId } = ctx.query;
+
+    if (nodeId) {
+      const id = Array.isArray(nodeId) ? nodeId[0] : nodeId;
+      const { root, nodes } = await rootNodes(id, token);
+
+      return {
+        props: { root, nodes },
+      };
+    }
+
+    if (search) {
+      const name = Array.isArray(search) ? search[0] : search;
+      const { root, nodes } = await searchNodes(name, token);
+
+      return {
+        props: { root, nodes },
+      };
+    }
+
+    const isDataExists = getCookie(TREE_KEY, ctx);
     if (!isDataExists) {
       return {
         redirect: {
@@ -78,17 +103,23 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   deleteCookie(USER_KEY, ctx);
   deleteCookie(TOKEN_KEY, ctx);
 
-  const result = await sampleNodes();
-  if (result.nodes.length <= 0) {
+  try {
+    const { root, nodes } = await sampleNodes();
+    if (nodes.length <= 0) {
+      throw new Error("Empty nodes");
+    }
+
     return {
-      redirect: {
-        destination: "/",
-        permanent: false,
-      },
+      props: { nodes, root },
     };
+  } catch {
+    // ignore
   }
 
   return {
-    props: result,
+    redirect: {
+      destination: "/",
+      permanent: false,
+    },
   };
 }

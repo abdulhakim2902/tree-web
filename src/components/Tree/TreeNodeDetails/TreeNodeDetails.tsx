@@ -3,21 +3,22 @@ import BioNavItem from "./BioNavItem/BioNavItem";
 import ShowIf from "@tree/src/components/show-if";
 import Fab from "@mui/material/Fab";
 import s from "./TreeNodeDetails.module.css";
+import ConnectNodeModal from "../../Modal/ConnectNodeModal";
+import DisconnectNodeModal from "../../Modal/DisconnectNodeModal";
 
 import { TreeNodeDetailsBio } from "./TreeNodeDetailsBio/TreeNodeDetailsBio";
 import { getTreeNodeDetails } from "@tree/src/helper/tree";
-import { TreeNode } from "@tree/src/types/tree";
+import { Root, TreeNode } from "@tree/src/types/tree";
 import { Box, Tooltip } from "@mui/material";
 import { TreeNodeFamilies } from "../TreeNodeFamilies/TreeNodeFamilies";
 import { File, upload } from "@tree/src/lib/services/file";
 import { TreeNodeGalleries } from "../TreeNodeGalleries/TreeNodeGalleries";
 import { CREATE, DELETE, UPDATE } from "@tree/src/constants/permissions";
-import { Role } from "@tree/src/types/user";
 import { CloseIcon } from "@tree/src/components/Icon/CloseIcon";
+import { Relative } from "@tree/src/lib/services/node";
 
 /* Hooks */
 import { useNodeSelectionContext } from "@tree/src/context/tree";
-import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { useAuthContext } from "@tree/src/context/auth";
 import { useSnackbar } from "notistack";
 
@@ -36,8 +37,6 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
-import ConnectNodeModal from "../../Modal/ConnectNodeModal";
-import DisconnectNodeModal from "../../Modal/DisconnectNodeModal";
 
 const navigation = [
   { id: 1, title: "Biography" },
@@ -46,18 +45,32 @@ const navigation = [
 ];
 
 type TreeNodeDetailsProps = {
+  root: Root;
   nodeMap: Record<string, TreeNode>;
+
+  addNode: (id: string, data: any, type: string) => Promise<void>;
+  editNode: (id: string, data: any) => Promise<void>;
+  removeNode: (id: string) => Promise<void>;
+  expandNode: (id: string, relative: Relative) => Promise<void>;
+  editImageNode: (id: string, data?: File) => Promise<void>;
 };
 
-const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
+const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({
+  root,
+  nodeMap,
+  addNode,
+  editNode,
+  removeNode,
+  editImageNode,
+  expandNode,
+}) => {
   const { selectedNodeId, unselectNode, selectNode } = useNodeSelectionContext();
-  const { init } = useTreeNodeDataContext();
   const { isLoggedIn, user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
 
   const [openAdd, setOpenAdd] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
-  const [openDelete, setOpenDelete] = useState<boolean>(false);
+  const [openRemove, setOpenRemove] = useState<boolean>(false);
   const [openGalleries, setOpenGalleries] = useState<boolean>(false);
   const [openConnect, setOpenConnect] = useState<boolean>(false);
   const [openDisconnect, setOpenDisconnect] = useState<boolean>(false);
@@ -106,7 +119,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
     }
   };
 
-  if (!isLoggedIn || !node || init || !user) return <React.Fragment />;
+  if (!isLoggedIn || !node || !user) return <React.Fragment />;
   return (
     <React.Fragment>
       <Box>
@@ -146,6 +159,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
                 {...node}
                 onRelationNodeClick={(id) => selectNode(id)}
                 onOpen={() => setOpenGalleries(true)}
+                onAction={expandNode}
               />
             </ShowIf>
 
@@ -159,7 +173,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
             </ShowIf>
 
             <ShowIf condition={navId === 3}>
-              <TreeNodeFamilies id={node.id} fullname={node.fullname} />
+              <TreeNodeFamilies id={node.id} rootId={root.id} fullname={node.fullname} />
             </ShowIf>
           </Box>
           <ShowIf condition={navId === 1}>
@@ -171,7 +185,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
                     aria-label="add"
                     sx={{ ml: "10px" }}
                     size="small"
-                    onClick={() => setOpenDelete(true)}
+                    onClick={() => setOpenRemove(true)}
                   >
                     <DeleteIcon />
                   </Fab>
@@ -239,17 +253,13 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({ nodeMap }) => {
           </ShowIf>
         </div>
       </Box>
-      <AddMemberDrawer open={openAdd} onClose={() => setOpenAdd(false)} node={node} />
-      <EditMemberDrawer open={openEdit} onClose={() => setOpenEdit(false)} node={node} />
-      <DeleteMemberModal nodeId={selectedNodeId} open={openDelete} onClose={() => setOpenDelete(false)} />
-      <ConnectNodeModal node={node} open={openConnect} onClose={() => setOpenConnect(false)} />
-      <DisconnectNodeModal open={openDisconnect} onClose={() => setOpenDisconnect(false)} nodeId={node.id} />
-      <GalleryModal
-        open={openGalleries}
-        onClose={() => setOpenGalleries(false)}
-        nodeId={node.id}
-        current={node.profileImageURL}
-      />
+
+      <ConnectNodeModal open={openConnect} onClose={() => setOpenConnect(false)} node={node} />
+      <DisconnectNodeModal open={openDisconnect} onClose={() => setOpenDisconnect(false)} node={node} />
+      <AddMemberDrawer open={openAdd} onClose={() => setOpenAdd(false)} onAction={addNode} node={node} />
+      <EditMemberDrawer open={openEdit} onClose={() => setOpenEdit(false)} onAction={editNode} node={node} />
+      <DeleteMemberModal open={openRemove} onClose={() => setOpenRemove(false)} onAction={removeNode} node={node} />
+      <GalleryModal open={openGalleries} onClose={() => setOpenGalleries(false)} onAction={editImageNode} node={node} />
     </React.Fragment>
   );
 };

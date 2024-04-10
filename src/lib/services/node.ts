@@ -19,19 +19,20 @@ export const sampleNodes = async (): Promise<NodeResponse> => {
     },
   });
 
-  if (response.status !== 200) {
-    throw new Error(response.statusText);
+  const result = await response.json();
+  if (result?.statusCode) {
+    throw new Error(result);
   }
 
-  const { id, isRoot, data } = await response.json();
+  const { id, isRoot, data } = result;
 
   const root = { id, isRoot };
 
   return { root, nodes: data };
 };
 
-export const rootNodes = async (id: string): Promise<NodeResponse> => {
-  const token = getCookie(TOKEN_KEY)?.toString();
+export const rootNodes = async (id: string, token?: string): Promise<NodeResponse> => {
+  if (!token) token = getCookie(TOKEN_KEY)?.toString();
   const response = await fetch(`${API_URL}/nodes/${id}/root`, {
     method: "GET",
     headers: {
@@ -40,19 +41,20 @@ export const rootNodes = async (id: string): Promise<NodeResponse> => {
     },
   });
 
-  if (response.status !== 200) {
-    throw new Error(response.statusText);
+  const result = await response.json();
+  if (result?.statusCode) {
+    throw new Error(result);
   }
 
-  const { isRoot, data } = await response.json();
+  const { isRoot, data } = result;
 
   const root = { id, isRoot };
 
   return { root, nodes: data };
 };
 
-export const searchNodes = async (query: string): Promise<NodeResponse> => {
-  const token = getCookie(TOKEN_KEY)?.toString();
+export const searchNodes = async (query: string, token?: string): Promise<NodeResponse> => {
+  if (!token) token = getCookie(TOKEN_KEY)?.toString();
   const response = await fetch(`${API_URL}/nodes/search/${query}`, {
     method: "GET",
     headers: {
@@ -295,7 +297,7 @@ export const getSpouse = async (id: string) => {
   return data as TreeNodeData[];
 };
 
-export const updateNodeProfile = async (id: string, fileId = "") => {
+export const updateImageNode = async (id: string, fileId = "") => {
   const token = getCookie(TOKEN_KEY)?.toString();
   if (!token) {
     throw new Error("Token not found");

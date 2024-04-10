@@ -21,7 +21,6 @@ import InvitePeopleModal from "../Modal/InvitePeopleModal";
 import RequestRoleModal from "../Modal/RequestRoleModal";
 
 /* Hooks */
-import { useTreeNodeDataContext } from "@tree/src/context/data";
 import { useAuthContext } from "@tree/src/context/auth";
 import { useRouter } from "next/router";
 
@@ -32,6 +31,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import Diversity1Icon from "@mui/icons-material/Diversity1";
 import LogoutIcon from "@mui/icons-material/Logout";
+import { useCacheContext } from "@tree/src/context/cache";
 
 const menus = [
   {
@@ -62,9 +62,9 @@ const menus = [
 ];
 
 const User: FC = () => {
-  const { isLoggedIn, user, logout } = useAuthContext();
-  const { clearNodes } = useTreeNodeDataContext();
+  const { clear } = useCacheContext();
   const { replace, push } = useRouter();
+  const { isLoggedIn, user, logout } = useAuthContext();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openInvite, setOpenInvite] = useState<boolean>(false);
@@ -162,8 +162,8 @@ const User: FC = () => {
                     push("/families");
                     break;
                   case "logout":
+                    clear();
                     logout();
-                    clearNodes();
                     replace("/");
                     break;
                 }
