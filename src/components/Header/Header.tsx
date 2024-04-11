@@ -6,7 +6,7 @@ import Search from "./Search";
 import { useMounted } from "@tree/src/hooks/use-mounted.hook";
 import ShowIf from "../show-if";
 import { useAuthContext } from "@tree/src/context/auth";
-import Notification from "./Notification";
+import Notifications from "./Notifications";
 
 const Header: FC = () => {
   const { isMounted } = useMounted();
@@ -22,7 +22,7 @@ const Header: FC = () => {
         <Search />
         <Login />
         <ShowIf condition={isLoggedIn}>
-          <Notification />
+          <Notifications />
           <User />
         </ShowIf>
       </Toolbar>

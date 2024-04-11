@@ -26,9 +26,9 @@ import { TreeNodeData } from "@tree/src/types/tree";
 import { nodeById } from "@tree/src/lib/services/node";
 
 /* API Services */
-import { handleRequest, handleInvitation, handleConnectNode } from "@tree/src/lib/services/user";
+import { handleRequest, handleInvitation, handleConnectNode, handleRegistration } from "@tree/src/lib/services/user";
 import {
-  Notification as NotificationData,
+  Notification,
   NotificationType,
   getNotifications,
   notificationCount,
@@ -52,7 +52,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 
 dayjs.extend(relativeTime);
 
-const Notification: FC = () => {
+const Notifications: FC = () => {
   const router = useRouter();
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -63,11 +63,11 @@ const Notification: FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [count, setCount] = useState<number>(0);
   const [openConnectRequest, setOpenConnectRequest] = useState<boolean>(false);
-  const [notifications, setNotifications] = useState<NotificationData[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const [loadingConnect, setLoadingConnect] = useState<boolean>(false);
   const [selectedNode, setSelectedNode] = useState<TreeNodeData>();
-  const [selectedNotification, setSelectedNotification] = useState<NotificationData>();
+  const [selectedNotification, setSelectedNotification] = useState<Notification>();
 
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -116,7 +116,7 @@ const Notification: FC = () => {
     }
   };
 
-  const onHandleRequest = async (action: string, notification: NotificationData) => {
+  const onHandleRequest = async (action: string, notification: Notification) => {
     const referenceId = notification.referenceId;
     if (!referenceId) return;
 
@@ -154,7 +154,7 @@ const Notification: FC = () => {
     }
   };
 
-  const onHandleInvitation = async (action: string, notification: NotificationData) => {
+  const onHandleInvitation = async (action: string, notification: Notification) => {
     const referenceId = notification.referenceId;
     if (!referenceId) return;
 
@@ -197,7 +197,45 @@ const Notification: FC = () => {
     }
   };
 
-  const onHandleConnectRequest = (action: string, notification?: NotificationData) => {
+  const onHandleRegistration = async (action: string, notification: Notification) => {
+    const referenceId = notification.referenceId;
+    if (!referenceId) return;
+
+    const buttonRef = buttonRefs[notification._id];
+    if (buttonRef.current && !buttonRef.current.disabled) {
+      buttonRef.current.disabled = true;
+
+      try {
+        const response = await handleRegistration(referenceId, action);
+        setCount((prev) => {
+          if (!prev) return prev;
+          return prev - 1;
+        });
+        setNotifications((prev) =>
+          prev.map((e) => {
+            if (e._id === notification._id) {
+              Object.assign(e, { read: true, action: false });
+            }
+
+            return e;
+          }),
+        );
+        enqueueSnackbar({
+          variant: "success",
+          message: response.message,
+        });
+      } catch (err: any) {
+        enqueueSnackbar({
+          variant: "error",
+          message: err.message,
+        });
+      }
+
+      buttonRef.current.disabled = false;
+    }
+  };
+
+  const onHandleConnectRequest = (action: string, notification?: Notification) => {
     if (!notification) return;
     const referenceId = notification.referenceId;
     if (!referenceId) return;
@@ -269,13 +307,17 @@ const Notification: FC = () => {
     }
   };
 
-  const handleAction = (action: string, notification: NotificationData) => {
+  const handleAction = (action: string, notification: Notification) => {
     if (notification.type === NotificationType.REQUEST) {
       onHandleRequest(action, notification);
     }
 
     if (notification.type === NotificationType.INVITATION) {
       onHandleInvitation(action, notification);
+    }
+
+    if (notification.type === NotificationType.REGISTRATION) {
+      onHandleRegistration(action, notification);
     }
   };
 
@@ -296,7 +338,7 @@ const Notification: FC = () => {
     }
   };
 
-  const onOpenConnectRequest = async (notification: NotificationData) => {
+  const onOpenConnectRequest = async (notification: Notification) => {
     if (!notification.additionalReferenceId) return;
 
     const buttonRef = buttonRefs[notification._id];
@@ -324,7 +366,7 @@ const Notification: FC = () => {
     }
   };
 
-  const notificationTextWidth = (notification: NotificationData) => {
+  const notificationTextWidth = (notification: Notification) => {
     if (!notification.action) {
       if (notification.read) return "100%";
       return "85%";
@@ -337,7 +379,7 @@ const Notification: FC = () => {
     return "85%";
   };
 
-  const notificationIconWidth = (notification: NotificationData) => {
+  const notificationIconWidth = (notification: Notification) => {
     if (!notification.action) {
       if (notification.read) return "0%";
       return "15%";
@@ -548,4 +590,4 @@ const Notification: FC = () => {
   );
 };
 
-export default Notification;
+export default Notifications;

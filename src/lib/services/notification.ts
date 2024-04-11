@@ -11,6 +11,7 @@ export enum NotificationType {
   REQUEST = "request",
   CONNECT = "connect",
   INVITATION = "invitation",
+  REGISTRATION = "registration",
 }
 
 export type Notification = {

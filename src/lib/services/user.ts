@@ -59,6 +59,23 @@ export const handleInvitation = async (token: string, action: string) => {
   });
 };
 
+export const handleRegistration = async (token: string, action: string) => {
+  return new Promise<{ message: string }>((resolve, reject) => {
+    fetch(`${API_URL}/users/registration/${token}/${action}`, {
+      method: "POST",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data?.statusCode) {
+          return reject(data);
+        }
+
+        return resolve(data);
+      })
+      .catch((err) => reject(err));
+  });
+};
+
 export const invites = async (data: { email: string; role: Role }[]) => {
   const token = getCookie(TOKEN_KEY)?.toString();
 

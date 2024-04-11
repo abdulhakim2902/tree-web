@@ -172,9 +172,9 @@ const HomePage: NextPage = () => {
         };
 
         if (user?.role) {
-          option.message = `You are signing up as ${user.role}. You can now sign in with your new role.`;
+          option.message = `Your role is ${user.role}. You can now sign in with the new role.`;
         } else {
-          option.message = `You are successfully signing up as ${Role.GUEST}. Please check your email to verified your account.`;
+          option.message = `You are successfully signing up as ${Role.GUEST}. Please check your email to verified your email.`;
         }
 
         enqueueSnackbar(option);
