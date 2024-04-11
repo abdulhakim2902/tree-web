@@ -1,13 +1,14 @@
 import { Login, Register } from "@tree/src/types/auth";
 import { UserProfile } from "@tree/src/types/user";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
-import { FC, createContext, useCallback, useContext, useEffect, useState } from "react";
+import { FC, createContext, useCallback, useContext, useState } from "react";
 import { login as loginAPI, register as registerAPI } from "@tree/src/lib/services/auth";
 import { useSnackbar } from "notistack";
 import { parseJSON } from "@tree/src/helper/parse-json";
 import { TOKEN_KEY, TREE_KEY, USER_KEY } from "@tree/src/constants/storage-key";
 import { DAY } from "../helper/date";
 import { omit } from "lodash";
+import { ApiError } from "next/dist/server/api-utils";
 
 type AuthContextValue = {
   isLoggedIn: boolean;
@@ -73,11 +74,13 @@ export const AuthContextProvider: FC = ({ children }) => {
         setRegistering(true);
         ({ user } = await registerAPI(omit(data, "role")));
         success = true;
-      } catch (err: any) {
-        enqueueSnackbar({
-          variant: "error",
-          message: err.message,
-        });
+      } catch (err) {
+        if (err instanceof ApiError) {
+          enqueueSnackbar({
+            variant: err.statusCode === 422 ? "primary" : "error",
+            message: err.message,
+          });
+        }
       } finally {
         setRegistering(false);
       }

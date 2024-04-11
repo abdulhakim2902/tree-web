@@ -29,32 +29,6 @@ const defaultTree = {
   nodeMap: {} as Record<string, TreeNode>,
 };
 
-const defaultLoading = {
-  main: false,
-  expanded: {
-    parents: false,
-    spouses: false,
-    children: false,
-    siblings: false,
-  },
-  updated: false,
-  added: false,
-  deleted: false,
-};
-
-type Loading = {
-  main: boolean;
-  expanded: {
-    parents: boolean;
-    spouses: boolean;
-    children: boolean;
-    siblings: boolean;
-  };
-  updated: boolean;
-  added: boolean;
-  deleted: boolean;
-};
-
 type InitData = {
   root: Root;
   nodes: TreeNode[];
@@ -67,11 +41,9 @@ export const useTree = (init?: InitData) => {
   const { startProgress, endProgress } = useLoadingBarContext();
 
   const [tree, setTree] = useState<Tree>(defaultTree);
-  const [loading, setLoading] = useState<Loading>(defaultLoading);
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    setLoading((prev) => ({ ...prev, main: true }));
     startProgress();
 
     if (init?.nodes && init.nodes.length > 0) {
@@ -101,7 +73,6 @@ export const useTree = (init?: InitData) => {
       }
     }
 
-    setLoading((prev) => ({ ...prev, main: false }));
     endProgress();
   }, [init]);
 
@@ -257,7 +228,6 @@ export const useTree = (init?: InitData) => {
   };
 
   return {
-    loading,
     tree,
 
     addNode,

@@ -43,6 +43,7 @@ const HomePage: NextPage = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [openVerification, setOpenVerification] = useState<boolean>(false);
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (token === null) return;
 
