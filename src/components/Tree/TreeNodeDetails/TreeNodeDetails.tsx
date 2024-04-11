@@ -191,7 +191,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({
                   </Fab>
                 </Tooltip>
               </ShowIf>
-              <ShowIf condition={node.id === user.nodeId && node.userId === user.id}>
+              <ShowIf condition={node.id === user.nodeId && node?.user?.id === user.id}>
                 <Tooltip title="Disconnect" placement="bottom-end">
                   <Fab
                     color="success"
@@ -207,7 +207,10 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({
               </ShowIf>
               <ShowIf
                 condition={
-                  node.id !== user.nodeId && node.userId !== user.id && !Boolean(node.userId) && !Boolean(user.nodeId)
+                  node.id !== user.nodeId &&
+                  node.user?.id !== user.id &&
+                  !Boolean(node.user?.id) &&
+                  !Boolean(user.nodeId)
                 }
               >
                 <Tooltip title="Connect" placement="bottom-end">

@@ -107,9 +107,22 @@ const AcceptConnectNodeModal: FC<AcceptConnectNodeModalProps> = ({
           </Box>
         </DialogTitle>
         <DialogContent dividers>
+          <Box
+            sx={{ width: "100%", border: 1, borderColor: "rgba(0, 0, 0, 0.38)", borderRadius: 1 }}
+            textAlign="center"
+            padding={2}
+          >
+            <Typography fontSize={14}>{startCase(node?.user?.name ?? "")}</Typography>
+            <Typography fontSize={14} color="primary">
+              (<i>{node?.user?.email ?? ""}</i>)
+            </Typography>
+          </Box>
+          <Typography fontSize={15} textAlign="center" sx={{ mt: 2 }}>
+            wants to connect to this profile.
+          </Typography>
           <TextField
             value={node?.fullname}
-            inputProps={{ style: { textAlign: "center", fontSize: "16px" } }}
+            inputProps={{ style: { textAlign: "center", fontSize: "14px" } }}
             label="Fullname"
             type="text"
             disabled
@@ -126,7 +139,7 @@ const AcceptConnectNodeModal: FC<AcceptConnectNodeModalProps> = ({
           />
           <TextField
             value={startCase(node?.gender)}
-            inputProps={{ style: { textAlign: "center", fontSize: "16px" } }}
+            inputProps={{ style: { textAlign: "center", fontSize: "14px" } }}
             type="text"
             label="Gender"
             disabled
@@ -134,7 +147,7 @@ const AcceptConnectNodeModal: FC<AcceptConnectNodeModalProps> = ({
             sx={{
               mt: 2,
               "& .MuiInputBase-input.Mui-disabled": {
-                WebkitTextFillColor: node?.gender === Gender.female ? "crimson" : "#1976d2",
+                WebkitTextFillColor: node?.gender === Gender.female ? "#d32f2f" : "#1976d2",
               },
               "& .MuiInputLabel-root.Mui-disabled": {
                 WebkitTextFillColor: "grey",
@@ -145,7 +158,7 @@ const AcceptConnectNodeModal: FC<AcceptConnectNodeModalProps> = ({
             <ShowIf condition={Boolean(birth?.place?.country) || Boolean(birth?.place?.city)}>
               <TextField
                 value={placeCountry()}
-                inputProps={{ style: { textAlign: "center", fontSize: "16px" } }}
+                inputProps={{ style: { textAlign: "center", fontSize: "14px" } }}
                 type="text"
                 label="Birth Place"
                 disabled
@@ -165,7 +178,7 @@ const AcceptConnectNodeModal: FC<AcceptConnectNodeModalProps> = ({
             <ShowIf condition={Boolean(birthDate)}>
               <TextField
                 value={birthDate}
-                inputProps={{ style: { textAlign: "center", fontSize: "16px" } }}
+                inputProps={{ style: { textAlign: "center", fontSize: "14px" } }}
                 type="text"
                 label="Birth Date"
                 disabled
@@ -183,6 +196,7 @@ const AcceptConnectNodeModal: FC<AcceptConnectNodeModalProps> = ({
               />
             </ShowIf>
           </Box>
+          {/* eslint-disable @next/next/no-img-element */}
           <ShowIf condition={Boolean(node?.profileImageURL)}>
             <Box display="flex" justifyContent="center" marginTop={2}>
               <img src={node?.profileImageURL ?? ""} width={150} alt={node?.profileImageURL ?? ""} loading="lazy" />

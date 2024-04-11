@@ -305,9 +305,9 @@ const Notification: FC = () => {
 
       try {
         setLoadingConnect(true);
-        const [nodeId, email] = notification.additionalReferenceId.split(":");
+        const [nodeId, email, name] = notification.additionalReferenceId.split(":");
         const node = await nodeById(nodeId);
-        node.email = email;
+        node.user = { email, name };
         setSelectedNode(node);
         setSelectedNotification(notification);
         setOpenConnectRequest(true);

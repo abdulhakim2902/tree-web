@@ -74,7 +74,7 @@ const ConnectNodeModal: FC<ConnectNodeModalProps> = ({ node, open, onClose }) =>
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <HubIcon sx={{ color: "whitesmoke", mr: "10px" }} />
-          <Typography sx={{ fontSize: "20px" }}>Connect?</Typography>
+          <Typography sx={{ fontSize: "20px" }}>Connect Request</Typography>
         </Box>
       </DialogTitle>
       <DialogContent dividers>
