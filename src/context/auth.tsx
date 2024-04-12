@@ -8,7 +8,6 @@ import { parseJSON } from "@tree/src/helper/parse-json";
 import { TOKEN_KEY, TREE_KEY, USER_KEY } from "@tree/src/constants/storage-key";
 import { DAY } from "../helper/date";
 import { omit } from "lodash";
-import { ApiError } from "next/dist/server/api-utils";
 
 type AuthContextValue = {
   isLoggedIn: boolean;
@@ -17,7 +16,7 @@ type AuthContextValue = {
   user: UserProfile | null;
   token: string;
 
-  register: (data: Register, cb?: (success: boolean, user?: UserProfile) => void) => void;
+  register: (data: Register, cb?: (success: boolean, user?: UserProfile, statusCode?: number) => void) => void;
   login: (data: Login, cb?: (success: boolean) => void) => void;
   logout: () => void;
 };
@@ -54,8 +53,12 @@ export const AuthContextProvider: FC = ({ children }) => {
       } catch (err: any) {
         const message = err.message ? err.message : "Invalid user";
         enqueueSnackbar({
-          variant: "error",
+          variant: err.statusCode === 422 ? "success" : "error",
           message,
+          anchorOrigin: {
+            vertical: err.statusCode === 422 ? "top" : "bottom",
+            horizontal: err.statusCode === 422 ? "center" : "left",
+          },
         });
       } finally {
         setLoading(false);
@@ -66,26 +69,30 @@ export const AuthContextProvider: FC = ({ children }) => {
   );
 
   const register = useCallback(
-    async (data: Register, cb?: (success: boolean, user?: UserProfile) => void) => {
+    async (data: Register, cb?: (success: boolean, user?: UserProfile, statusCode?: number) => void) => {
       let success = false;
       let user: UserProfile | undefined = undefined;
+      let statusCode: number | undefined = undefined;
 
       try {
         setRegistering(true);
         ({ user } = await registerAPI(omit(data, "role")));
         success = true;
-      } catch (err) {
-        if (err instanceof ApiError) {
-          enqueueSnackbar({
-            variant: err.statusCode === 422 ? "primary" : "error",
-            message: err.message,
-          });
-        }
+      } catch (err: any) {
+        statusCode = err.statusCode;
+        enqueueSnackbar({
+          variant: err.statusCode === 422 ? "success" : "error",
+          message: err.message,
+          anchorOrigin: {
+            vertical: err.statusCode === 422 ? "top" : "bottom",
+            horizontal: err.statusCode === 422 ? "center" : "left",
+          },
+        });
       } finally {
         setRegistering(false);
       }
 
-      cb && cb(success, user);
+      cb && cb(success, user, statusCode);
     },
     [enqueueSnackbar],
   );

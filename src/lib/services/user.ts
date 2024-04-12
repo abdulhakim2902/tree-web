@@ -59,10 +59,14 @@ export const handleInvitation = async (token: string, action: string) => {
   });
 };
 
-export const handleRegistration = async (token: string, action: string) => {
+export const handleRegistration = async (referenceId: string, action: string) => {
+  const token = getCookie(TOKEN_KEY)?.toString();
   return new Promise<{ message: string }>((resolve, reject) => {
-    fetch(`${API_URL}/users/registration/${token}/${action}`, {
+    fetch(`${API_URL}/users/registration/${referenceId}/${action}`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     })
       .then((response) => response.json())
       .then((data) => {

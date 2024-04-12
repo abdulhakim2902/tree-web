@@ -157,7 +157,7 @@ const HomePage: NextPage = () => {
       }
     }
 
-    register(data, (success, user) => {
+    register(data, (success, user, statusCode) => {
       if (success) {
         setOpen(false);
         setOpenVerification(false);
@@ -180,6 +180,10 @@ const HomePage: NextPage = () => {
 
         enqueueSnackbar(option);
         logout();
+      }
+
+      if (statusCode === 422) {
+        setOpenVerification(false);
       }
 
       cb && cb();

@@ -35,7 +35,14 @@ export const login = async (data: Login) => {
     throw result;
   }
 
-  const { token } = result;
+  const { token, verified } = result;
+
+  if (!verified) {
+    throw {
+      statusCode: 422,
+      message: "Please check your email to verified your email",
+    };
+  }
 
   if (token) {
     const result = await me(token);

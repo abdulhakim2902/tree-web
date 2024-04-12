@@ -48,28 +48,26 @@ const AccountVerification: FC<AccountVerificationProps> = ({ open, onClose, emai
     >
       <DialogTitle marginTop={2}>Account Verification</DialogTitle>
       <DialogContent dividers>
-        <DialogContentText>
-          <Typography sx={{ color: "whitesmoke" }}>
-            Please verify your email by clicking on the button below.
-          </Typography>
-          <TextField
-            value={email}
-            size="medium"
-            disabled
-            type="text"
-            fullWidth
-            inputProps={{ style: { textAlign: "center" } }}
-            sx={{
-              marginY: "10px",
-              "& .MuiInputBase-input.Mui-disabled": {
-                WebkitTextFillColor: "whitesmoke",
-              },
-              "& .MuiInputLabel-root.Mui-disabled": {
-                WebkitTextFillColor: "grey",
-              },
-            }}
-          />
+        <DialogContentText sx={{ color: "whitesmoke" }}>
+          Please verify your email by clicking on the button below.
         </DialogContentText>
+        <TextField
+          value={email}
+          size="medium"
+          disabled
+          type="text"
+          fullWidth
+          inputProps={{ style: { textAlign: "center" } }}
+          sx={{
+            marginY: "10px",
+            "& .MuiInputBase-input.Mui-disabled": {
+              WebkitTextFillColor: "whitesmoke",
+            },
+            "& .MuiInputLabel-root.Mui-disabled": {
+              WebkitTextFillColor: "grey",
+            },
+          }}
+        />
       </DialogContent>
       <DialogActions sx={{ display: "flex", justifyContent: "center", marginBottom: 2, marginTop: 1, paddingX: 3 }}>
         <Button ref={buttonRef} variant="contained" color="primary" onClick={onVerify} fullWidth>
