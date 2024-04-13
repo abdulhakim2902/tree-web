@@ -26,7 +26,8 @@ const EditForm: FC<EditFormProps> = ({ onUpdate, onCancel, node, loading }) => {
     const city = node?.birth?.place?.city;
 
     const name = node?.fullname ?? "";
-    const nicknames = node?.name?.nicknames ?? [];
+    const nicknames = node?.name?.nicknames?.map((e) => e.name) ?? [""];
+    const nickname = node?.name?.nicknames?.find((e) => e.selected === true)?.name ?? "";
     const gender = (node?.gender as string) ?? "";
     const birthCountry = startCase(country ?? "");
     const birthCity = startCase(city ?? "");
@@ -35,14 +36,29 @@ const EditForm: FC<EditFormProps> = ({ onUpdate, onCancel, node, loading }) => {
     const deathCity = startCase(node?.death?.place?.city ?? "");
     const deathDate = birthDateToDayjs(node?.death?.day, node?.death?.month, node?.death?.year);
 
-    setBio({ name, nicknames, gender, birthDate, birthCity, birthCountry, deathDate, deathCity, deathCountry });
+    if (nicknames.length <= 0) {
+      nicknames.push("");
+    }
+
+    setBio({
+      name,
+      nicknames: nicknames.join(","),
+      nickname,
+      gender,
+      birthDate,
+      birthCity,
+      birthCountry,
+      deathDate,
+      deathCity,
+      deathCountry,
+    });
   }, []);
 
   const handleUpdate = async () => {
     if (buttonRef.current && !buttonRef.current.disabled) {
       buttonRef.current.disabled = true;
-      const { name, nicknames, gender, birthDate, birthCountry, birthCity, deathDate, deathCountry, deathCity } = bio;
 
+      const { name, nickname, gender, birthDate, birthCountry, birthCity, deathDate, deathCountry, deathCity } = bio;
       const error = {
         name: !Boolean(name),
         gender: !Boolean(gender),
@@ -113,7 +129,16 @@ const EditForm: FC<EditFormProps> = ({ onUpdate, onCancel, node, loading }) => {
 
       if (names.length > 1) Object.assign(data.name, { last: names[names.length - 1] });
       if (names.length > 2) Object.assign(data.name, { middle: names.slice(1, names.length - 1).join(" ") });
-      if (nicknames.length > 0) data.nicknames = nicknames;
+
+      const nicknames = bio.nicknames.split(",").filter((e) => e !== "");
+      if (nicknames.length > 0) {
+        data.nicknames = nicknames.map((e) => {
+          return {
+            name: e,
+            selected: e === nickname,
+          };
+        });
+      }
 
       await onUpdate(data);
 

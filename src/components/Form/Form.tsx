@@ -10,7 +10,6 @@ import {
   SelectChangeEvent,
   Switch,
   TextField,
-  Typography,
 } from "@mui/material";
 import { DatePicker, LocalizationProvider, PickersLayout } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -21,7 +20,6 @@ import { styled } from "@mui/material/styles";
 import { City, searchCities } from "@tree/src/lib/services/city";
 import { useDebounce } from "@tree/src/hooks/use-debounce.hook";
 import ShowIf from "../show-if";
-import { Nickname } from "@tree/src/types/tree";
 import { startCase } from "@tree/src/helper/string";
 
 export const StyledPickersLayout = styled(PickersLayout)({
@@ -64,7 +62,8 @@ export type Error = {
 
 export type Bio = {
   name: string;
-  nicknames: Nickname[];
+  nicknames: string;
+  nickname: string;
   gender: string;
   birthDate: Dayjs | null;
   birthCity: string;
@@ -85,7 +84,8 @@ type FormProps = {
 
 export const defaultBio = {
   name: "",
-  nicknames: [] as Nickname[],
+  nicknames: "",
+  nickname: "",
   gender: "",
   birthDate: null,
   birthCity: "",
@@ -109,9 +109,7 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
   const isDeceased = Boolean(bio?.deathDate || bio?.deathCountry || bio?.deathCity);
 
   const [cities, setCities] = useState<City[]>([]);
-  const [nicknames, setNicknames] = useState<string[]>([]);
   const [deceased, setDeceased] = useState<boolean>(isDeceased);
-  const [selectedNickname, setSelectedNickname] = useState<string>("");
 
   const [birthPlaceValue, setBirthPlaceValue] = useState<string>("");
   const [deathPlaceValue, setDeathPlaceValue] = useState<string>("");
@@ -151,16 +149,6 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
       controller.abort();
     };
   }, [debounceDeathPlaceValue]);
-
-  useEffect(() => {
-    if (bio.nicknames.length > 0) {
-      setNicknames(bio.nicknames.map((e) => e.name));
-      const nickname = bio.nicknames.find((e) => e.selected === true);
-      if (nickname) {
-        setSelectedNickname(nickname.name);
-      }
-    }
-  }, [bio.nicknames]);
 
   const handleBirthDate = (value: Dayjs | null) => {
     setBio({ ...bio, birthDate: value });
@@ -204,32 +192,17 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
 
   const handleNicknames = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-    const nicknames = value.split(",");
-    setSelectedNickname(nicknames[0]);
-    setNicknames(nicknames);
+    const nicknames = value.split(",").filter((e) => e !== "");
     setBio({
       ...bio,
-      nicknames: nicknames.map((e, i) => {
-        return {
-          name: e,
-          selected: i === 0,
-        };
-      }),
+      nickname: nicknames?.[0] ?? "",
+      nicknames: value.replace(/[^a-zA-Z]/g, ",").replace(/,+/g, ","),
     });
   };
 
   const handleNickname = (event: SelectChangeEvent) => {
     const value = event.target.value;
-    setSelectedNickname(value);
-    setBio({
-      ...bio,
-      nicknames: bio.nicknames.map((e) => {
-        return {
-          name: e.name,
-          selected: e.name === value,
-        };
-      }),
-    });
+    setBio({ ...bio, nickname: value });
   };
 
   const optionLabel = (option: City | string) => {
@@ -309,24 +282,11 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
 
         <ShowIf condition={isEdit}>
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: "10px" }}>
-            <TextField
-              id="nicknames"
-              label="Nicknames"
-              variant="outlined"
-              value={nicknames.join(",")}
-              onChange={handleNicknames}
-              placeholder="Ex: john,doe"
-              sx={{ input: { color: "whitesmoke" }, width: "64%" }}
-              InputLabelProps={{ sx: { color: "grey" } }}
-            />
             <FormControl sx={{ width: "34%" }}>
-              <InputLabel id="relation-type" sx={{ color: "grey" }} error={error.gender}>
-                Selected Nickname
-              </InputLabel>
+              <InputLabel sx={{ color: "grey" }}>Nickname</InputLabel>
               <Select
-                value={selectedNickname}
+                value={bio.nickname}
                 onChange={handleNickname}
-                label="Selected Nickname"
                 sx={{
                   color: "whitesmoke",
                   "& .MuiInputBase-input.Mui-disabled": {
@@ -335,7 +295,15 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
                 }}
                 MenuProps={{ classes }}
               >
-                {nicknames.map((e, i) => {
+                {bio.nicknames.split(",").map((e, i) => {
+                  if (e === "") {
+                    return (
+                      <MenuItem key={i} disabled>
+                        No options
+                      </MenuItem>
+                    );
+                  }
+
                   return (
                     <MenuItem key={i} value={e}>
                       {startCase(e)}
@@ -344,6 +312,16 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
                 })}
               </Select>
             </FormControl>
+            <TextField
+              id="nicknames"
+              label="Nickname list"
+              variant="outlined"
+              value={bio.nicknames}
+              onChange={handleNicknames}
+              placeholder="Ex: john,doe"
+              sx={{ input: { color: "whitesmoke" }, width: "64%" }}
+              InputLabelProps={{ sx: { color: "grey" } }}
+            />
           </Box>
         </ShowIf>
 
