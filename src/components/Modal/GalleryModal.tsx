@@ -56,7 +56,8 @@ const GalleryModal: FC<GalleryModalProps> = ({ node, open, onClose, onAction }) 
     const file = files[0];
     const form = new FormData();
     form.append("file", file);
-    form.set("nodeId", node.id);
+    form.set("id", node.id);
+    form.set("type", "node");
 
     try {
       setLoading(true);

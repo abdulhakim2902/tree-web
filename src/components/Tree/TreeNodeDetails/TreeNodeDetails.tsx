@@ -90,7 +90,8 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({
     const form = new FormData();
     form.append("file", file);
     if (node) {
-      form.set("nodeId", node?.id);
+      form.set("id", node?.id);
+      form.set("type", "node");
     }
 
     try {

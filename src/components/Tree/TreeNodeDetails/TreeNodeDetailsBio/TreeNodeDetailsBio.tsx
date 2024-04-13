@@ -3,13 +3,14 @@ import classNames from "classnames";
 import BioRelationButtons from "../BioRelationButtons/BioRelationButtons";
 import ShowIf from "@tree/src/components/show-if";
 import s from "./TreeNodeDetailsBio.module.css";
-import { Relative } from "@tree/src/lib/services/node";
 
 import { TreeNodeDataWithRelations } from "@tree/src/types/tree";
 import { getAge, getDate } from "@tree/src/helper/date";
 import { getNickname, getPlace } from "@tree/src/helper/string";
 import { Box, IconButton } from "@mui/material";
 import { UPDATE } from "@tree/src/constants/permissions";
+import { Relative } from "@tree/src/lib/services/node";
+import { startCase } from "lodash";
 
 /* Hooks */
 import { useAuthContext } from "@tree/src/context/auth";
@@ -19,7 +20,6 @@ import { useSnackbar } from "notistack";
 import AddPhotoAlternate from "@mui/icons-material/AddPhotoAlternate";
 import ImageIcon from "@mui/icons-material/Image";
 import EditIcon from "@mui/icons-material/Edit";
-import { startCase } from "lodash";
 
 const defaultLoading = {
   parents: false,
