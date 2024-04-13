@@ -23,8 +23,6 @@ export default React.memo<Props>(function ReactFamilyTree(props) {
     placeholders: props.placeholders,
   });
 
-  console.log(data);
-
   const width = props.width / 2;
   const height = props.height / 2;
 

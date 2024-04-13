@@ -7,7 +7,7 @@ import { Relative } from "@tree/src/lib/services/node";
 
 import { TreeNodeDataWithRelations } from "@tree/src/types/tree";
 import { getAge, getDate } from "@tree/src/helper/date";
-import { startCase } from "@tree/src/helper/string";
+import { getNickname, getPlace } from "@tree/src/helper/string";
 import { Box, IconButton } from "@mui/material";
 import { UPDATE } from "@tree/src/constants/permissions";
 
@@ -19,6 +19,7 @@ import { useSnackbar } from "notistack";
 import AddPhotoAlternate from "@mui/icons-material/AddPhotoAlternate";
 import ImageIcon from "@mui/icons-material/Image";
 import EditIcon from "@mui/icons-material/Edit";
+import { startCase } from "lodash";
 
 const defaultLoading = {
   parents: false,
@@ -37,6 +38,7 @@ type TreeNodeDetailsBioProps = TreeNodeDataWithRelations & {
 
 export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
   id,
+  name,
   birth,
   death,
   parents,
@@ -44,9 +46,6 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
   spouses,
   children,
   nationality,
-  education,
-  occupation,
-  rewards,
   onRelationNodeClick,
   metadata,
   profileImageURL,
@@ -56,7 +55,9 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
   const { user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
 
+  const nickname = getNickname(name.nicknames);
   const birthDate = getDate(birth?.year, birth?.month, birth?.day);
+  const birthPlace = getPlace(birth?.place?.country, birth?.place?.city);
   const deathDate = getDate(death?.year, death?.month, death?.day);
   const [age, info] = getAge(birth?.year, birth?.month, birth?.day, death?.year, death?.month, death?.day);
 
@@ -89,27 +90,19 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
     <React.Fragment>
       <div className={s.bioContainer}>
         <div className={classNames(s.bioGrid)}>
+          <ShowIf condition={Boolean(nickname)}>
+            <span className={s.gridItemTitle}>Nickname</span>
+            <span className={s.gridItemValue}>{startCase(nickname)}</span>
+          </ShowIf>
           <ShowIf condition={Boolean(birthDate)}>
             <span className={s.gridItemTitle}>Birth Date</span>
             <span className={s.gridItemValue}>
               {birthDate}/{age} {info} old
             </span>
           </ShowIf>
-          <ShowIf condition={Boolean(birth?.place.country) || Boolean(birth?.place.city)}>
+          <ShowIf condition={Boolean(birthPlace)}>
             <span className={s.gridItemTitle}>Birth Place</span>
-            <span className={s.gridItemValue}>
-              {birth?.place?.country && birth?.place?.city && (
-                <React.Fragment>
-                  {startCase(birth?.place?.country ?? "")}, {startCase(birth?.place?.city ?? "")}
-                </React.Fragment>
-              )}
-              {birth?.place?.country && !birth?.place?.city && (
-                <React.Fragment>{startCase(birth?.place?.country ?? "")}</React.Fragment>
-              )}
-              {birth?.place?.city && !birth?.place?.country && (
-                <React.Fragment>{startCase(birth?.place?.city ?? "")}</React.Fragment>
-              )}
-            </span>
+            <span className={s.gridItemValue}>{birthPlace}</span>
           </ShowIf>
           <ShowIf condition={Boolean(deathDate)}>
             <span className={s.gridItemTitle}>Death Date</span>
@@ -176,18 +169,6 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
           <ShowIf condition={Boolean(nationality)}>
             <span className={s.gridItemTitle}>Nationality</span>
             <span className={s.gridItemValue}>{nationality}</span>
-          </ShowIf>
-          <ShowIf condition={Boolean(education)}>
-            <span className={s.gridItemTitle}>Education</span>
-            <span className={s.gridItemValue}>{education}</span>
-          </ShowIf>
-          <ShowIf condition={Boolean(occupation)}>
-            <span className={s.gridItemTitle}>Education</span>
-            <span className={s.gridItemValue}>{education}</span>
-          </ShowIf>
-          <ShowIf condition={Boolean(rewards)}>
-            <span className={s.gridItemTitle}>Awards</span>
-            <span className={s.gridItemValue}>{rewards?.join(", ")}</span>
           </ShowIf>
         </div>
         <Box

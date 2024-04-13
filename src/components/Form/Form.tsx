@@ -18,6 +18,9 @@ import { makeStyles } from "@mui/styles";
 import { styled } from "@mui/material/styles";
 import { City, searchCities } from "@tree/src/lib/services/city";
 import { useDebounce } from "@tree/src/hooks/use-debounce.hook";
+import ShowIf from "../show-if";
+import { Nickname } from "@tree/src/types/tree";
+import { startCase } from "@tree/src/helper/string";
 
 export const StyledPickersLayout = styled(PickersLayout)({
   ".MuiDateCalendar-root": {
@@ -59,6 +62,7 @@ export type Error = {
 
 export type Bio = {
   name: string;
+  nicknames: Nickname[];
   gender: string;
   birthDate: Dayjs | null;
   birthCity: string;
@@ -68,6 +72,7 @@ export type Bio = {
 type FormProps = {
   bio: Bio;
   error: Error;
+  isEdit?: boolean;
   setBio: (bio: Bio) => void;
   setError: (error: Error) => void;
   disabledGender?: boolean;
@@ -75,6 +80,7 @@ type FormProps = {
 
 export const defaultBio = {
   name: "",
+  nicknames: [] as Nickname[],
   gender: "",
   birthDate: null,
   birthCity: "",
@@ -90,12 +96,14 @@ export const defaultError = {
   spouse: false,
 };
 
-const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = false }) => {
+const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = false, isEdit = false }) => {
   const classes = useStyles();
 
   const [value, setValue] = useState<string>("");
   const [cities, setCities] = useState<City[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [nicknames, setNicknames] = useState<string[]>([]);
+  const [selectedNickname, setSelectedNickname] = useState<string>("");
 
   const debounceValue = useDebounce(value, 1000);
 
@@ -114,6 +122,16 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
       controller.abort();
     };
   }, [debounceValue]);
+
+  useEffect(() => {
+    if (bio.nicknames.length > 0) {
+      setNicknames(bio.nicknames.map((e) => e.name));
+      const nickname = bio.nicknames.find((e) => e.selected === true);
+      if (nickname) {
+        setSelectedNickname(nickname.name);
+      }
+    }
+  }, [bio.nicknames]);
 
   const handleBirthDate = (value: Dayjs | null) => {
     setBio({ ...bio, birthDate: value });
@@ -139,6 +157,36 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
 
     setValue("");
     setBio({ ...bio, birthCity, birthCountry });
+  };
+
+  const handleNicknames = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    const nicknames = value.split(",");
+    setSelectedNickname(nicknames[0]);
+    setNicknames(nicknames);
+    setBio({
+      ...bio,
+      nicknames: nicknames.map((e, i) => {
+        return {
+          name: e,
+          selected: i === 0,
+        };
+      }),
+    });
+  };
+
+  const handleNickname = (event: SelectChangeEvent) => {
+    const value = event.target.value;
+    setSelectedNickname(value);
+    setBio({
+      ...bio,
+      nicknames: bio.nicknames.map((e) => {
+        return {
+          name: e.name,
+          selected: e.name === value,
+        };
+      }),
+    });
   };
 
   const optionLabel = (option: City | string) => {
@@ -172,6 +220,7 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
             error={error.name}
             id="name"
             label="Name"
+            required
             variant="outlined"
             value={bio.name}
             onChange={handleName}
@@ -179,13 +228,14 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
             InputLabelProps={{ sx: { color: "grey" } }}
           />
           <FormControl sx={{ width: "34%" }}>
-            <InputLabel id="relation-type" sx={{ color: "grey" }} error={error.gender}>
+            <InputLabel id="relation-type" sx={{ color: "grey" }} error={error.gender} required>
               Gender
             </InputLabel>
             <Select
               value={bio.gender}
               onChange={handleGender}
               label="Gender"
+              required
               sx={{
                 color: "whitesmoke",
                 "& .MuiInputBase-input.Mui-disabled": {
@@ -201,6 +251,46 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
             </Select>
           </FormControl>
         </Box>
+
+        <ShowIf condition={isEdit}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mt: "10px" }}>
+            <TextField
+              id="nicknames"
+              label="Nicknames"
+              variant="outlined"
+              value={nicknames.join(",")}
+              onChange={handleNicknames}
+              placeholder="Ex: john,doe"
+              sx={{ input: { color: "whitesmoke" }, width: "64%" }}
+              InputLabelProps={{ sx: { color: "grey" } }}
+            />
+            <FormControl sx={{ width: "34%" }}>
+              <InputLabel id="relation-type" sx={{ color: "grey" }} error={error.gender}>
+                Selected Nickname
+              </InputLabel>
+              <Select
+                value={selectedNickname}
+                onChange={handleNickname}
+                label="Selected Nickname"
+                sx={{
+                  color: "whitesmoke",
+                  "& .MuiInputBase-input.Mui-disabled": {
+                    WebkitTextFillColor: "whitesmoke",
+                  },
+                }}
+                MenuProps={{ classes }}
+              >
+                {nicknames.map((e, i) => {
+                  return (
+                    <MenuItem key={i} value={e}>
+                      {startCase(e)}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
+          </Box>
+        </ShowIf>
 
         <Box sx={{ display: "flex", justifyContent: "space-between", mt: "10px" }}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -244,7 +334,6 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
             renderInput={(params) => (
               <TextField
                 {...params}
-                error={error.spouse}
                 sx={{ input: { color: "whitesmoke" } }}
                 InputLabelProps={{ sx: { color: "grey" } }}
                 label="Birth place"

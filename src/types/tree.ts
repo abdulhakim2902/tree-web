@@ -12,7 +12,7 @@ export type TreeNodeDataFromJson = {
     first: string;
     middle?: string;
     last?: string;
-    nicknames?: string[];
+    nicknames?: Nickname[];
   };
 } & Partial<{
   user: Partial<{
@@ -41,9 +41,6 @@ export type TreeNodeDataFromJson = {
     };
   };
   nationality: string;
-  education: string;
-  occupation: string;
-  rewards: string[];
   bio: string;
   metadata: {
     totalSpouses: number;
@@ -72,7 +69,7 @@ export type RelationInfo = {
   type: RelType;
   fullname: string;
   firstName: string;
-  nicknames?: string[];
+  nicknames?: Nickname[];
 };
 
 export type TreeNodeDataWithRelations = TreeNodeData & {
@@ -80,6 +77,11 @@ export type TreeNodeDataWithRelations = TreeNodeData & {
   children: RelationInfo[];
   siblings: RelationInfo[];
   spouses: RelationInfo[];
+};
+
+export type Nickname = {
+  name: string;
+  selected?: boolean;
 };
 
 export type Family = {

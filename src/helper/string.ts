@@ -1,4 +1,5 @@
 import { capitalize } from "lodash";
+import { Nickname } from "../types/tree";
 
 export function parseJSON<T>(data?: string | null): T | null {
   if (!data) return null;
@@ -31,3 +32,24 @@ export function getNameSymbol(name?: string): string {
 
   return `${names[0][0]}${names[1][0]}`.toUpperCase();
 }
+
+export function getNickname(nicknames: Nickname[] = []) {
+  const nickname = nicknames.find((e) => e.selected === true)?.name;
+  return nickname;
+}
+
+export const getPlace = (country?: string, city?: string) => {
+  if (country && city) {
+    return `${startCase(country)}, ${startCase(city)}`;
+  }
+
+  if (country) {
+    return startCase(country);
+  }
+
+  if (city) {
+    return startCase(city);
+  }
+
+  return undefined;
+};

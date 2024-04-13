@@ -44,16 +44,31 @@ const SiblingForm: FC<SiblingFormProps> = ({ relative, onSave, onCancel, loading
       const data: Record<string, any> = {
         name: { first: names[0] },
         gender: gender,
-        birth: {
-          day: birthDate?.date() ?? 0,
-          month: birthDate?.month() ? birthDate.month() + 1 : 0,
-          year: birthDate?.year() ?? -1,
-          place: {
-            country: birthCountry,
-            city: birthCity,
-          },
-        },
       };
+
+      const day = birthDate?.date() ?? 0;
+      const month = birthDate?.month() ? birthDate.month() + 1 : 0;
+      const year = birthDate?.year() ?? -1;
+
+      if (day > 0 || month > 0 || year >= 0 || birthCity || birthCountry) {
+        data.birth = {};
+
+        if (day > 0) data.birth.day = day;
+        if (month > 0) data.birth.month = month;
+        if (year >= 0) data.birth.year = year;
+
+        if (birthCity || birthCountry) {
+          data.birth.place = {};
+        }
+
+        if (birthCountry) {
+          data.birth.place.country = birthCountry;
+        }
+
+        if (birthCity) {
+          data.birth.place.city = birthCity;
+        }
+      }
 
       if (names.length > 1) Object.assign(data.name, { last: names[names.length - 1] });
       if (names.length > 2) Object.assign(data.name, { middle: names.slice(1, names.length - 1).join(" ") });

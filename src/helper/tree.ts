@@ -37,7 +37,9 @@ export const getTreeNodeDetails = (
 };
 
 export const parseTreeNodeDetail = (nodes: TreeNode[]) => {
-  return nodes.map((node: TreeNode) => {
+  return nodes.map((e: TreeNode) => {
+    const node = { ...e };
+
     const parents = node.parents.filter((parent) => {
       return nodes.find((node: TreeNode) => node.id === parent.id);
     });
