@@ -3,10 +3,12 @@ import {
   Box,
   CircularProgress,
   FormControl,
+  FormControlLabel,
   InputLabel,
   MenuItem,
   Select,
   SelectChangeEvent,
+  Switch,
   TextField,
   Typography,
 } from "@mui/material";
@@ -67,6 +69,9 @@ export type Bio = {
   birthDate: Dayjs | null;
   birthCity: string;
   birthCountry: string;
+  deathDate: Dayjs | null;
+  deathCity: string;
+  deathCountry: string;
 };
 
 type FormProps = {
@@ -85,6 +90,9 @@ export const defaultBio = {
   birthDate: null,
   birthCity: "",
   birthCountry: "",
+  deathDate: null,
+  deathCity: "",
+  deathCountry: "",
 };
 
 export const defaultError = {
@@ -98,30 +106,51 @@ export const defaultError = {
 
 const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = false, isEdit = false }) => {
   const classes = useStyles();
+  const isDeceased = Boolean(bio?.deathDate || bio?.deathCountry || bio?.deathCity);
 
-  const [value, setValue] = useState<string>("");
   const [cities, setCities] = useState<City[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
   const [nicknames, setNicknames] = useState<string[]>([]);
+  const [deceased, setDeceased] = useState<boolean>(isDeceased);
   const [selectedNickname, setSelectedNickname] = useState<string>("");
 
-  const debounceValue = useDebounce(value, 1000);
+  const [birthPlaceValue, setBirthPlaceValue] = useState<string>("");
+  const [deathPlaceValue, setDeathPlaceValue] = useState<string>("");
+  const [loading, setLoading] = useState<{ birth: boolean; death: boolean }>({ birth: false, death: false });
+
+  const debounceBirthPlaceValue = useDebounce(birthPlaceValue, 1000);
+  const debounceDeathPlaceValue = useDebounce(deathPlaceValue, 1000);
 
   useEffect(() => {
-    if (!debounceValue) return;
+    if (!debounceBirthPlaceValue) return;
     const controller = new AbortController();
     const signal = controller.signal;
 
-    setLoading(true);
-    searchCities(debounceValue, signal)
+    setLoading((prev) => ({ ...prev, birth: true }));
+    searchCities(debounceBirthPlaceValue, signal)
       .then(setCities)
       .catch(() => setCities([]))
-      .finally(() => setLoading(false));
+      .finally(() => setLoading((prev) => ({ ...prev, birth: false })));
 
     return () => {
       controller.abort();
     };
-  }, [debounceValue]);
+  }, [debounceBirthPlaceValue]);
+
+  useEffect(() => {
+    if (!debounceDeathPlaceValue) return;
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    setLoading((prev) => ({ ...prev, death: true }));
+    searchCities(debounceDeathPlaceValue, signal)
+      .then(setCities)
+      .catch(() => setCities([]))
+      .finally(() => setLoading((prev) => ({ ...prev, death: false })));
+
+    return () => {
+      controller.abort();
+    };
+  }, [debounceDeathPlaceValue]);
 
   useEffect(() => {
     if (bio.nicknames.length > 0) {
@@ -135,6 +164,10 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
 
   const handleBirthDate = (value: Dayjs | null) => {
     setBio({ ...bio, birthDate: value });
+  };
+
+  const handleDeathDate = (value: Dayjs | null) => {
+    setBio({ ...bio, deathDate: value });
   };
 
   const handleName = (event: ChangeEvent<HTMLInputElement>) => {
@@ -155,8 +188,18 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
     const birthCity = value?.name ?? "";
     const birthCountry = value?.country ?? "";
 
-    setValue("");
+    setBirthPlaceValue("");
     setBio({ ...bio, birthCity, birthCountry });
+  };
+
+  const handleDeathPlace = (event: any, value: City | string | null) => {
+    if (typeof value === "string") return;
+
+    const deathCity = value?.name ?? "";
+    const deathCountry = value?.country ?? "";
+
+    setDeathPlaceValue("");
+    setBio({ ...bio, deathCity, deathCountry });
   };
 
   const handleNicknames = (event: ChangeEvent<HTMLInputElement>) => {
@@ -200,8 +243,8 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
     return name;
   };
 
-  const onChangeValue = (event: ChangeEvent<HTMLInputElement>) => {
-    setValue(event.target.value);
+  const onChangeBirthPlaceValue = (event: ChangeEvent<HTMLInputElement>) => {
+    setBirthPlaceValue(event.target.value);
 
     const [birthCity, birthCountry] = event.target.value.split(",");
 
@@ -209,6 +252,18 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
       ...bio,
       birthCity: birthCity?.trim() ?? "",
       birthCountry: birthCountry?.trim() ?? "",
+    });
+  };
+
+  const onChangeDeathPlaceValue = (event: ChangeEvent<HTMLInputElement>) => {
+    setDeathPlaceValue(event.target.value);
+
+    const [deathCity, deathCountry] = event.target.value.split(",");
+
+    setBio({
+      ...bio,
+      deathCity: deathCity?.trim() ?? "",
+      deathCountry: deathCountry?.trim() ?? "",
     });
   };
 
@@ -337,12 +392,12 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
                 sx={{ input: { color: "whitesmoke" } }}
                 InputLabelProps={{ sx: { color: "grey" } }}
                 label="Birth place"
-                onChange={onChangeValue}
+                onChange={onChangeBirthPlaceValue}
                 InputProps={{
                   ...params.InputProps,
                   endAdornment: (
                     <React.Fragment>
-                      {loading ? <CircularProgress sx={{ color: "whitesmoke" }} size={15} /> : null}
+                      {loading.birth ? <CircularProgress sx={{ color: "whitesmoke" }} size={15} /> : null}
                     </React.Fragment>
                   ),
                 }}
@@ -350,6 +405,72 @@ const Form: FC<FormProps> = ({ bio, error, setBio, setError, disabledGender = fa
             )}
           />
         </Box>
+
+        <FormControlLabel
+          sx={{ mt: "10px" }}
+          control={<Switch checked={deceased} onChange={(event) => setDeceased(event.target.checked)} />}
+          label="Deceased?"
+        />
+
+        <ShowIf condition={deceased}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mt: "10px" }}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                label="Death date"
+                sx={{ input: { color: "whitesmoke" } }}
+                value={bio.deathDate}
+                onChange={handleDeathDate}
+                slots={{ layout: StyledPickersLayout as any }}
+                slotProps={{
+                  openPickerIcon: { fontSize: "large" },
+                  openPickerButton: { sx: { color: "grey" } },
+                  textField: {
+                    InputLabelProps: {
+                      sx: { color: "grey" },
+                    },
+                    fullWidth: true,
+                  },
+                }}
+              />
+            </LocalizationProvider>
+          </Box>
+
+          <Box sx={{ display: "flex", justifyContent: "space-between", mt: "10px" }}>
+            <Autocomplete
+              id="city"
+              options={cities}
+              getOptionLabel={optionLabel}
+              fullWidth
+              freeSolo
+              value={`${bio.deathCity}${bio.deathCountry ? `, ${bio.deathCountry}` : ""}`}
+              classes={classes}
+              isOptionEqualToValue={(option: City) => option?.name === bio?.deathCity}
+              onChange={handleDeathPlace}
+              componentsProps={{
+                popper: {
+                  sx: { fontSize: "50px" },
+                },
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  sx={{ input: { color: "whitesmoke" } }}
+                  InputLabelProps={{ sx: { color: "grey" } }}
+                  label="Death place"
+                  onChange={onChangeDeathPlaceValue}
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <React.Fragment>
+                        {loading.death ? <CircularProgress sx={{ color: "whitesmoke" }} size={15} /> : null}
+                      </React.Fragment>
+                    ),
+                  }}
+                />
+              )}
+            />
+          </Box>
+        </ShowIf>
       </Box>
     </React.Fragment>
   );

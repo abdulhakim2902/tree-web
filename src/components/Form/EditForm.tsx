@@ -31,14 +31,17 @@ const EditForm: FC<EditFormProps> = ({ onUpdate, onCancel, node, loading }) => {
     const birthCountry = startCase(country ?? "");
     const birthCity = startCase(city ?? "");
     const birthDate = birthDateToDayjs(node?.birth?.day, node?.birth?.month, node?.birth?.year);
+    const deathCountry = startCase(node?.death?.place?.country ?? "");
+    const deathCity = startCase(node?.death?.place?.city ?? "");
+    const deathDate = birthDateToDayjs(node?.death?.day, node?.death?.month, node?.death?.year);
 
-    setBio({ name, nicknames, gender, birthDate, birthCity, birthCountry });
+    setBio({ name, nicknames, gender, birthDate, birthCity, birthCountry, deathDate, deathCity, deathCountry });
   }, []);
 
   const handleUpdate = async () => {
     if (buttonRef.current && !buttonRef.current.disabled) {
       buttonRef.current.disabled = true;
-      const { name, nicknames, gender, birthDate, birthCountry, birthCity } = bio;
+      const { name, nicknames, gender, birthDate, birthCountry, birthCity, deathDate, deathCountry, deathCity } = bio;
 
       const error = {
         name: !Boolean(name),
@@ -56,27 +59,55 @@ const EditForm: FC<EditFormProps> = ({ onUpdate, onCancel, node, loading }) => {
         gender: gender,
       };
 
-      const day = birthDate?.date() ?? 0;
-      const month = birthDate?.month() ? birthDate.month() + 1 : 0;
-      const year = birthDate?.year() ?? -1;
+      {
+        const day = birthDate?.date() ?? 0;
+        const month = birthDate?.month() ? birthDate.month() + 1 : 0;
+        const year = birthDate?.year() ?? -1;
 
-      if (day > 0 || month > 0 || year >= 0 || birthCity || birthCountry) {
-        data.birth = {};
+        if (day > 0 || month > 0 || year >= 0 || birthCity || birthCountry) {
+          data.birth = {};
 
-        if (day > 0) data.birth.day = day;
-        if (month > 0) data.birth.month = month;
-        if (year >= 0) data.birth.year = year;
+          if (day > 0) data.birth.day = day;
+          if (month > 0) data.birth.month = month;
+          if (year >= 0) data.birth.year = year;
 
-        if (birthCity || birthCountry) {
-          data.birth.place = {};
+          if (birthCity || birthCountry) {
+            data.birth.place = {};
+          }
+
+          if (birthCountry) {
+            data.birth.place.country = birthCountry;
+          }
+
+          if (birthCity) {
+            data.birth.place.city = birthCity;
+          }
         }
+      }
 
-        if (birthCountry) {
-          data.birth.place.country = birthCountry;
-        }
+      {
+        const day = deathDate?.date() ?? 0;
+        const month = deathDate?.month() ? deathDate.month() + 1 : 0;
+        const year = deathDate?.year() ?? -1;
 
-        if (birthCity) {
-          data.birth.place.city = birthCity;
+        if (day > 0 || month > 0 || year >= 0 || birthCity || birthCountry) {
+          data.death = {};
+
+          if (day > 0) data.death.day = day;
+          if (month > 0) data.death.month = month;
+          if (year >= 0) data.death.year = year;
+
+          if (deathCity || deathCountry) {
+            data.death.place = {};
+          }
+
+          if (deathCountry) {
+            data.death.place.country = deathCountry;
+          }
+
+          if (deathCity) {
+            data.death.place.city = deathCity;
+          }
         }
       }
 

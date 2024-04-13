@@ -59,6 +59,7 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
   const birthDate = getDate(birth?.year, birth?.month, birth?.day);
   const birthPlace = getPlace(birth?.place?.country, birth?.place?.city);
   const deathDate = getDate(death?.year, death?.month, death?.day);
+  const deathPlace = getPlace(death?.place?.country, death?.place?.city);
   const [age, info] = getAge(birth?.year, birth?.month, birth?.day, death?.year, death?.month, death?.day);
 
   const [loading, setLoading] = useState<Loading>(defaultLoading);
@@ -108,11 +109,9 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
             <span className={s.gridItemTitle}>Death Date</span>
             <span className={s.gridItemValue}>{deathDate}</span>
           </ShowIf>
-          <ShowIf condition={Boolean(death?.place)}>
+          <ShowIf condition={Boolean(deathPlace)}>
             <span className={s.gridItemTitle}>Death Place</span>
-            <span className={s.gridItemValue}>
-              {death?.place.country}, {death?.place.city}
-            </span>
+            <span className={s.gridItemValue}>{deathPlace}</span>
           </ShowIf>
           <ShowIf condition={parents.length > 0 || Boolean(metadata?.expandable?.parents)}>
             <span className={s.gridItemTitle}>Parents</span>

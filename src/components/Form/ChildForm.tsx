@@ -52,7 +52,7 @@ const ChildForm: FC<ChildFormProps> = ({ nodeId, onSave, onCancel, loading }) =>
     if (buttonRef.current && !buttonRef.current.disabled) {
       buttonRef.current.disabled = true;
 
-      const { name, gender, birthDate, birthCountry, birthCity } = bio;
+      const { name, gender, birthDate, birthCountry, birthCity, deathDate, deathCountry, deathCity } = bio;
 
       const error = {
         name: !Boolean(name),
@@ -71,27 +71,55 @@ const ChildForm: FC<ChildFormProps> = ({ nodeId, onSave, onCancel, loading }) =>
         gender: gender,
       };
 
-      const day = birthDate?.date() ?? 0;
-      const month = birthDate?.month() ? birthDate.month() + 1 : 0;
-      const year = birthDate?.year() ?? -1;
+      {
+        const day = birthDate?.date() ?? 0;
+        const month = birthDate?.month() ? birthDate.month() + 1 : 0;
+        const year = birthDate?.year() ?? -1;
 
-      if (day > 0 || month > 0 || year >= 0 || birthCity || birthCountry) {
-        data.birth = {};
+        if (day > 0 || month > 0 || year >= 0 || birthCity || birthCountry) {
+          data.birth = {};
 
-        if (day > 0) data.birth.day = day;
-        if (month > 0) data.birth.month = month;
-        if (year >= 0) data.birth.year = year;
+          if (day > 0) data.birth.day = day;
+          if (month > 0) data.birth.month = month;
+          if (year >= 0) data.birth.year = year;
 
-        if (birthCity || birthCountry) {
-          data.birth.place = {};
+          if (birthCity || birthCountry) {
+            data.birth.place = {};
+          }
+
+          if (birthCountry) {
+            data.birth.place.country = birthCountry;
+          }
+
+          if (birthCity) {
+            data.birth.place.city = birthCity;
+          }
         }
+      }
 
-        if (birthCountry) {
-          data.birth.place.country = birthCountry;
-        }
+      {
+        const day = deathDate?.date() ?? 0;
+        const month = deathDate?.month() ? deathDate.month() + 1 : 0;
+        const year = deathDate?.year() ?? -1;
 
-        if (birthCity) {
-          data.birth.place.city = birthCity;
+        if (day > 0 || month > 0 || year >= 0 || birthCity || birthCountry) {
+          data.death = {};
+
+          if (day > 0) data.death.day = day;
+          if (month > 0) data.death.month = month;
+          if (year >= 0) data.death.year = year;
+
+          if (deathCity || deathCountry) {
+            data.death.place = {};
+          }
+
+          if (deathCountry) {
+            data.death.place.country = deathCountry;
+          }
+
+          if (deathCity) {
+            data.death.place.city = deathCity;
+          }
         }
       }
 
