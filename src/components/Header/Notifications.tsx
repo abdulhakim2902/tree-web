@@ -35,11 +35,12 @@ import {
   readNotification,
   readAllNotification,
 } from "@tree/src/lib/services/notification";
+import { useRouter } from "next/router";
 
 /* Hooks */
 import { useAuthContext } from "@tree/src/context/auth";
 import { useSnackbar } from "notistack";
-import { useRouter } from "next/router";
+import { useSocketContext } from "@tree/src/context/socket";
 
 /* Icons */
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
@@ -49,6 +50,7 @@ import MarkunreadIcon from "@mui/icons-material/Markunread";
 import MarkAsUnreadIcon from "@mui/icons-material/MarkAsUnread";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import { socket } from "@tree/src/lib/services/socket";
 
 dayjs.extend(relativeTime);
 
@@ -56,8 +58,9 @@ const Notifications: FC = () => {
   const router = useRouter();
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const { isLoggedIn, logout } = useAuthContext();
+  const { isLoggedIn, logout, user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
+  const { isConnected } = useSocketContext();
 
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -94,6 +97,28 @@ const Notifications: FC = () => {
 
     return () => controller.abort();
   }, [isLoggedIn, anchorEl]);
+
+  /* eslint-disable react-hooks/exhaustive-deps */
+  useEffect(() => {
+    if (isConnected && user) {
+      socket.on(`notification:${user.id}`, (data: { count: number; action?: string }) => {
+        const { count, action } = data;
+        if (action === "logout") {
+          logout();
+          enqueueSnackbar({
+            variant: "success",
+            message: "Admin accepted your change request. Please sign in again to make changes.",
+          });
+        } else {
+          setCount(count);
+          enqueueSnackbar({
+            variant: "success",
+            message: "You have a new notification",
+          });
+        }
+      });
+    }
+  }, [isConnected, user]);
 
   const getNotificationCount = async (signal?: AbortSignal) => {
     try {
@@ -164,10 +189,6 @@ const Notifications: FC = () => {
 
       try {
         const newNotification = await handleInvitation(referenceId, action);
-        setCount((prev) => {
-          if (!prev) return prev;
-          return prev - 1;
-        });
         setNotifications((prev) => [
           newNotification,
           ...prev.map((e) => {

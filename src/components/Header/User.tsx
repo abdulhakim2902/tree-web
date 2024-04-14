@@ -22,6 +22,7 @@ import RequestRoleModal from "../Modal/RequestRoleModal";
 
 /* Hooks */
 import { useAuthContext } from "@tree/src/context/auth";
+import { useCacheContext } from "@tree/src/context/cache";
 import { useRouter } from "next/router";
 
 /* Icons */
@@ -31,7 +32,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import Diversity1Icon from "@mui/icons-material/Diversity1";
 import LogoutIcon from "@mui/icons-material/Logout";
-import { useCacheContext } from "@tree/src/context/cache";
+import AccountSettingModal from "../Modal/AccountSettingModal";
 
 const menus = [
   {
@@ -69,6 +70,7 @@ const User: FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openInvite, setOpenInvite] = useState<boolean>(false);
   const [openRequest, setOpenRequest] = useState<boolean>(false);
+  const [openSetting, setOpenSetting] = useState<boolean>(false);
 
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -152,6 +154,9 @@ const User: FC = () => {
               onClick={() => {
                 setAnchorEl(null);
                 switch (menu.name) {
+                  case "account":
+                    setOpenSetting(true);
+                    break;
                   case "invite":
                     setOpenInvite(true);
                     break;
@@ -178,6 +183,7 @@ const User: FC = () => {
           ];
         })}
       </Menu>
+      <AccountSettingModal open={openSetting} onClose={() => setOpenSetting(false)} user={user} />
       <InvitePeopleModal open={openInvite} onClose={() => setOpenInvite(false)} />
       <RequestRoleModal open={openRequest} onClose={() => setOpenRequest(false)} />
     </React.Fragment>

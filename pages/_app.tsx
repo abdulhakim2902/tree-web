@@ -8,6 +8,7 @@ import { AuthContextProvider } from "@tree/src/context/auth";
 import React from "react";
 import { CacheContextProvider } from "@tree/src/context/cache";
 import { LoadingBarContextProvider } from "@tree/src/context/loading";
+import { SocketContextProvider } from "@tree/src/context/socket";
 
 const App = ({ Component, pageProps }: AppProps) => {
   const theme = useTheme();
@@ -36,9 +37,11 @@ const App = ({ Component, pageProps }: AppProps) => {
       >
         <LoadingBarContextProvider>
           <AuthContextProvider>
-            <Layout>
-              <Component {...pageProps} />
-            </Layout>
+            <SocketContextProvider>
+              <Layout>
+                <Component {...pageProps} />
+              </Layout>
+            </SocketContextProvider>
           </AuthContextProvider>
         </LoadingBarContextProvider>
       </SnackbarProvider>

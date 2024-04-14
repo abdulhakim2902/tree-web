@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import { Root, Tree, TreeNode } from "../types/tree";
 import { parseTreeNodeDetail } from "../helper/tree";
-import { useCacheContext } from "../context/cache";
 import { NODE_FAMILIES_KEY, TREE_KEY, TREE_ROOT_KEY } from "../constants/storage-key";
 import { useRouter } from "next/navigation";
-import { useLoadingBarContext } from "../context/loading";
 import { DAY } from "../helper/date";
 import { setCookie } from "cookies-next";
 import {
@@ -19,6 +17,10 @@ import {
   updateImageNode,
 } from "../lib/services/node";
 import { File, removeFile } from "../lib/services/file";
+
+/* Hooks */
+import { useCacheContext } from "../context/cache";
+import { useLoadingBarContext } from "../context/loading";
 
 const defaultTree = {
   root: {
