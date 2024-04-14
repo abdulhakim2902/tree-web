@@ -50,7 +50,6 @@ import MarkunreadIcon from "@mui/icons-material/Markunread";
 import MarkAsUnreadIcon from "@mui/icons-material/MarkAsUnread";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { socket } from "@tree/src/lib/services/socket";
 
 dayjs.extend(relativeTime);
 
@@ -60,7 +59,7 @@ const Notifications: FC = () => {
 
   const { isLoggedIn, logout, user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
-  const { isConnected } = useSocketContext();
+  const { isConnected, socket } = useSocketContext();
 
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -105,6 +104,9 @@ const Notifications: FC = () => {
         const { count, action } = data;
         if (action === "logout") {
           logout();
+          socket.off(`notification:${user.id}`, () => {
+            console.log("Close notifications event");
+          });
           enqueueSnackbar({
             variant: "success",
             message: "Admin accepted your change request. Please sign in again to make changes.",
@@ -118,6 +120,14 @@ const Notifications: FC = () => {
         }
       });
     }
+
+    return () => {
+      if (isConnected && user) {
+        socket.off(`notification:${user.id}`, () => {
+          console.log("Close notifications event");
+        });
+      }
+    };
   }, [isConnected, user]);
 
   const getNotificationCount = async (signal?: AbortSignal) => {

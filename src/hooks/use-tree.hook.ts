@@ -21,6 +21,9 @@ import { File, removeFile } from "../lib/services/file";
 /* Hooks */
 import { useCacheContext } from "../context/cache";
 import { useLoadingBarContext } from "../context/loading";
+import { useSocketContext } from "../context/socket";
+import { useAuthContext } from "../context/auth";
+import { useSnackbar } from "notistack";
 
 const defaultTree = {
   root: {
@@ -39,10 +42,48 @@ type InitData = {
 export const useTree = (init?: InitData) => {
   const router = useRouter();
 
+  const { user } = useAuthContext();
   const { get, set, del } = useCacheContext();
+  const { isConnected, socket } = useSocketContext();
+  const { enqueueSnackbar } = useSnackbar();
   const { startProgress, endProgress } = useLoadingBarContext();
 
   const [tree, setTree] = useState<Tree>(defaultTree);
+
+  /* eslint-disable react-hooks/exhaustive-deps */
+  useEffect(() => {
+    if (isConnected && user) {
+      socket.on(`user:${user.id}:node`, (data: { node: TreeNode; nodes: TreeNode[] }) => {
+        console.log(data);
+        const cache = get<Record<string, TreeNode>>(TREE_KEY) ?? {};
+        const found = data.node.parents.find((e) => Boolean(cache[e.id]));
+        if (found) {
+          const newNodeMap = Object.fromEntries([data.node, ...data.nodes].map((e) => [e.id, e]));
+          const updatedNodeMap = { ...cache, ...newNodeMap };
+          const currentRoot = get<Root>(TREE_ROOT_KEY);
+          const nodes = parseTreeNodeDetail(Object.values(updatedNodeMap));
+          const nodeMap = Object.fromEntries(nodes.map((e) => [e.id, e]));
+          const root = currentRoot ?? { id: nodes[0].id, isRoot: false };
+          const tree = { nodes, nodeMap, root };
+
+          setTree({ ...tree });
+
+          enqueueSnackbar({
+            variant: "success",
+            message: "New node is added to your tree",
+          });
+        }
+      });
+    }
+
+    return () => {
+      if (isConnected && user) {
+        socket.off(`user:${user.id}:node`, () => {
+          console.log("Close nodes event");
+        });
+      }
+    };
+  }, [isConnected, user]);
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
@@ -80,26 +121,27 @@ export const useTree = (init?: InitData) => {
 
   const addNode = async (id: string, data: any, type: string) => {
     let relative: Relative;
+    let ids = [] as string[];
 
     switch (type) {
       case "spouse":
-        await addSpouse(id, data);
+        ids = await addSpouse(id, data);
         relative = "spouses";
         break;
 
       case "child":
-        await addChild(id, data);
+        ids = [await addChild(id, data)];
         relative = "children";
         break;
 
       case "brother":
       case "sister":
-        await addSibling(id, data);
+        ids = [await addSibling(id, data)];
         relative = "siblings";
         break;
 
       case "parent":
-        await addParent(id, data);
+        ids = await addParent(id, data);
         relative = "parents";
         break;
 
@@ -110,6 +152,8 @@ export const useTree = (init?: InitData) => {
     await expandNode(id, relative);
 
     del(NODE_FAMILIES_KEY);
+
+    return ids;
   };
 
   const removeNode = async (id: string) => {
@@ -127,13 +171,13 @@ export const useTree = (init?: InitData) => {
 
     for (const relation of relations) {
       const node = tree.nodeMap[relation.id];
+      if (!node) continue;
       node.parents = node.parents.filter((parent) => parent.id !== id);
       node.children = node.children.filter((child) => child.id !== id);
       node.spouses = node.spouses.filter((spouse) => spouse.id !== id);
       node.siblings = node.siblings.filter((sibling) => sibling.id !== id);
-      if (node?.data?.families) {
-        node.data.families = node.data.families.filter((family) => family.id !== id);
-      }
+      node.data.families = node?.data?.families?.filter((family) => family.id !== id) ?? [];
+
       currentNodeMap[relation.id] = node;
     }
 

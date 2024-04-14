@@ -1,6 +1,7 @@
 import { TOKEN_KEY } from "@tree/src/constants/storage-key";
-import { Family, Root, TreeNode, TreeNodeData } from "@tree/src/types/tree";
+import { Family, Root, TreeNode, TreeNodeData, TreeNodeDataWithRelations } from "@tree/src/types/tree";
 import { getCookie } from "cookies-next";
+import { Gender } from "../relatives-tree/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -194,7 +195,8 @@ export const addSpouse = async (id: string, data: any[]) => {
     throw new Error(response.statusText);
   }
 
-  await response.json();
+  const result = await response.json();
+  return result as string[];
 };
 
 export const addChild = async (id: string, data: any) => {
@@ -220,7 +222,8 @@ export const addChild = async (id: string, data: any) => {
     throw new Error(response.statusText);
   }
 
-  await response.json();
+  const result = await response.json();
+  return result as string;
 };
 
 export const addParent = async (id: string, data: any) => {
@@ -246,7 +249,8 @@ export const addParent = async (id: string, data: any) => {
     throw new Error(response.statusText);
   }
 
-  await response.json();
+  const result = await response.json();
+  return result as string[];
 };
 
 export const addSibling = async (id: string, data: any) => {
@@ -272,7 +276,8 @@ export const addSibling = async (id: string, data: any) => {
     throw new Error(response.statusText);
   }
 
-  await response.json();
+  const result = await response.json();
+  return result as string;
 };
 
 export const getSpouse = async (id: string) => {
@@ -293,8 +298,9 @@ export const getSpouse = async (id: string) => {
     return [];
   }
 
-  const { data } = await response.json();
-  return data as TreeNodeData[];
+  const { nodes } = await response.json();
+
+  return nodes.map((node: TreeNode) => node.data) as TreeNodeData[];
 };
 
 export const updateImageNode = async (id: string, fileId = "") => {

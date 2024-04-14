@@ -1,19 +1,20 @@
 import { Autocomplete, Box, Button, CircularProgress, TextField, Typography } from "@mui/material";
 import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import Form, { Bio, useStyles, defaultBio, Error, defaultError } from "./Form";
-import { TreeNodeData } from "@tree/src/types/tree";
+import { TreeNodeData, TreeNodeDataWithRelations } from "@tree/src/types/tree";
 import { getSpouse } from "@tree/src/lib/services/node";
 import { useCacheContext } from "@tree/src/context/cache";
 import { ScaleLoader } from "react-spinners";
+import { startCase } from "@tree/src/helper/string";
 
 type ChildFormProps = {
-  nodeId: string;
+  node: TreeNodeDataWithRelations;
   loading: boolean;
   onSave: (data: any) => Promise<void>;
   onCancel: () => void;
 };
 
-const ChildForm: FC<ChildFormProps> = ({ nodeId, onSave, onCancel, loading }) => {
+const ChildForm: FC<ChildFormProps> = ({ node, onSave, onCancel, loading }) => {
   const classes = useStyles();
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -27,22 +28,24 @@ const ChildForm: FC<ChildFormProps> = ({ nodeId, onSave, onCancel, loading }) =>
 
   /* eslint-disable react-hooks/exhaustive-deps */
   const fetchSpouses = useCallback(() => {
-    if (!nodeId) return;
-    const spouses = get<TreeNodeData[]>(`spouse-${nodeId}`);
+    if (!node) return;
+    const spouses = get<TreeNodeData[]>(`spouse-${node.id}`);
+
     if (!spouses) {
       setLoadingSpouses(true);
-      getSpouse(nodeId)
+      getSpouse(node.id)
         .then((data) => {
-          set(`spouse-${nodeId}`, data);
-          setSpouses(data);
-          setSpouse(data?.[0] || null);
+          const spouses = data.filter((e) => e.gender !== node.gender);
+          set(`spouse-${node.id}`, spouses);
+          setSpouses(spouses);
+          setSpouse(spouses?.[0] || null);
         })
         .finally(() => setLoadingSpouses(false));
     } else {
       setSpouses(spouses);
       setSpouse(spouses?.[0] || null);
     }
-  }, [nodeId]);
+  }, [node]);
 
   useEffect(() => {
     fetchSpouses();
@@ -142,7 +145,7 @@ const ChildForm: FC<ChildFormProps> = ({ nodeId, onSave, onCancel, loading }) =>
       <Autocomplete
         id="spouses"
         options={spouses}
-        getOptionLabel={(option) => option.fullname}
+        getOptionLabel={(option) => startCase(option.fullname)}
         fullWidth
         value={spouse}
         classes={classes}

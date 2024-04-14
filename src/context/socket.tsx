@@ -1,8 +1,9 @@
 import { FC, createContext, useContext, useEffect, useState } from "react";
 import { useAuthContext } from "./auth";
-import { socket } from "../lib/services/socket";
+import { createSocketConnection } from "../lib/services/socket";
 
 type SocketContextValue = {
+  socket: any;
   isConnected: boolean;
 };
 
@@ -11,44 +12,60 @@ const SocketContext = createContext<SocketContextValue | null>(null);
 export const SocketContextProvider: FC = ({ children }) => {
   const { isLoggedIn } = useAuthContext();
 
-  const [isConnected, setIsConnected] = useState<boolean>(socket.connected);
+  const [socket, setSocket] = useState<any>();
+  const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {
     if (isLoggedIn) {
-      socket.connect();
-    } else {
-      socket.disconnect();
+      const socket = createSocketConnection();
+      setSocket(socket);
     }
-
-    return () => {
-      socket.disconnect();
-    };
   }, [isLoggedIn]);
 
   useEffect(() => {
-    socket.on("connect", () => {
-      console.log("Socket is connected");
-      setIsConnected(true);
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Socket is disconnected");
-      setIsConnected(false);
-    });
+    if (socket) {
+      if (isLoggedIn) {
+        socket.connect();
+      } else {
+        socket.disconnect();
+      }
+    }
 
     return () => {
-      socket.off("connect", () => {
-        console.log("Close connect event");
+      if (socket) {
+        socket.disconnect();
+      }
+    };
+  }, [isLoggedIn, socket]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("connect", () => {
+        console.log("Socket is connected");
         setIsConnected(true);
       });
-      socket.off("disconnect", () => {
-        console.log("Close disconnect event");
+
+      socket.on("disconnect", () => {
+        console.log("Socket is disconnected");
         setIsConnected(false);
       });
-    };
-  }, []);
+    }
 
-  return <SocketContext.Provider value={{ isConnected }}>{children}</SocketContext.Provider>;
+    return () => {
+      if (socket) {
+        socket.off("connect", () => {
+          console.log("Close connect event");
+          setIsConnected(true);
+        });
+        socket.off("disconnect", () => {
+          console.log("Close disconnect event");
+          setIsConnected(false);
+        });
+      }
+    };
+  }, [socket]);
+
+  return <SocketContext.Provider value={{ isConnected, socket }}>{children}</SocketContext.Provider>;
 };
 
 export const useSocketContext = (): SocketContextValue => {

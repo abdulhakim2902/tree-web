@@ -24,6 +24,7 @@ import ParentForm from "../Form/ParentForm";
 /* Hooks */
 import { useCacheContext } from "@tree/src/context/cache";
 import { useSnackbar } from "notistack";
+import { useSocketContext } from "@tree/src/context/socket";
 
 /* Icons */
 import SearchIcon from "@mui/icons-material/Search";
@@ -33,12 +34,13 @@ type AddMemberDrawerProps = {
   open: boolean;
 
   onClose: () => void;
-  onAction: (id: string, data: any, type: string) => Promise<void>;
+  onAction: (id: string, data: any, type: string) => Promise<string[]>;
 };
 
 const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose, onAction }) => {
-  const { enqueueSnackbar } = useSnackbar();
   const { del } = useCacheContext();
+  const { socket } = useSocketContext();
+  const { enqueueSnackbar } = useSnackbar();
 
   const [loading, setLoading] = useState<boolean>(false);
   const [type, setType] = useState<string>("");
@@ -57,13 +59,17 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose, onActi
     try {
       setLoading(true);
 
-      await onAction(node.id, data, type);
+      const ids = await onAction(node.id, data, type);
 
       onClose();
       enqueueSnackbar({
-        variant: "error",
+        variant: "success",
         message: "New member is added to the family",
       });
+
+      if (socket && ids.length > 0) {
+        socket.emit("add-nodes", ids[0]);
+      }
     } catch (err: any) {
       enqueueSnackbar({
         variant: "error",
@@ -194,7 +200,7 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose, onActi
             </ShowIf>
 
             <ShowIf condition={type === "child"}>
-              <ChildForm onSave={onAddNode} onCancel={onClose} loading={loading} nodeId={node.id} />
+              <ChildForm onSave={onAddNode} onCancel={onClose} loading={loading} node={node} />
             </ShowIf>
           </ShowIf>
 

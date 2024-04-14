@@ -2,7 +2,7 @@ import { Login, Register } from "@tree/src/types/auth";
 import { UserProfile } from "@tree/src/types/user";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { FC, createContext, useCallback, useContext, useState } from "react";
-import { login as loginAPI, register as registerAPI } from "@tree/src/lib/services/auth";
+import { login as loginAPI, register as registerAPI, logout as logoutAPI } from "@tree/src/lib/services/auth";
 import { useSnackbar } from "notistack";
 import { parseJSON } from "@tree/src/helper/parse-json";
 import { TOKEN_KEY, TREE_KEY, USER_KEY } from "@tree/src/constants/storage-key";
@@ -97,12 +97,17 @@ export const AuthContextProvider: FC = ({ children }) => {
     [enqueueSnackbar],
   );
 
-  const logout = () => {
-    deleteCookie(TOKEN_KEY);
-    deleteCookie(USER_KEY);
-    deleteCookie(TREE_KEY);
-    setIsLoggedIn(false);
-    setToken("");
+  const logout = async () => {
+    try {
+      await logoutAPI();
+      deleteCookie(TOKEN_KEY);
+      deleteCookie(USER_KEY);
+      deleteCookie(TREE_KEY);
+      setIsLoggedIn(false);
+      setToken("");
+    } catch {
+      // ignore
+    }
   };
 
   return (

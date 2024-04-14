@@ -1,6 +1,8 @@
 import { Login, Register } from "@tree/src/types/auth";
 import { UserProfile } from "@tree/src/types/user";
 import { me } from "./user";
+import { getCookie } from "cookies-next";
+import { TOKEN_KEY } from "@tree/src/constants/storage-key";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -51,4 +53,21 @@ export const login = async (data: Login) => {
   }
 
   return;
+};
+
+export const logout = async () => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+  const response = await fetch(`${API_URL}/auth/logout`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const result = await response.json();
+  if (result?.statusCode) {
+    throw result;
+  }
+
+  return result as { message: string };
 };
