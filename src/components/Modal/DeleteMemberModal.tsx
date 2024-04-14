@@ -1,10 +1,13 @@
 import { Box, Button, Modal, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { FC, useRef, useState } from "react";
 import WarningIcon from "@mui/icons-material/Warning";
-import { useNodeSelectionContext } from "@tree/src/context/tree";
 import { TreeNodeDataWithRelations } from "@tree/src/types/tree";
-import { useSnackbar } from "notistack";
 import { ScaleLoader } from "react-spinners";
+
+/* Hooks */
+import { useSnackbar } from "notistack";
+import { useSocketContext } from "@tree/src/context/socket";
+import { useNodeSelectionContext } from "@tree/src/context/tree";
 
 type DeleteMemberModalProps = {
   node: TreeNodeDataWithRelations;
@@ -19,6 +22,7 @@ const DeleteMemberModal: FC<DeleteMemberModalProps> = ({ node, open, onClose, on
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const { enqueueSnackbar } = useSnackbar();
+  const { socket } = useSocketContext();
   const { unselectNode } = useNodeSelectionContext();
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -31,6 +35,10 @@ const DeleteMemberModal: FC<DeleteMemberModalProps> = ({ node, open, onClose, on
         setLoading(true);
 
         await onAction(node.id);
+
+        if (socket) {
+          socket.emit("nodes", { nodeId: node.id, action: "remove" });
+        }
 
         unselectNode();
         onClose();

@@ -68,7 +68,7 @@ const AddMemberDrawer: FC<AddMemberDrawerProps> = ({ node, open, onClose, onActi
       });
 
       if (socket && ids.length > 0) {
-        socket.emit("add-nodes", ids[0]);
+        socket.emit("nodes", { nodeId: ids[0], action: "add" });
       }
     } catch (err: any) {
       enqueueSnackbar({

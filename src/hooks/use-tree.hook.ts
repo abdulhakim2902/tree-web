@@ -53,24 +53,43 @@ export const useTree = (init?: InitData) => {
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isConnected && user) {
-      socket.on(`user:${user.id}:node`, (data: { node: TreeNode; nodes: TreeNode[] }) => {
-        console.log(data);
-        const cache = get<Record<string, TreeNode>>(TREE_KEY) ?? {};
-        const found = data.node.parents.find((e) => Boolean(cache[e.id]));
+      socket.on(`user:${user.id}:node`, (data: { node: TreeNode; nodes: TreeNode[]; action: string }) => {
+        const currentNodeMap = get<Record<string, TreeNode>>(TREE_KEY) ?? {};
+        const found =
+          data.action === "add"
+            ? data.node.parents.find((e) => Boolean(currentNodeMap[e.id]))
+            : currentNodeMap[data.node.id];
+
         if (found) {
-          const newNodeMap = Object.fromEntries([data.node, ...data.nodes].map((e) => [e.id, e]));
-          const updatedNodeMap = { ...cache, ...newNodeMap };
-          const currentRoot = get<Root>(TREE_ROOT_KEY);
+          const updatedNodes = data.action === "add" ? [data.node, ...data.nodes] : data.nodes;
+
+          const newNodeMap = Object.fromEntries(updatedNodes.map((e) => [e.id, e]));
+          const updatedNodeMap = { ...currentNodeMap, ...newNodeMap };
+
+          if (data.action === "remove") {
+            delete updatedNodeMap[data.node.id];
+          }
+
+          set(TREE_KEY, updatedNodeMap, DAY);
+
           const nodes = parseTreeNodeDetail(Object.values(updatedNodeMap));
           const nodeMap = Object.fromEntries(nodes.map((e) => [e.id, e]));
-          const root = currentRoot ?? { id: nodes[0].id, isRoot: false };
-          const tree = { nodes, nodeMap, root };
+          const tree = { nodes, nodeMap } as Tree;
+
+          const currentRoot = get<Root>(TREE_ROOT_KEY);
+          if (data.action === "add") {
+            tree.root = currentRoot ?? { id: nodes[0].id, isRoot: false };
+          } else {
+            const root = currentRoot?.id === data.node.id ? undefined : currentRoot;
+            tree.root = root ?? { id: nodes[0].id, isRoot: nodes[0].data.families.length <= 0 };
+          }
 
           setTree({ ...tree });
+          set(TREE_ROOT_KEY, tree.root, DAY);
 
           enqueueSnackbar({
             variant: "success",
-            message: "New node is added to your tree",
+            message: data.action === "add" ? "New node is added to your tree" : "Node is removed from your tree",
           });
         }
       });
@@ -157,7 +176,8 @@ export const useTree = (init?: InitData) => {
   };
 
   const removeNode = async (id: string) => {
-    await deleteNode(id);
+    const { nodes: updatedNodes } = await deleteNode(id);
+
     await removeFile(id, "node");
 
     const currentNodeMap = get<Record<string, TreeNode>>(TREE_KEY);
@@ -166,22 +186,13 @@ export const useTree = (init?: InitData) => {
       throw new Error("Nodes not found");
     }
 
-    const node = currentNodeMap[id];
-    const relations = [...node.parents, ...node.children, ...node.spouses, ...node.siblings];
-
-    for (const relation of relations) {
-      const node = tree.nodeMap[relation.id];
-      if (!node) continue;
-      node.parents = node.parents.filter((parent) => parent.id !== id);
-      node.children = node.children.filter((child) => child.id !== id);
-      node.spouses = node.spouses.filter((spouse) => spouse.id !== id);
-      node.siblings = node.siblings.filter((sibling) => sibling.id !== id);
-      node.data.families = node?.data?.families?.filter((family) => family.id !== id) ?? [];
-
-      currentNodeMap[relation.id] = node;
+    for (const node of updatedNodes) {
+      currentNodeMap[node.id] = node;
     }
 
     delete currentNodeMap[id];
+
+    set(TREE_KEY, currentNodeMap, DAY);
 
     const root = tree.root.id === id ? undefined : tree.root;
     const nodes = parseTreeNodeDetail(Object.values(currentNodeMap));
@@ -194,7 +205,6 @@ export const useTree = (init?: InitData) => {
     };
 
     set(TREE_ROOT_KEY, updatedTree.root, DAY);
-    set(TREE_KEY, currentNodeMap, DAY);
     setTree({ ...updatedTree });
   };
 
@@ -254,19 +264,20 @@ export const useTree = (init?: InitData) => {
   const expandNode = async (id: string, relative: Relative) => {
     const { nodes: newNodes } = await relativeNodes(id, relative);
 
+    console.log(newNodes);
+
     const currentNodeMap = get<Record<string, TreeNode>>(TREE_KEY);
 
     if (!currentNodeMap) {
       throw new Error("Nodes not found");
     }
 
-    for (const node of newNodes) {
-      currentNodeMap[node.id] = node;
-    }
+    const newNodeMap = Object.fromEntries(newNodes.map((e) => [e.id, e]));
+    const updatedNodeMap = { ...currentNodeMap, ...newNodeMap };
 
-    set(TREE_KEY, currentNodeMap, DAY);
+    set(TREE_KEY, updatedNodeMap, DAY);
 
-    const nodes = parseTreeNodeDetail(Object.values(currentNodeMap));
+    const nodes = parseTreeNodeDetail(Object.values(updatedNodeMap));
     const nodeMap = Object.fromEntries(nodes.map((e) => [e.id, e]));
     const updatedTree = { ...tree, nodes, nodeMap };
 

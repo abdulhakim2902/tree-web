@@ -347,9 +347,13 @@ export const deleteNode = async (id: string) => {
     },
   });
 
-  if (response.status !== 200) {
-    throw new Error(response.statusText);
+  const result = await response.json();
+
+  if (result?.statusCode) {
+    throw result;
   }
+
+  return { nodes: result.nodes as TreeNode[] };
 };
 
 export const nodeById = async (id: string) => {
