@@ -77,7 +77,7 @@ export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile,
 
   const removeGallery = async (id: string) => {
     try {
-      await removeFile(id, "node");
+      await removeFile(id);
       setGalleries((prev) => prev.filter((e) => e._id != id));
     } catch (err: any) {
       enqueueSnackbar({

@@ -221,7 +221,7 @@ export const TreeNodeDetailsBio: FC<TreeNodeDetailsBioProps> = ({
                 </IconButton>
               </ShowIf>
               {/* eslint-disable @next/next/no-img-element */}
-              <img src={profileImageURL ?? ""} width={150} alt={profileImageURL} loading="lazy" />
+              <img src={profileImageURL ?? ""} width={150} alt={name.first} loading="lazy" />
             </React.Fragment>
           ) : UPDATE.some((e) => e === user?.role) || user?.nodeId === id ? (
             <AddPhotoAlternate style={{ fontSize: 35 }} />

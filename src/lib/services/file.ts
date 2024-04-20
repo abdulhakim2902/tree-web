@@ -16,7 +16,7 @@ export const nodeFiles = async (id?: string) => {
     throw new Error("Token not found");
   }
 
-  const response = await fetch(`${API_URL}/files?nodeId=${id}`, {
+  const response = await fetch(`${API_URL}/files?id=${id}&type=node`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -54,13 +54,35 @@ export const upload = async (data: FormData) => {
   return result as File;
 };
 
-export const removeFile = async (id: string, type: string) => {
+export const removeFile = async (id: string) => {
   const token = getCookie(TOKEN_KEY)?.toString();
   if (!token) {
     throw new Error("Token not found");
   }
 
-  const response = await fetch(`${API_URL}/files/${id}/${type}`, {
+  const response = await fetch(`${API_URL}/files/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token.toString()}`,
+    },
+  });
+
+  if (response.status !== 200) {
+    throw new Error(response.statusText);
+  }
+
+  const result = await response.json();
+  return result;
+};
+
+export const removeFiles = async (id: string) => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+  if (!token) {
+    throw new Error("Token not found");
+  }
+
+  const response = await fetch(`${API_URL}/files/node/${id}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",

@@ -191,12 +191,13 @@ export const addSpouse = async (id: string, data: any[]) => {
     body: JSON.stringify(data),
   });
 
-  if (response.status !== 201) {
-    throw new Error(response.statusText);
+  const result = await response.json();
+
+  if (result?.statusCode) {
+    throw result;
   }
 
-  const result = await response.json();
-  return result as string[];
+  return result;
 };
 
 export const addChild = async (id: string, data: any) => {
@@ -218,12 +219,13 @@ export const addChild = async (id: string, data: any) => {
     body: JSON.stringify(data),
   });
 
-  if (response.status !== 201) {
-    throw new Error(response.statusText);
+  const result = await response.json();
+
+  if (result?.statusCode) {
+    throw result;
   }
 
-  const result = await response.json();
-  return result as string;
+  return result;
 };
 
 export const addParent = async (id: string, data: any) => {
@@ -245,12 +247,13 @@ export const addParent = async (id: string, data: any) => {
     body: JSON.stringify(data),
   });
 
-  if (response.status !== 201) {
-    throw new Error(response.statusText);
+  const result = await response.json();
+
+  if (result?.statusCode) {
+    throw result;
   }
 
-  const result = await response.json();
-  return result as string[];
+  return result;
 };
 
 export const addSibling = async (id: string, data: any) => {
@@ -272,12 +275,13 @@ export const addSibling = async (id: string, data: any) => {
     body: JSON.stringify(data),
   });
 
-  if (response.status !== 201) {
-    throw new Error(response.statusText);
+  const result = await response.json();
+
+  if (result?.statusCode) {
+    throw result;
   }
 
-  const result = await response.json();
-  return result as string;
+  return result;
 };
 
 export const getSpouse = async (id: string) => {
@@ -353,7 +357,7 @@ export const deleteNode = async (id: string) => {
     throw result;
   }
 
-  return { nodes: result.nodes as TreeNode[] };
+  return result;
 };
 
 export const nodeById = async (id: string) => {

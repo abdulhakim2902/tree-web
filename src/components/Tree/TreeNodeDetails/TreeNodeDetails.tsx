@@ -48,7 +48,7 @@ type TreeNodeDetailsProps = {
   root: Root;
   nodeMap: Record<string, TreeNode>;
 
-  addNode: (id: string, data: any, type: string) => Promise<string[]>;
+  addNode: (id: string, data: any, type: string) => Promise<void>;
   editNode: (id: string, data: any) => Promise<void>;
   removeNode: (id: string) => Promise<void>;
   expandNode: (id: string, relative: Relative) => Promise<void>;

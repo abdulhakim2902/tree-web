@@ -6,7 +6,6 @@ import { ScaleLoader } from "react-spinners";
 
 /* Hooks */
 import { useSnackbar } from "notistack";
-import { useSocketContext } from "@tree/src/context/socket";
 import { useNodeSelectionContext } from "@tree/src/context/tree";
 
 type DeleteMemberModalProps = {
@@ -22,7 +21,6 @@ const DeleteMemberModal: FC<DeleteMemberModalProps> = ({ node, open, onClose, on
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const { enqueueSnackbar } = useSnackbar();
-  const { socket } = useSocketContext();
   const { unselectNode } = useNodeSelectionContext();
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -36,17 +34,10 @@ const DeleteMemberModal: FC<DeleteMemberModalProps> = ({ node, open, onClose, on
 
         await onAction(node.id);
 
-        if (socket) {
-          socket.emit("nodes", { nodeId: node.id, action: "remove" });
-        }
-
         unselectNode();
         onClose();
-        enqueueSnackbar({
-          variant: "success",
-          message: "Relative is deleted from the family",
-        });
       } catch (err: any) {
+        buttonRef.current.disabled = false;
         enqueueSnackbar({
           variant: "error",
           message: err.message,
@@ -54,8 +45,6 @@ const DeleteMemberModal: FC<DeleteMemberModalProps> = ({ node, open, onClose, on
       } finally {
         setLoading(false);
       }
-
-      buttonRef.current.disabled = false;
     }
   };
 
