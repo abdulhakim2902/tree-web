@@ -183,7 +183,12 @@ const User: FC = () => {
           ];
         })}
       </Menu>
-      <AccountSettingModal open={openSetting} onClose={() => setOpenSetting(false)} user={user} />
+      <AccountSettingModal
+        open={openSetting}
+        onClose={() => setOpenSetting(false)}
+        user={user}
+        onOpenRoleRequest={() => setOpenRequest(true)}
+      />
       <InvitePeopleModal open={openInvite} onClose={() => setOpenInvite(false)} />
       <RequestRoleModal open={openRequest} onClose={() => setOpenRequest(false)} />
     </React.Fragment>
