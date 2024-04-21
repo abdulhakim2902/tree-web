@@ -16,6 +16,7 @@ type AuthContextValue = {
   user: UserProfile | null;
   token: string;
 
+  setUser: (data: UserProfile) => void;
   register: (data: Register, cb?: (success: boolean, user?: UserProfile, statusCode?: number) => void) => void;
   login: (data: Login, cb?: (success: boolean) => void) => void;
   logout: () => void;
@@ -28,13 +29,14 @@ export const AuthContextProvider: FC = ({ children }) => {
 
   const userStr = getCookie(USER_KEY)?.toString();
   const tokenStr = getCookie(TOKEN_KEY)?.toString() ?? "";
-  const user = parseJSON<UserProfile>(userStr);
+  const userProfile = parseJSON<UserProfile>(userStr);
   const isValid = Boolean(userStr) && Boolean(tokenStr);
 
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(isValid);
   const [loading, setLoading] = useState<boolean>(false);
   const [registering, setRegistering] = useState<boolean>(false);
   const [token, setToken] = useState<string>(tokenStr);
+  const [user, setUser] = useState<UserProfile | null>(userProfile);
 
   const login = useCallback(
     async (data: Login, cb?: (success: boolean) => void) => {
@@ -46,6 +48,7 @@ export const AuthContextProvider: FC = ({ children }) => {
         const result = await loginAPI(data);
         success = Boolean(result);
         if (result) {
+          setUser(result.user);
           setCookie(USER_KEY, result.user, { maxAge: DAY });
           setCookie(TOKEN_KEY, result.token, { maxAge: DAY });
           setIsLoggedIn(true);
@@ -111,7 +114,7 @@ export const AuthContextProvider: FC = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ loading, isLoggedIn, user, token, login, logout, register, registering }}>
+    <AuthContext.Provider value={{ loading, isLoggedIn, user, token, login, logout, register, registering, setUser }}>
       {children}
     </AuthContext.Provider>
   );

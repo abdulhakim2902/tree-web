@@ -184,9 +184,9 @@ const User: FC = () => {
         })}
       </Menu>
       <AccountSettingModal
+        user={user}
         open={openSetting}
         onClose={() => setOpenSetting(false)}
-        user={user}
         onOpenRoleRequest={() => setOpenRequest(true)}
       />
       <InvitePeopleModal open={openInvite} onClose={() => setOpenInvite(false)} />

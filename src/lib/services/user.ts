@@ -5,12 +5,58 @@ import { Notification } from "./notification";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export const me = async (token: string) => {
+export const me = async (token?: string) => {
+  if (!token) token = getCookie(TOKEN_KEY)?.toString();
   return new Promise<UserProfile>((resolve, reject) => {
     fetch(`${API_URL}/users/me`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data?.statusCode) {
+          return reject(data);
+        }
+
+        return resolve(data);
+      })
+      .catch((err) => reject(err));
+  });
+};
+
+export const update = async (data: { name?: string; email?: string; password?: string }) => {
+  const token = getCookie(TOKEN_KEY)?.toString();
+  return new Promise<UserProfile>((resolve, reject) => {
+    fetch(`${API_URL}/users/me`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data?.statusCode) {
+          return reject(data);
+        }
+
+        return resolve(data);
+      })
+      .catch((err) => reject(err));
+  });
+};
+
+export const updateEmail = async (token: string) => {
+  const accessToken = getCookie(TOKEN_KEY)?.toString();
+  return new Promise<UserProfile>((resolve, reject) => {
+    fetch(`${API_URL}/users/update-email/${token}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
       },
     })
       .then((response) => response.json())

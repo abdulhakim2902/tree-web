@@ -10,12 +10,19 @@ import {
   TextField,
   useTheme,
   useMediaQuery,
+  CircularProgress,
 } from "@mui/material";
 import { Role, UserProfile } from "@tree/src/types/user";
 import React, { FC, useState } from "react";
 import ShowIf from "../show-if";
 import * as emailValidation from "email-validator";
 import { startCase } from "@tree/src/helper/string";
+import { useSnackbar } from "notistack";
+import { me, update } from "@tree/src/lib/services/user";
+import { setCookie } from "cookies-next";
+import { USER_KEY } from "@tree/src/constants/storage-key";
+import { DAY } from "@tree/src/helper/date";
+import { useAuthContext } from "@tree/src/context/auth";
 
 /* Icons */
 import CheckIcon from "@mui/icons-material/Check";
@@ -32,43 +39,63 @@ type AccountSettingModalProps = {
   onOpenRoleRequest: () => void;
 };
 
-type TabPanelProps = {
-  children: React.ReactNode;
-  index: number;
-  value: number;
-};
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`full-width-tabpanel-${index}`}
-      aria-labelledby={`full-width-tab-${index}`}
-    >
-      {value === index && <Box sx={{ my: 2 }}>{children}</Box>}
-    </div>
-  );
-}
-
 const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose, onOpenRoleRequest }) => {
+  const { setUser } = useAuthContext();
+  const { enqueueSnackbar } = useSnackbar();
+
   const [email, setEmail] = useState<string>(user.email);
   const [name, setName] = useState<string>(startCase(user.name));
   const [errorMessageEmail, setErrorMessageEmail] = useState<string>("");
   const [isEditEmail, setIsEditEmail] = useState<boolean>(false);
   const [isEditName, setIsEditName] = useState<boolean>(false);
+  const [isErrorName, setIsErrorName] = useState<boolean>(false);
   const [isErrorEmail, setIsErrorEmail] = useState<boolean>(false);
   const [tabIndex, setTabIndex] = useState(0);
+  const [updatingName, setUpdatingName] = useState<boolean>(false);
 
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
 
+  const onUpdateName = async () => {
+    if (!updatingName && !isErrorName) {
+      try {
+        setUpdatingName(true);
+
+        await update({ name: name });
+        const userProfile = await me();
+        setCookie(USER_KEY, userProfile, { maxAge: DAY });
+        setUser(userProfile);
+        setName(startCase(userProfile.name));
+        onReset();
+
+        enqueueSnackbar({
+          variant: "success",
+          message: "Successfully change name",
+        });
+      } catch (err: any) {
+        enqueueSnackbar({
+          variant: "error",
+          message: err.message,
+        });
+      } finally {
+        setUpdatingName(false);
+      }
+    }
+  };
+
+  const onReset = () => {
+    onClose();
+    setErrorMessageEmail("");
+    setIsEditEmail(false);
+    setIsErrorEmail(false);
+    setIsEditName(false);
+    setIsErrorName(false);
+  };
+
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={onReset}
       PaperProps={{
         style: {
           backgroundColor: "var(--background-color)",
@@ -108,10 +135,14 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
             </Box>
             <Box ml={2} display="flex" flexDirection="column" width={300}>
               <TextField
+                error={isErrorName}
+                helperText={isErrorName ? "Name cannot be empty" : ""}
                 value={name}
                 onChange={(event) => {
                   if (isEditName) {
-                    setName(event.target.value);
+                    const value = event.target.value;
+                    setName(value);
+                    setIsErrorName(!value);
                   }
                 }}
                 sx={{
@@ -136,17 +167,23 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
                         </Button>
                       </ShowIf>
                       <ShowIf condition={isEditName}>
-                        <IconButton color="primary" sx={{ marginRight: "5px" }}>
-                          <CheckIcon />
-                        </IconButton>
-                        <IconButton
-                          color="error"
-                          onClick={() => {
-                            setIsEditName(false);
-                          }}
-                        >
-                          <CloseIcon />
-                        </IconButton>
+                        <ShowIf condition={!updatingName}>
+                          <IconButton color="primary" sx={{ marginRight: "5px" }} onClick={onUpdateName}>
+                            <CheckIcon />
+                          </IconButton>
+                          <IconButton
+                            color="error"
+                            onClick={() => {
+                              setIsEditName(false);
+                              setName(user.name);
+                            }}
+                          >
+                            <CloseIcon />
+                          </IconButton>
+                        </ShowIf>
+                        <ShowIf condition={updatingName}>
+                          <CircularProgress size={15} />
+                        </ShowIf>
                       </ShowIf>
                     </React.Fragment>
                   ),
@@ -211,7 +248,7 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
                   startAdornment: <ManageAccountsIcon sx={{ color: "whitesmoke", marginRight: "10px" }} />,
                   endAdornment: (
                     <React.Fragment>
-                      <ShowIf condition={user.role === Role.SUPERADMIN}>
+                      <ShowIf condition={user.role !== Role.SUPERADMIN}>
                         <Button variant="outlined" color="primary" onClick={onOpenRoleRequest}>
                           Edit
                         </Button>
@@ -232,3 +269,24 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
 };
 
 export default AccountSettingModal;
+
+type TabPanelProps = {
+  children: React.ReactNode;
+  index: number;
+  value: number;
+};
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`full-width-tabpanel-${index}`}
+      aria-labelledby={`full-width-tab-${index}`}
+    >
+      {value === index && <Box sx={{ my: 2 }}>{children}</Box>}
+    </div>
+  );
+}
