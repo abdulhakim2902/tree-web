@@ -26,7 +26,12 @@ export const me = async (token?: string) => {
   });
 };
 
-export const update = async (data: { name?: string; email?: string; password?: string; profileImage?: string }) => {
+export const update = async (data: {
+  name?: string;
+  email?: string;
+  password?: { current: string; new: string };
+  profileImage?: string;
+}) => {
   const token = getCookie(TOKEN_KEY)?.toString();
   return new Promise<UserProfile>((resolve, reject) => {
     fetch(`${API_URL}/users/me`, {

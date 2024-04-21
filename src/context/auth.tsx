@@ -49,6 +49,7 @@ export const AuthContextProvider: FC = ({ children }) => {
         success = Boolean(result);
         if (result) {
           setUser(result.user);
+          setToken(result.token);
           setCookie(USER_KEY, result.user, { maxAge: DAY });
           setCookie(TOKEN_KEY, result.token, { maxAge: DAY });
           setIsLoggedIn(true);
@@ -101,16 +102,12 @@ export const AuthContextProvider: FC = ({ children }) => {
   );
 
   const logout = () => {
-    try {
-      deleteCookie(TOKEN_KEY);
-      deleteCookie(USER_KEY);
-      deleteCookie(TREE_KEY);
-      setIsLoggedIn(false);
-      setToken("");
-      logoutAPI();
-    } catch {
-      // ignore
-    }
+    logoutAPI().catch(console.log);
+    deleteCookie(TOKEN_KEY);
+    deleteCookie(USER_KEY);
+    deleteCookie(TREE_KEY);
+    setIsLoggedIn(false);
+    setToken("");
   };
 
   return (

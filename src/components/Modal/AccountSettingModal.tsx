@@ -11,6 +11,7 @@ import {
   useTheme,
   useMediaQuery,
   CircularProgress,
+  Typography,
 } from "@mui/material";
 import { Role, UserProfile } from "@tree/src/types/user";
 import React, { ChangeEvent, FC, useState } from "react";
@@ -23,6 +24,7 @@ import { setCookie } from "cookies-next";
 import { USER_KEY } from "@tree/src/constants/storage-key";
 import { DAY } from "@tree/src/helper/date";
 import { useAuthContext } from "@tree/src/context/auth";
+import { removeFile, upload } from "@tree/src/lib/services/file";
 
 /* Icons */
 import CheckIcon from "@mui/icons-material/Check";
@@ -30,7 +32,43 @@ import CloseIcon from "@mui/icons-material/Close";
 import EmailIcon from "@mui/icons-material/Email";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
-import { File, removeFile, upload } from "@tree/src/lib/services/file";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { ScaleLoader } from "react-spinners";
+
+const defaultShowPassword = {
+  current: false,
+  new: false,
+};
+
+const defaultIsEdit = {
+  name: false,
+  email: false,
+};
+
+const defaultPassword = {
+  current: "",
+  new: "",
+};
+
+const defaultUpdating = {
+  name: false,
+  email: false,
+  password: false,
+  profileImage: false,
+};
+
+const defaultIsError = {
+  name: false,
+  email: false,
+  password: true,
+};
+
+const defaultErrorMessage = {
+  name: "",
+  email: "",
+  password: "",
+};
 
 type AccountSettingModalProps = {
   open: boolean;
@@ -47,57 +85,52 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
   const [email, setEmail] = useState<string>(user.email);
   const [name, setName] = useState<string>(startCase(user.name));
   const [profileURL, setProfileURL] = useState(user.profileImageURL?.split(";")?.[1]);
-  const [errorMessageEmail, setErrorMessageEmail] = useState<string>("");
-  const [isEditEmail, setIsEditEmail] = useState<boolean>(false);
-  const [isEditName, setIsEditName] = useState<boolean>(false);
-  const [isErrorName, setIsErrorName] = useState<boolean>(false);
-  const [isErrorEmail, setIsErrorEmail] = useState<boolean>(false);
-  const [tabIndex, setTabIndex] = useState(0);
-  const [updatingName, setUpdatingName] = useState<boolean>(false);
-  const [updatingEmail, setUpdatingEmail] = useState<boolean>(false);
-  const [uploading, setUploading] = useState<boolean>(false);
+  const [tabIndex, setTabIndex] = useState<0 | 1>(0);
+  const [isEdit, setIsEdit] = useState({ ...defaultIsEdit });
+  const [isError, setIsError] = useState({ ...defaultIsError });
+  const [password, setPassword] = useState({ ...defaultPassword });
+  const [updating, setUpdating] = useState({ ...defaultUpdating });
+  const [errorMessage, setErrorMessage] = useState({ ...defaultErrorMessage });
+  const [showPassword, setShowPassword] = useState({ ...defaultShowPassword });
 
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const onUpdateName = async () => {
-    if (!updatingName && !isErrorName) {
+    if (!updating.name && !isError.name) {
       try {
-        setUpdatingName(true);
+        setUpdating((prev) => ({ ...prev, name: true }));
 
         await update({ name: name });
         const userProfile = await me();
         setCookie(USER_KEY, userProfile, { maxAge: DAY });
         setUser(userProfile);
         setName(startCase(userProfile.name));
-        setIsEditName(false);
+        setIsEdit((prev) => ({ ...prev, name: false }));
 
         enqueueSnackbar({
           variant: "success",
           message: "Successfully change name",
         });
       } catch (err: any) {
-        enqueueSnackbar({
-          variant: "error",
-          message: err.message,
-        });
+        setName(user.name);
+        setIsError((prev) => ({ ...prev, name: true }));
+        setErrorMessage((prev) => ({ ...prev, name: err.message }));
       } finally {
-        setUpdatingName(false);
+        setUpdating((prev) => ({ ...prev, name: false }));
       }
     }
   };
 
   const onUpdateEmail = async () => {
-    if (!updatingEmail && !isErrorEmail) {
+    if (!updating.email && !isError.email) {
       try {
-        setUpdatingEmail(true);
+        setUpdating((prev) => ({ ...prev, email: true }));
 
         await update({ email: email });
 
         setEmail(user.email);
-        setIsEditEmail(false);
-        setIsErrorEmail(false);
-        setErrorMessageEmail("");
+        setIsEdit((prev) => ({ ...prev, email: false }));
         onReset();
 
         enqueueSnackbar({
@@ -105,25 +138,24 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
           message: "Please check your email to verify new email address.",
         });
       } catch (err: any) {
-        enqueueSnackbar({
-          variant: "error",
-          message: err.message,
-        });
+        setEmail(user.email);
+        setIsError((prev) => ({ ...prev, email: true }));
+        setErrorMessage((prev) => ({ ...prev, email: err.message }));
       } finally {
-        setUpdatingEmail(false);
+        setUpdating((prev) => ({ ...prev, email: false }));
       }
     }
   };
 
   const onUploadImage = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files || files.length <= 0 || uploading) return;
+    if (!files || files.length <= 0 || updating.profileImage) return;
 
     const file = files[0];
     const [id, profileImageURL] = user.profileImageURL?.split(";") ?? [];
 
     try {
-      setUploading(true);
+      setUpdating((prev) => ({ ...prev, profileImage: true }));
       setProfileURL(URL.createObjectURL(file));
       const form = new FormData();
       form.append("file", file);
@@ -138,7 +170,7 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
       setProfileURL(url);
       enqueueSnackbar({
         variant: "success",
-        message: "Successfully update user profile image.",
+        message: "Successfully change profile image.",
       });
     } catch (err: any) {
       setProfileURL(profileImageURL);
@@ -147,17 +179,44 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
         message: err.message,
       });
     } finally {
-      setUploading(false);
+      setUpdating((prev) => ({ ...prev, profileImage: false }));
+    }
+  };
+
+  const onUpdatePassword = async () => {
+    console.log(updating, isError);
+    if (!updating.password && !isError.password) {
+      try {
+        setUpdating((prev) => ({ ...prev, password: true }));
+        console.log(password);
+        await update({ password });
+
+        setTabIndex(0);
+        setPassword({ ...defaultPassword });
+        enqueueSnackbar({
+          variant: "success",
+          message: "Successfully change password",
+        });
+      } catch (err: any) {
+        setIsError((prev) => ({ ...prev, password: true }));
+        setErrorMessage((prev) => ({ ...prev, password: err.message }));
+        enqueueSnackbar({
+          variant: "error",
+          message: "Successfully change password",
+        });
+      } finally {
+        setUpdating((prev) => ({ ...prev, password: false }));
+      }
     }
   };
 
   const onReset = () => {
+    setShowPassword({ ...defaultShowPassword });
+    setErrorMessage({ ...defaultErrorMessage });
+    setPassword({ ...defaultPassword });
+    setIsError({ ...defaultIsError });
+    setIsEdit({ ...defaultIsEdit });
     onClose();
-    setErrorMessageEmail("");
-    setIsEditEmail(false);
-    setIsErrorEmail(false);
-    setIsEditName(false);
-    setIsErrorName(false);
   };
 
   return (
@@ -174,10 +233,10 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
       }}
     >
       <DialogContent>
-        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+        <Box>
           <Tabs value={tabIndex} onChange={(event, value) => setTabIndex(value)} aria-label="basic tabs example">
             <Tab label="Profile" sx={{ color: "whitesmoke" }} />
-            <Tab label="Settings" sx={{ color: "whitesmoke" }} />
+            <Tab label="Security" sx={{ color: "whitesmoke" }} />
           </Tabs>
         </Box>
         <TabPanel value={tabIndex} index={0}>
@@ -207,22 +266,23 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
                   <AddPhotoAlternate style={{ fontSize: 35 }} />
                 )}
 
-                <ShowIf condition={uploading}>
+                <ShowIf condition={updating.profileImage}>
                   <CircularProgress size={20} sx={{ position: "absolute", right: "45%", top: "45%" }} />
                 </ShowIf>
-                <input type="file" hidden={true} onChange={onUploadImage} disabled={uploading} />
+                <input type="file" hidden={true} onChange={onUploadImage} disabled={updating.profileImage} />
               </Box>
             </Button>
             <Box ml={2} display="flex" flexDirection="column" width={300}>
               <TextField
-                error={isErrorName}
-                helperText={isErrorName ? "Name cannot be empty" : ""}
+                error={isError.name}
+                helperText={errorMessage.name}
                 value={name}
                 onChange={(event) => {
-                  if (isEditName) {
+                  if (isEdit.name) {
                     const value = event.target.value;
                     setName(value);
-                    setIsErrorName(!value);
+                    setIsError((prev) => ({ ...prev, name: !value }));
+                    setErrorMessage((prev) => ({ ...prev, name: !value ? "Name cannot be empty" : "" }));
                   }
                 }}
                 sx={{
@@ -235,38 +295,44 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
                   },
                 }}
                 fullWidth
-                disabled={!isEditName}
+                disabled={!isEdit.name}
                 InputLabelProps={{ style: { color: "grey" } }}
                 InputProps={{
                   startAdornment: <AccountCircleIcon sx={{ color: "whitesmoke", marginRight: "10px" }} />,
                   endAdornment: (
                     <React.Fragment>
-                      <ShowIf condition={!isEditName}>
-                        <Button variant="outlined" color="primary" onClick={() => setIsEditName(true)}>
+                      <ShowIf condition={!isEdit.name}>
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          onClick={() => setIsEdit((prev) => ({ ...prev, name: true }))}
+                        >
                           Edit
                         </Button>
                       </ShowIf>
-                      <ShowIf condition={isEditName}>
-                        <ShowIf condition={!updatingName}>
+                      <ShowIf condition={isEdit.name}>
+                        <ShowIf condition={!updating.name}>
                           <IconButton
                             color="primary"
                             sx={{ marginRight: "5px" }}
                             onClick={onUpdateName}
-                            disabled={user.name.toLowerCase() === name.toLowerCase()}
+                            disabled={user.name.toLowerCase() === name.toLowerCase() || isError.name}
                           >
                             <CheckIcon />
                           </IconButton>
                           <IconButton
                             color="error"
                             onClick={() => {
-                              setIsEditName(false);
                               setName(startCase(user.name));
+                              setIsEdit((prev) => ({ ...prev, name: false }));
+                              setIsError((prev) => ({ ...prev, name: false }));
+                              setErrorMessage((prev) => ({ ...prev, name: "" }));
                             }}
                           >
                             <CloseIcon />
                           </IconButton>
                         </ShowIf>
-                        <ShowIf condition={updatingName}>
+                        <ShowIf condition={updating.name}>
                           <CircularProgress size={15} />
                         </ShowIf>
                       </ShowIf>
@@ -276,15 +342,15 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
               />
               <TextField
                 value={email}
-                error={isErrorEmail}
-                helperText={isErrorEmail ? errorMessageEmail : ""}
+                error={isError.email}
+                helperText={errorMessage.email}
                 onChange={(event) => {
-                  if (isEditEmail) {
+                  if (isEdit.email) {
                     const value = event.target.value;
                     const valid = emailValidation.validate(value);
                     setEmail(event.target.value);
-                    setIsErrorEmail(!valid);
-                    setErrorMessageEmail(valid ? "" : "Invalid email format");
+                    setIsError((prev) => ({ ...prev, email: !valid }));
+                    setErrorMessage((prev) => ({ ...prev, email: !valid ? "Invalid email format" : "" }));
                   }
                 }}
                 sx={{
@@ -296,31 +362,43 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
                   },
                 }}
                 fullWidth
-                disabled={!isEditEmail}
+                disabled={!isEdit.email}
                 InputProps={{
                   startAdornment: <EmailIcon sx={{ color: "whitesmoke", marginRight: "10px" }} />,
                   endAdornment: (
                     <React.Fragment>
-                      <ShowIf condition={!isEditEmail}>
-                        <Button variant="outlined" color="primary" onClick={() => setIsEditEmail(true)}>
+                      <ShowIf condition={!isEdit.email}>
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          onClick={() => setIsEdit((prev) => ({ ...prev, email: true }))}
+                        >
                           Edit
                         </Button>
                       </ShowIf>
-                      <ShowIf condition={isEditEmail}>
-                        <ShowIf condition={!updatingEmail}>
+                      <ShowIf condition={isEdit.email}>
+                        <ShowIf condition={!updating.email}>
                           <IconButton
                             color="primary"
                             sx={{ marginRight: "5px" }}
                             onClick={onUpdateEmail}
-                            disabled={email === user.email}
+                            disabled={email === user.email || isError.email}
                           >
                             <CheckIcon />
                           </IconButton>
-                          <IconButton color="error" onClick={() => setIsEditEmail(false)}>
+                          <IconButton
+                            color="error"
+                            onClick={() => {
+                              setEmail(user.email);
+                              setIsEdit((prev) => ({ ...prev, email: false }));
+                              setIsError((prev) => ({ ...prev, email: false }));
+                              setErrorMessage((prev) => ({ ...prev, email: "" }));
+                            }}
+                          >
                             <CloseIcon />
                           </IconButton>
                         </ShowIf>
-                        <ShowIf condition={updatingEmail}>
+                        <ShowIf condition={updating.email}>
                           <CircularProgress size={15} />
                         </ShowIf>
                       </ShowIf>
@@ -355,7 +433,74 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
             </Box>
           </Box>
         </TabPanel>
-        <TabPanel value={tabIndex} index={1}></TabPanel>
+        <TabPanel value={tabIndex} index={1}>
+          <Box display="flex" flexDirection="column">
+            <Typography marginBottom={2}>Enter your current password and then create a new one.</Typography>
+            <TextField
+              id="password"
+              placeholder="Current password"
+              type={showPassword.current ? "text" : "password"}
+              value={password.current}
+              onChange={(event) => {
+                const valid = password.new.length >= 6 && event.target.value.length >= 6;
+                setPassword((prev) => ({ ...prev, current: event.target.value }));
+                setIsError((prev) => ({ ...prev, password: !valid }));
+              }}
+              fullWidth
+              sx={{ input: { color: "whitesmoke" }, marginBottom: "10px" }}
+              InputLabelProps={{ sx: { color: "grey" } }}
+              InputProps={{
+                endAdornment: (
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={() => setShowPassword((prev) => ({ ...prev, current: !prev.current }))}
+                    onMouseDown={(event) => event.preventDefault()}
+                    edge="end"
+                    sx={{ color: "whitesmoke" }}
+                  >
+                    {showPassword.current ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                ),
+              }}
+            />
+            <TextField
+              id="password"
+              placeholder="New password"
+              type={showPassword.new ? "text" : "password"}
+              value={password.new}
+              onChange={(event) => {
+                const valid = password.current.length >= 6 && event.target.value.length >= 6;
+                setPassword((prev) => ({ ...prev, new: event.target.value }));
+                setIsError((prev) => ({ ...prev, password: !valid }));
+              }}
+              fullWidth
+              sx={{ input: { color: "whitesmoke" }, marginBottom: "20px" }}
+              InputLabelProps={{ sx: { color: "grey" } }}
+              InputProps={{
+                endAdornment: (
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={() => setShowPassword((prev) => ({ ...prev, new: !prev.new }))}
+                    onMouseDown={(event) => event.preventDefault()}
+                    edge="end"
+                    sx={{ color: "whitesmoke" }}
+                  >
+                    {showPassword.new ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                ),
+              }}
+            />
+            <Button
+              color="primary"
+              variant="contained"
+              sx={{ alignItems: "right" }}
+              disabled={isError.password}
+              onClick={onUpdatePassword}
+            >
+              {updating.password ? <ScaleLoader color="whitesmoke" height={10} /> : "Confirm"}
+            </Button>
+          </Box>
+        </TabPanel>
       </DialogContent>
     </Dialog>
   );
