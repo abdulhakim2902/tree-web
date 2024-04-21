@@ -20,6 +20,7 @@ export type UserProfile = {
   username: string;
   role: Role;
   nodeId?: string;
+  profileImageURL?: string;
 };
 
 export type UserInvitation = {

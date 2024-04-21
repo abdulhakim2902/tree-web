@@ -102,6 +102,7 @@ const User: FC = () => {
         }
       >
         <Avatar
+          src={user.profileImageURL?.split(";")?.[1]}
           sx={{
             bgcolor: "#2f2f5e",
             opacity: 1,
