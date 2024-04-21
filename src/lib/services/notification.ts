@@ -9,7 +9,6 @@ export type QueryNotificationDto = {
 
 export enum NotificationType {
   REQUEST = "request",
-  CONNECT = "connect",
   INVITATION = "invitation",
   REGISTRATION = "registration",
 }

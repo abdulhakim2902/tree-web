@@ -101,7 +101,7 @@ export const TreeNodeGalleries: FC<TreeNodeGalleriesProps> = ({ nodeId, newFile,
         <ImageListItem key={item._id}>
           <Box position="relative">
             {current !== item.url && item._id !== "new" && (
-              <ShowIf condition={UPDATE.some((e) => e === user?.role) || user?.nodeId === nodeId}>
+              <ShowIf condition={UPDATE.some((e) => e === user?.role)}>
                 <IconButton
                   sx={{
                     position: "absolute",

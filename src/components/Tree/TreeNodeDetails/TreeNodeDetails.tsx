@@ -3,8 +3,6 @@ import BioNavItem from "./BioNavItem/BioNavItem";
 import ShowIf from "@tree/src/components/show-if";
 import Fab from "@mui/material/Fab";
 import s from "./TreeNodeDetails.module.css";
-import ConnectNodeModal from "../../Modal/ConnectNodeModal";
-import DisconnectNodeModal from "../../Modal/DisconnectNodeModal";
 
 import { TreeNodeDetailsBio } from "./TreeNodeDetailsBio/TreeNodeDetailsBio";
 import { getTreeNodeDetails } from "@tree/src/helper/tree";
@@ -35,8 +33,6 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
-import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
-import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 
 const navigation = [
   { id: 1, title: "Biography" },
@@ -72,8 +68,6 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [openRemove, setOpenRemove] = useState<boolean>(false);
   const [openGalleries, setOpenGalleries] = useState<boolean>(false);
-  const [openConnect, setOpenConnect] = useState<boolean>(false);
-  const [openDisconnect, setOpenDisconnect] = useState<boolean>(false);
   const [uploading, setUploading] = useState<boolean>(false);
   const [newFile, setNewFile] = useState<File>();
   const [navId, setNavId] = useState<number>(1);
@@ -132,7 +126,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({
             <div className={s.rootItem}>
               <h2 className={s.name}>
                 {node.fullname}
-                <ShowIf condition={UPDATE.some((e) => e === user.role) || node.id === user.nodeId}>
+                <ShowIf condition={UPDATE.some((e) => e === user.role)}>
                   <Tooltip title="Edit the information for this person" placement="bottom-start">
                     <EditIcon
                       fontSize="small"
@@ -179,7 +173,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({
           </Box>
           <ShowIf condition={navId === 1}>
             <Box sx={{ display: "flex", justifyContent: "end" }}>
-              <ShowIf condition={DELETE.some((e) => e === user.role) || node.id === user.nodeId}>
+              <ShowIf condition={node.children.length <= 0 && !Boolean(node.metadata?.expandable.children)}>
                 <Tooltip title="Delete relative" placement="bottom-end">
                   <Fab
                     color="error"
@@ -189,41 +183,6 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({
                     onClick={() => setOpenRemove(true)}
                   >
                     <DeleteIcon />
-                  </Fab>
-                </Tooltip>
-              </ShowIf>
-              <ShowIf condition={node.id === user.nodeId && node?.user?.id === user.id}>
-                <Tooltip title="Disconnect" placement="bottom-end">
-                  <Fab
-                    color="success"
-                    aria-label="unpin-people"
-                    sx={{ marginLeft: "10px" }}
-                    size="small"
-                    component="label"
-                    onClick={() => setOpenDisconnect(true)}
-                  >
-                    <RadioButtonCheckedIcon />
-                  </Fab>
-                </Tooltip>
-              </ShowIf>
-              <ShowIf
-                condition={
-                  node.id !== user.nodeId &&
-                  node.user?.id !== user.id &&
-                  !Boolean(node.user?.id) &&
-                  !Boolean(user.nodeId)
-                }
-              >
-                <Tooltip title="Connect" placement="bottom-end">
-                  <Fab
-                    color="success"
-                    aria-label="pin-people"
-                    sx={{ marginLeft: "10px" }}
-                    size="small"
-                    component="label"
-                    onClick={() => setOpenConnect(true)}
-                  >
-                    <RadioButtonUncheckedIcon />
                   </Fab>
                 </Tooltip>
               </ShowIf>
@@ -245,7 +204,7 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({
           </ShowIf>
           <ShowIf condition={navId === 2}>
             <Box sx={{ display: "flex", justifyContent: "end" }}>
-              <ShowIf condition={UPDATE.some((e) => e === user.role) || user.nodeId === node.id}>
+              <ShowIf condition={UPDATE.some((e) => e === user.role)}>
                 <Tooltip title="Add galleries" placement="bottom-end">
                   <Fab color="secondary" aria-label="add-galleries" size="small" component="label">
                     <AddPhotoAlternateIcon />
@@ -258,8 +217,6 @@ const TreeNodeDetails: FC<TreeNodeDetailsProps> = ({
         </div>
       </Box>
 
-      <ConnectNodeModal open={openConnect} onClose={() => setOpenConnect(false)} node={node} />
-      <DisconnectNodeModal open={openDisconnect} onClose={() => setOpenDisconnect(false)} node={node} />
       <AddMemberDrawer open={openAdd} onClose={() => setOpenAdd(false)} onAction={addNode} node={node} />
       <EditMemberDrawer open={openEdit} onClose={() => setOpenEdit(false)} onAction={editNode} node={node} />
       <DeleteMemberModal open={openRemove} onClose={() => setOpenRemove(false)} onAction={removeNode} node={node} />

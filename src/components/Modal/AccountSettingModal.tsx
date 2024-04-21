@@ -61,7 +61,7 @@ const defaultUpdating = {
 const defaultIsError = {
   name: false,
   email: false,
-  password: true,
+  password: false,
 };
 
 const defaultErrorMessage = {
@@ -200,10 +200,6 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
       } catch (err: any) {
         setIsError((prev) => ({ ...prev, password: true }));
         setErrorMessage((prev) => ({ ...prev, password: err.message }));
-        enqueueSnackbar({
-          variant: "error",
-          message: "Successfully change password",
-        });
       } finally {
         setUpdating((prev) => ({ ...prev, password: false }));
       }
@@ -439,6 +435,8 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
             <TextField
               id="password"
               placeholder="Current password"
+              error={Boolean(errorMessage.password)}
+              helperText={errorMessage.password}
               type={showPassword.current ? "text" : "password"}
               value={password.current}
               onChange={(event) => {
@@ -494,7 +492,7 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
               color="primary"
               variant="contained"
               sx={{ alignItems: "right" }}
-              disabled={isError.password}
+              disabled={isError.password || !password.current || !password.new}
               onClick={onUpdatePassword}
             >
               {updating.password ? <ScaleLoader color="whitesmoke" height={10} /> : "Confirm"}

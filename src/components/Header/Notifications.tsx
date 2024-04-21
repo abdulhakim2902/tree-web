@@ -21,12 +21,9 @@ import ShowIf from "../show-if";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import parse from "html-react-parser";
-import AcceptConnectNodeModal from "../Modal/AcceptConnectNodeModal";
-import { TreeNodeData } from "@tree/src/types/tree";
-import { nodeById } from "@tree/src/lib/services/node";
 
 /* API Services */
-import { handleRequest, handleInvitation, handleConnectNode, handleRegistration } from "@tree/src/lib/services/user";
+import { handleRequest, handleInvitation, handleRegistration } from "@tree/src/lib/services/user";
 import {
   Notification,
   NotificationType,
@@ -49,7 +46,6 @@ import CloseIcon from "@mui/icons-material/Close";
 import MarkunreadIcon from "@mui/icons-material/Markunread";
 import MarkAsUnreadIcon from "@mui/icons-material/MarkAsUnread";
 import NotificationsIcon from "@mui/icons-material/Notifications";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 
 dayjs.extend(relativeTime);
 
@@ -64,12 +60,7 @@ const Notifications: FC = () => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [count, setCount] = useState<number>(0);
-  const [openConnectRequest, setOpenConnectRequest] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-
-  const [loadingConnect, setLoadingConnect] = useState<boolean>(false);
-  const [selectedNode, setSelectedNode] = useState<TreeNodeData>();
-  const [selectedNotification, setSelectedNotification] = useState<Notification>();
 
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -266,49 +257,6 @@ const Notifications: FC = () => {
     }
   };
 
-  const onHandleConnectRequest = (action: string, notification?: Notification) => {
-    if (!notification) return;
-    const referenceId = notification.referenceId;
-    if (!referenceId) return;
-
-    const buttonRef = buttonRefs[notification._id];
-    if (buttonRef.current && !buttonRef.current.disabled) {
-      buttonRef.current.disabled = true;
-
-      handleConnectNode(referenceId, action)
-        .then(() => {
-          setCount((prev) => {
-            if (!prev) return prev;
-            return prev - 1;
-          });
-          setNotifications((prev) => [
-            ...prev.map((e) => {
-              if (e._id === selectedNotification?._id) {
-                Object.assign(e, { read: true, action: false });
-              }
-
-              return e;
-            }),
-          ]);
-          enqueueSnackbar({
-            variant: "success",
-            message: action === "accept" ? "Connect request is accepted" : "Connect request is rejected",
-          });
-        })
-        .catch((err) => {
-          enqueueSnackbar({
-            variant: "error",
-            message: err.message,
-          });
-        })
-        .finally(() => {
-          if (buttonRef.current) {
-            buttonRef.current.disabled = false;
-          }
-        });
-    }
-  };
-
   const onReadNotification = async (id: string) => {
     const buttonRef = buttonRefs[id];
     if (buttonRef.current && !buttonRef.current.disabled) {
@@ -369,42 +317,10 @@ const Notifications: FC = () => {
     }
   };
 
-  const onOpenConnectRequest = async (notification: Notification) => {
-    if (!notification.additionalReferenceId) return;
-
-    const buttonRef = buttonRefs[notification._id];
-    if (buttonRef.current && !buttonRef.current.disabled) {
-      buttonRef.current.disabled = true;
-
-      try {
-        setLoadingConnect(true);
-        const [nodeId, email, name] = notification.additionalReferenceId.split(":");
-        const node = await nodeById(nodeId);
-        node.user = { email, name };
-        setSelectedNode(node);
-        setSelectedNotification(notification);
-        setOpenConnectRequest(true);
-      } catch {
-        enqueueSnackbar({
-          variant: "error",
-          message: "Data not found",
-        });
-      } finally {
-        setLoadingConnect(false);
-      }
-
-      buttonRef.current.disabled = false;
-    }
-  };
-
   const notificationTextWidth = (notification: Notification) => {
     if (!notification.action) {
       if (notification.read) return "100%";
       return "85%";
-    }
-
-    if (notification.type !== NotificationType.CONNECT) {
-      return "75%";
     }
 
     return "85%";
@@ -414,10 +330,6 @@ const Notifications: FC = () => {
     if (!notification.action) {
       if (notification.read) return "0%";
       return "15%";
-    }
-
-    if (notification.type !== NotificationType.CONNECT) {
-      return "25%";
     }
 
     return "15%";
@@ -527,38 +439,25 @@ const Notifications: FC = () => {
                             justifyContent="space-evenly"
                             width={notificationIconWidth(notification)}
                           >
-                            <ShowIf condition={notification.type !== NotificationType.CONNECT}>
-                              <Tooltip title="Accept request">
-                                <IconButton
-                                  ref={buttonRefs[notification._id]}
-                                  color="primary"
-                                  onClick={() => handleAction("accept", notification)}
-                                  sx={{ mr: "2px" }}
-                                >
-                                  <CheckIcon />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Reject request">
-                                <IconButton
-                                  ref={buttonRefs[notification._id]}
-                                  color="error"
-                                  onClick={() => handleAction("reject", notification)}
-                                >
-                                  <CloseIcon />
-                                </IconButton>
-                              </Tooltip>
-                            </ShowIf>
-                            <ShowIf condition={notification.type === NotificationType.CONNECT}>
-                              <Tooltip title="See request">
-                                <IconButton
-                                  ref={buttonRefs[notification._id]}
-                                  onClick={() => onOpenConnectRequest(notification)}
-                                  sx={{ mr: "2px", color: "whitesmoke" }}
-                                >
-                                  <VisibilityIcon />
-                                </IconButton>
-                              </Tooltip>
-                            </ShowIf>
+                            <Tooltip title="Accept request">
+                              <IconButton
+                                ref={buttonRefs[notification._id]}
+                                color="primary"
+                                onClick={() => handleAction("accept", notification)}
+                                sx={{ mr: "2px" }}
+                              >
+                                <CheckIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Reject request">
+                              <IconButton
+                                ref={buttonRefs[notification._id]}
+                                color="error"
+                                onClick={() => handleAction("reject", notification)}
+                              >
+                                <CloseIcon />
+                              </IconButton>
+                            </Tooltip>
                           </Box>
                         </ShowIf>
                         <ShowIf condition={!notification.action && !notification.read}>
@@ -609,14 +508,6 @@ const Notifications: FC = () => {
           </Box>
         )}
       </Menu>
-      <AcceptConnectNodeModal
-        ref={buttonRefs[selectedNotification?._id ?? ""]}
-        node={selectedNode}
-        open={openConnectRequest}
-        loading={loadingConnect}
-        onClose={() => setOpenConnectRequest(false)}
-        onConnectRequest={(action) => onHandleConnectRequest(action, selectedNotification)}
-      />
     </React.Fragment>
   );
 };

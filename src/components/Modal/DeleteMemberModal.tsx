@@ -80,7 +80,7 @@ const DeleteMemberModal: FC<DeleteMemberModalProps> = ({ node, open, onClose, on
           <Button color="info" variant="outlined" sx={{ mr: "10px" }} disabled={loading} onClick={onClose}>
             Cancel
           </Button>
-          <Button ref={buttonRef} variant="contained" color="error" onClick={handleRemove}>
+          <Button ref={buttonRef} variant="contained" color="error" onClick={handleRemove} disabled>
             {loading ? <ScaleLoader color="whitesmoke" height={10} width={2} /> : "Delete"}
           </Button>
         </Box>

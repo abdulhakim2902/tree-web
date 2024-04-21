@@ -19,7 +19,6 @@ export type UserProfile = {
   email: string;
   username: string;
   role: Role;
-  nodeId?: string;
   profileImageURL?: string;
 };
 

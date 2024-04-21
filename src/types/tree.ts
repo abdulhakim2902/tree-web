@@ -15,11 +15,6 @@ export type TreeNodeDataFromJson = {
     nicknames?: Nickname[];
   };
 } & Partial<{
-  user: Partial<{
-    id: string;
-    name: string;
-    email: string;
-  }>;
   profileImageURL: string;
   gender: string;
   birth: {

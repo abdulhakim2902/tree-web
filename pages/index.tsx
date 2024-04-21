@@ -17,7 +17,7 @@ import { Role, UserStatus } from "@tree/src/types/user";
 import { getInvitation, me, updateEmail } from "@tree/src/lib/services/user";
 import RegisterModal from "@tree/src/components/Modal/RegisterModal";
 import * as emailValidation from "email-validator";
-import { startCase, update } from "lodash";
+import { startCase } from "lodash";
 import AccountVerification from "@tree/src/components/Modal/AccountVerificationModal";
 import { DAY } from "@tree/src/helper/date";
 
@@ -261,6 +261,7 @@ const HomePage: NextPage = () => {
           <div className={ballS.ball5} />
         </div>
       </div>
+
       <RegisterModal
         open={open}
         value={data}
