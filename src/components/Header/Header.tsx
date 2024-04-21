@@ -10,7 +10,7 @@ import Notifications from "./Notifications";
 
 const Header: FC = () => {
   const { isMounted } = useMounted();
-  const { isLoggedIn } = useAuthContext();
+  const { isLoggedIn, user } = useAuthContext();
 
   if (!isMounted) {
     return null;
@@ -21,7 +21,7 @@ const Header: FC = () => {
       <Toolbar>
         <Search />
         <Login />
-        <ShowIf condition={isLoggedIn}>
+        <ShowIf condition={isLoggedIn && Boolean(user)}>
           <Notifications />
           <User />
         </ShowIf>

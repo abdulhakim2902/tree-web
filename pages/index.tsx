@@ -14,11 +14,12 @@ import { useSearchParams } from "next/navigation";
 import { useSnackbar } from "notistack";
 import { Register } from "@tree/src/types/auth";
 import { Role, UserStatus } from "@tree/src/types/user";
-import { getInvitation, me } from "@tree/src/lib/services/user";
+import { getInvitation, me, updateEmail } from "@tree/src/lib/services/user";
 import RegisterModal from "@tree/src/components/Modal/RegisterModal";
 import * as emailValidation from "email-validator";
-import { startCase } from "lodash";
+import { startCase, update } from "lodash";
 import AccountVerification from "@tree/src/components/Modal/AccountVerificationModal";
+import { DAY } from "@tree/src/helper/date";
 
 const defaultRegister = {
   name: "",
@@ -29,19 +30,28 @@ const defaultRegister = {
   role: Role.GUEST,
 };
 
+const defaultEmailData = {
+  currentEmail: "",
+  updatedEmail: "",
+  token: "",
+};
+
 const HomePage: NextPage = () => {
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
-  const { logout, registering: loading, register, isLoggedIn } = useAuthContext();
+  const { logout, registering: loading, register, isLoggedIn, setUser } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
   const { isMounted } = useMounted();
 
   const [data, setData] = useState<Register>({ ...defaultRegister });
+  const [emailData, setEmailData] = useState(defaultEmailData);
   const [error, setError] = useState({ name: false, username: false, password: false, email: false });
   const [open, setOpen] = useState<boolean>(false);
   const [openVerification, setOpenVerification] = useState<boolean>(false);
+  const [openEmailVerification, setOpenEmailVerification] = useState<boolean>(false);
+  const [updatingEmail, setUpdatingEmail] = useState<boolean>(false);
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
@@ -51,7 +61,7 @@ const HomePage: NextPage = () => {
       try {
         if (!token) throw new Error("Invalid token");
 
-        const { status, email, role } = await getInvitation(token);
+        const { status, email, role, currentEmail, updatedEmail } = await getInvitation(token);
 
         switch (status) {
           case UserStatus.REGISTRATION: {
@@ -71,6 +81,12 @@ const HomePage: NextPage = () => {
           case UserStatus.NEW_USER: {
             setOpen(true);
             setData((prev) => ({ ...prev, token, email, role }));
+            break;
+          }
+
+          case UserStatus.EMAIL_UPDATE: {
+            setOpenEmailVerification(true);
+            setEmailData({ token, currentEmail, updatedEmail });
             break;
           }
 
@@ -190,6 +206,34 @@ const HomePage: NextPage = () => {
     });
   };
 
+  const onUpdatingEmail = async (cb?: () => void) => {
+    if (!updatingEmail && emailData.token) {
+      try {
+        setUpdatingEmail(true);
+
+        await updateEmail(emailData.token);
+        const userProfile = await me();
+        setUser(userProfile);
+        setCookie(USER_KEY, userProfile, { maxAge: DAY });
+        setOpenEmailVerification(false);
+
+        enqueueSnackbar({
+          variant: "success",
+          message: "Succesfully updating user email.",
+        });
+      } catch (err: any) {
+        enqueueSnackbar({
+          variant: "error",
+          message: "Failed updating user email.",
+        });
+      } finally {
+        setUpdatingEmail(false);
+      }
+
+      cb && cb();
+    }
+  };
+
   if (!isMounted) {
     return null;
   }
@@ -237,8 +281,25 @@ const HomePage: NextPage = () => {
         verify={onRegister}
         onClose={() => {
           setOpenVerification(false);
-          setData({ ...defaultRegister });
-          setError({ name: false, username: false, password: false, email: false });
+          if (data.email) {
+            setData({ ...defaultRegister });
+            setError({ name: false, username: false, password: false, email: false });
+          }
+
+          if (emailData.updatedEmail) {
+            setEmailData({ ...defaultEmailData });
+          }
+        }}
+      />
+      <AccountVerification
+        open={openEmailVerification}
+        currentEmail={emailData.currentEmail}
+        email={emailData.updatedEmail}
+        loading={updatingEmail}
+        verify={onUpdatingEmail}
+        onClose={() => {
+          setOpenEmailVerification(false);
+          setEmailData({ ...defaultEmailData });
         }}
       />
     </React.Fragment>

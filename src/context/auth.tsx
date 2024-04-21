@@ -100,14 +100,14 @@ export const AuthContextProvider: FC = ({ children }) => {
     [enqueueSnackbar],
   );
 
-  const logout = async () => {
+  const logout = () => {
     try {
-      await logoutAPI();
       deleteCookie(TOKEN_KEY);
       deleteCookie(USER_KEY);
       deleteCookie(TREE_KEY);
       setIsLoggedIn(false);
       setToken("");
+      logoutAPI();
     } catch {
       // ignore
     }

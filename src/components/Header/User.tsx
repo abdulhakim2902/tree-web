@@ -19,6 +19,7 @@ import { getNameSymbol, startCase } from "@tree/src/helper/string";
 /* Modals */
 import InvitePeopleModal from "../Modal/InvitePeopleModal";
 import RequestRoleModal from "../Modal/RequestRoleModal";
+import AccountSettingModal from "../Modal/AccountSettingModal";
 
 /* Hooks */
 import { useAuthContext } from "@tree/src/context/auth";
@@ -32,7 +33,6 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import Diversity1Icon from "@mui/icons-material/Diversity1";
 import LogoutIcon from "@mui/icons-material/Logout";
-import AccountSettingModal from "../Modal/AccountSettingModal";
 
 const menus = [
   {

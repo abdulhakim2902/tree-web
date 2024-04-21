@@ -52,6 +52,7 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
   const [isErrorEmail, setIsErrorEmail] = useState<boolean>(false);
   const [tabIndex, setTabIndex] = useState(0);
   const [updatingName, setUpdatingName] = useState<boolean>(false);
+  const [updatingEmail, setUpdatingEmail] = useState<boolean>(false);
 
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -66,7 +67,7 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
         setCookie(USER_KEY, userProfile, { maxAge: DAY });
         setUser(userProfile);
         setName(startCase(userProfile.name));
-        onReset();
+        setIsEditName(false);
 
         enqueueSnackbar({
           variant: "success",
@@ -79,6 +80,35 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
         });
       } finally {
         setUpdatingName(false);
+      }
+    }
+  };
+
+  const onUpdateEmail = async () => {
+    if (!updatingEmail && !isErrorEmail) {
+      try {
+        setUpdatingEmail(true);
+
+        await update({ email: email });
+
+        setEmail(user.email);
+        setIsEditEmail(false);
+        setIsErrorEmail(false);
+        setErrorMessageEmail("");
+        onReset();
+
+        enqueueSnackbar({
+          variant: "success",
+          message: "Please check your email to verify new email address.",
+        });
+      } catch (err: any) {
+        console.log(err);
+        enqueueSnackbar({
+          variant: "error",
+          message: err.message,
+        });
+      } finally {
+        setUpdatingEmail(false);
       }
     }
   };
@@ -168,14 +198,19 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
                       </ShowIf>
                       <ShowIf condition={isEditName}>
                         <ShowIf condition={!updatingName}>
-                          <IconButton color="primary" sx={{ marginRight: "5px" }} onClick={onUpdateName}>
+                          <IconButton 
+                            color="primary" 
+                            sx={{ marginRight: "5px" }} 
+                            onClick={onUpdateName}
+                            disabled={user.name.toLowerCase() === name.toLowerCase()}
+                          >
                             <CheckIcon />
                           </IconButton>
                           <IconButton
                             color="error"
                             onClick={() => {
                               setIsEditName(false);
-                              setName(user.name);
+                              setName(startCase(user.name));
                             }}
                           >
                             <CloseIcon />
@@ -222,12 +257,22 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
                         </Button>
                       </ShowIf>
                       <ShowIf condition={isEditEmail}>
-                        <IconButton color="primary" sx={{ marginRight: "5px" }}>
-                          <CheckIcon />
-                        </IconButton>
-                        <IconButton color="error" onClick={() => setIsEditEmail(false)}>
-                          <CloseIcon />
-                        </IconButton>
+                        <ShowIf condition={!updatingEmail}>
+                          <IconButton 
+                            color="primary"
+                            sx={{ marginRight: "5px" }}
+                            onClick={onUpdateEmail}
+                            disabled={email === user.email}
+                          >
+                            <CheckIcon />
+                          </IconButton>
+                          <IconButton color="error" onClick={() => setIsEditEmail(false)}>
+                            <CloseIcon />
+                          </IconButton>
+                        </ShowIf>
+                        <ShowIf condition={updatingEmail}>
+                          <CircularProgress size={15} />
+                        </ShowIf>
                       </ShowIf>
                     </React.Fragment>
                   ),
@@ -261,7 +306,7 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
           </Box>
         </TabPanel>
         <TabPanel value={tabIndex} index={1}>
-          Setting
+          
         </TabPanel>
       </DialogContent>
     </Dialog>
@@ -271,7 +316,7 @@ const AccountSettingModal: FC<AccountSettingModalProps> = ({ open, user, onClose
 export default AccountSettingModal;
 
 type TabPanelProps = {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   index: number;
   value: number;
 };

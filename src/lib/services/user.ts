@@ -72,7 +72,7 @@ export const updateEmail = async (token: string) => {
 };
 
 export const getInvitation = async (token: string) => {
-  return new Promise<UserInvitation>((resolve, reject) => {
+  return new Promise<Record<string, any>>((resolve, reject) => {
     fetch(`${API_URL}/users/invitation/${token}`, {
       method: "GET",
     })
