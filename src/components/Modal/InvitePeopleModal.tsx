@@ -25,7 +25,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import CheckIcon from "@mui/icons-material/Check";
 import * as isEmail from "email-validator";
-import { invites } from "@tree/src/lib/services/user";
+import { createRoleInvitation } from "@tree/src/lib/services/user";
 import { useSnackbar } from "notistack";
 import { ScaleLoader } from "react-spinners";
 
@@ -67,7 +67,7 @@ const InvitePeopleModal: FC<InvitePeopleModalProps> = ({ open, onClose }) => {
         const uniquePeople = uniqBy(people, "email");
         try {
           setLoading(true);
-          await invites(uniquePeople);
+          await createRoleInvitation(uniquePeople);
           setInviting(true);
         } catch (err: any) {
           enqueueSnackbar({

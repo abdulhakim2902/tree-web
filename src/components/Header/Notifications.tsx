@@ -23,7 +23,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import parse from "html-react-parser";
 
 /* API Services */
-import { handleRequest, handleInvitation, handleRegistration } from "@tree/src/lib/services/user";
+import { handleRoleRequest, handleRoleInvitation, handleUserRegistration } from "@tree/src/lib/services/user";
 import {
   Notification,
   NotificationType,
@@ -142,7 +142,7 @@ const Notifications: FC = () => {
     }
   };
 
-  const onHandleRequest = async (action: string, notification: Notification) => {
+  const onHandleRoleRequest = async (action: string, notification: Notification) => {
     const referenceId = notification.referenceId;
     if (!referenceId) return;
 
@@ -151,7 +151,7 @@ const Notifications: FC = () => {
       buttonRef.current.disabled = true;
 
       try {
-        await handleRequest(referenceId, action);
+        await handleRoleRequest(referenceId, action);
         setCount((prev) => {
           if (!prev) return prev;
           return prev - 1;
@@ -180,7 +180,7 @@ const Notifications: FC = () => {
     }
   };
 
-  const onHandleInvitation = async (action: string, notification: Notification) => {
+  const onHandleRoleInvitation = async (action: string, notification: Notification) => {
     const referenceId = notification.referenceId;
     if (!referenceId) return;
 
@@ -189,7 +189,7 @@ const Notifications: FC = () => {
       buttonRef.current.disabled = true;
 
       try {
-        const newNotification = await handleInvitation(referenceId, action);
+        const newNotification = await handleRoleInvitation(referenceId, action);
         setNotifications((prev) => [
           newNotification,
           ...prev.map((e) => {
@@ -219,7 +219,7 @@ const Notifications: FC = () => {
     }
   };
 
-  const onHandleRegistration = async (action: string, notification: Notification) => {
+  const onHandleUserRegistration = async (action: string, notification: Notification) => {
     const referenceId = notification.referenceId;
     if (!referenceId) return;
 
@@ -228,7 +228,7 @@ const Notifications: FC = () => {
       buttonRef.current.disabled = true;
 
       try {
-        const response = await handleRegistration(referenceId, action);
+        const response = await handleUserRegistration(referenceId, action);
         setCount((prev) => {
           if (!prev) return prev;
           return prev - 1;
@@ -288,15 +288,15 @@ const Notifications: FC = () => {
 
   const handleAction = (action: string, notification: Notification) => {
     if (notification.type === NotificationType.REQUEST) {
-      onHandleRequest(action, notification);
+      onHandleRoleRequest(action, notification);
     }
 
     if (notification.type === NotificationType.INVITATION) {
-      onHandleInvitation(action, notification);
+      onHandleRoleInvitation(action, notification);
     }
 
     if (notification.type === NotificationType.REGISTRATION) {
-      onHandleRegistration(action, notification);
+      onHandleUserRegistration(action, notification);
     }
   };
 

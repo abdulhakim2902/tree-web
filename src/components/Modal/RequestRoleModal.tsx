@@ -23,7 +23,7 @@ import React, { FC, useRef, useState } from "react";
 import ShowIf from "../show-if";
 import { useAuthContext } from "@tree/src/context/auth";
 import CheckIcon from "@mui/icons-material/Check";
-import { createRequest } from "@tree/src/lib/services/user";
+import { createRoleRequest } from "@tree/src/lib/services/user";
 import { ScaleLoader } from "react-spinners";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 
@@ -49,7 +49,7 @@ const RequestRoleModal: FC<RequestRoleModalProps> = ({ open, onClose }) => {
 
       try {
         setLoading(true);
-        await createRequest({ role });
+        await createRoleRequest({ role });
         setAsking(true);
         setError("");
       } catch (err: any) {

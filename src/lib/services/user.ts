@@ -76,9 +76,9 @@ export const updateEmail = async (token: string) => {
   });
 };
 
-export const getInvitation = async (token: string) => {
+export const getTokens = async (token: string) => {
   return new Promise<Record<string, any>>((resolve, reject) => {
-    fetch(`${API_URL}/users/invitation/${token}`, {
+    fetch(`${API_URL}/users/tokens/${token}`, {
       method: "GET",
     })
       .then((response) => response.json())
@@ -93,27 +93,10 @@ export const getInvitation = async (token: string) => {
   });
 };
 
-export const handleInvitation = async (token: string, action: string) => {
-  return new Promise<Notification>((resolve, reject) => {
-    fetch(`${API_URL}/users/invitation/${token}/${action}`, {
-      method: "POST",
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data?.statusCode) {
-          return reject(data);
-        }
-
-        return resolve(data);
-      })
-      .catch((err) => reject(err));
-  });
-};
-
-export const handleRegistration = async (referenceId: string, action: string) => {
+export const handleUserRegistration = async (referenceId: string, action: string) => {
   const token = getCookie(TOKEN_KEY)?.toString();
   return new Promise<{ message: string }>((resolve, reject) => {
-    fetch(`${API_URL}/users/registration/${referenceId}/${action}`, {
+    fetch(`${API_URL}/users/user-registrations/${referenceId}/${action}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -131,11 +114,12 @@ export const handleRegistration = async (referenceId: string, action: string) =>
   });
 };
 
-export const invites = async (data: { email: string; role: Role }[]) => {
+// Role Invitation Endpoint
+export const createRoleInvitation = async (data: { email: string; role: Role }[]) => {
   const token = getCookie(TOKEN_KEY)?.toString();
 
   return new Promise((resolve, reject) => {
-    fetch(`${API_URL}/users/invites`, {
+    fetch(`${API_URL}/users/role-invitations`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -155,16 +139,10 @@ export const invites = async (data: { email: string; role: Role }[]) => {
   });
 };
 
-export const getRequest = async () => {
-  const token = getCookie(TOKEN_KEY)?.toString();
-
-  return new Promise((resolve, reject) => {
-    fetch(`${API_URL}/users/requests`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      method: "GET",
+export const handleRoleInvitation = async (token: string, action: string) => {
+  return new Promise<Notification>((resolve, reject) => {
+    fetch(`${API_URL}/users/role-invitations/${token}/${action}`, {
+      method: "POST",
     })
       .then((response) => response.json())
       .then((data) => {
@@ -178,11 +156,12 @@ export const getRequest = async () => {
   });
 };
 
-export const createRequest = async (data: { role: string }) => {
+// Role Request Endpoint
+export const createRoleRequest = async (data: { role: string }) => {
   const token = getCookie(TOKEN_KEY)?.toString();
 
   return new Promise((resolve, reject) => {
-    fetch(`${API_URL}/users/requests`, {
+    fetch(`${API_URL}/users/role-requests`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -202,11 +181,11 @@ export const createRequest = async (data: { role: string }) => {
   });
 };
 
-export const handleRequest = async (referenceId: string, action: string) => {
+export const handleRoleRequest = async (referenceId: string, action: string) => {
   const token = getCookie(TOKEN_KEY)?.toString();
 
   return new Promise((resolve, reject) => {
-    fetch(`${API_URL}/users/requests/${referenceId}/${action}`, {
+    fetch(`${API_URL}/users/role-requests/${referenceId}/${action}`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,

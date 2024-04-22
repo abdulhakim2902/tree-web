@@ -14,7 +14,7 @@ import { useSearchParams } from "next/navigation";
 import { useSnackbar } from "notistack";
 import { Register } from "@tree/src/types/auth";
 import { Role, UserStatus } from "@tree/src/types/user";
-import { getInvitation, me, updateEmail } from "@tree/src/lib/services/user";
+import { getTokens, me, updateEmail } from "@tree/src/lib/services/user";
 import RegisterModal from "@tree/src/components/Modal/RegisterModal";
 import * as emailValidation from "email-validator";
 import { startCase } from "lodash";
@@ -57,11 +57,11 @@ const HomePage: NextPage = () => {
   useEffect(() => {
     if (token === null) return;
 
-    const handleInvitation = async () => {
+    const handleTokens = async () => {
       try {
         if (!token) throw new Error("Invalid token");
 
-        const { status, email, role, currentEmail, updatedEmail } = await getInvitation(token);
+        const { status, email, role, currentEmail, updatedEmail } = await getTokens(token);
 
         switch (status) {
           case UserStatus.REGISTRATION: {
@@ -103,7 +103,7 @@ const HomePage: NextPage = () => {
       }
     };
 
-    handleInvitation();
+    handleTokens();
   }, [token]);
 
   const onChange = (event: ChangeEvent<HTMLInputElement>, types: string) => {
