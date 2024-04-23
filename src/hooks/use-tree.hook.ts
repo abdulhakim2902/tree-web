@@ -5,6 +5,10 @@ import { NODE_FAMILIES_KEY, TREE_KEY, TREE_ROOT_KEY } from "../constants/storage
 import { useRouter } from "next/navigation";
 import { DAY } from "../helper/date";
 import { setCookie } from "cookies-next";
+import { Role } from "../types/user";
+import { RelType } from "../lib/relatives-tree/types";
+
+/* API Services */
 import {
   Relative,
   addChild,
@@ -13,10 +17,10 @@ import {
   addSpouse,
   relativeNodes,
   updateNode,
-  deleteNode,
   updateImageNode,
+  createDeleteNodeRequest,
 } from "../lib/services/node";
-import { File, removeFiles } from "../lib/services/file";
+import { File } from "../lib/services/file";
 
 /* Hooks */
 import { useCacheContext } from "../context/cache";
@@ -39,6 +43,11 @@ type InitData = {
   nodes: TreeNode[];
 };
 
+type NodeEvent = {
+  id: string;
+  nodes: TreeNode[];
+};
+
 export const useTree = (init?: InitData) => {
   const router = useRouter();
 
@@ -53,17 +62,46 @@ export const useTree = (init?: InitData) => {
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isConnected && user) {
-      socket.on(`user:${user.id}:node:add`, (data: { id: string; nodes: TreeNode[] }) => {
-        const currentNodeMap = get<Record<string, TreeNode>>(TREE_KEY);
+      socket.on(`user:${user.id}:node:add`, (data: NodeEvent) => {
+        console.log(data);
+        const currentNodeMap = get<Record<string, TreeNode>>(TREE_KEY) ?? {};
         const hasNode = data.nodes.some((node) => Boolean(currentNodeMap?.[node.id]));
 
-        if (hasNode) {
-          const newNodeMap = Object.fromEntries(data.nodes.map((e) => [e.id, e]));
-          const updatedNodeMap = { ...currentNodeMap, ...newNodeMap };
+        if (hasNode || currentNodeMap?.[data.id]) {
+          for (const node of data.nodes) {
+            if (currentNodeMap[node.id]) continue;
 
-          set(TREE_KEY, updatedNodeMap, DAY);
+            const { parents, children, siblings, spouses } = node;
+            for (const parent of parents) {
+              if (currentNodeMap?.[parent.id]) {
+                currentNodeMap[parent.id].children.push({ id: node.id, type: RelType.blood });
+              }
+            }
 
-          const nodes = parseTreeNodeDetail(Object.values(updatedNodeMap));
+            for (const child of children) {
+              if (currentNodeMap?.[child.id]) {
+                currentNodeMap[child.id].parents.push({ id: node.id, type: RelType.blood });
+              }
+            }
+
+            for (const sibling of siblings) {
+              if (currentNodeMap?.[sibling.id]) {
+                currentNodeMap[sibling.id].siblings.push({ id: node.id, type: RelType.blood });
+              }
+            }
+
+            for (const spouse of spouses) {
+              if (currentNodeMap?.[spouse.id]) {
+                currentNodeMap[spouse.id].spouses.push({ id: node.id, type: RelType.married });
+              }
+            }
+
+            currentNodeMap[node.id] = node;
+          }
+
+          set(TREE_KEY, currentNodeMap, DAY);
+
+          const nodes = parseTreeNodeDetail(Object.values(currentNodeMap));
           const nodeMap = Object.fromEntries(nodes.map((e) => [e.id, e]));
           const updatedTree = { ...tree, nodes, nodeMap };
 
@@ -89,11 +127,11 @@ export const useTree = (init?: InitData) => {
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isConnected && user) {
-      socket.on(`user:${user.id}:node:remove`, (data: { id: string; nodes: TreeNode[] }) => {
+      socket.on(`user:${user.id}:node:remove`, (data: NodeEvent) => {
         const currentNodeMap = get<Record<string, TreeNode>>(TREE_KEY);
         const hasNode = data.nodes.some((node) => Boolean(currentNodeMap?.[node.id]));
 
-        if (hasNode) {
+        if (hasNode || currentNodeMap?.[data.id]) {
           const newNodeMap = Object.fromEntries(data.nodes.map((e) => [e.id, e]));
           const updatedNodeMap = { ...currentNodeMap, ...newNodeMap };
 
@@ -193,8 +231,18 @@ export const useTree = (init?: InitData) => {
   };
 
   const removeNode = async (id: string) => {
-    await deleteNode(id);
-    await removeFiles(id);
+    try {
+      await createDeleteNodeRequest(id);
+      enqueueSnackbar({
+        variant: "success",
+        message: user?.role !== Role.SUPERADMIN ? "Node delete request is sent" : "Successfully delete node",
+      });
+    } catch (err: any) {
+      enqueueSnackbar({
+        variant: "error",
+        message: err.message,
+      });
+    }
   };
 
   const editNode = async (id: string, data: any) => {

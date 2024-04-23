@@ -169,8 +169,7 @@ const User: FC = () => {
                     break;
                   case "logout":
                     clear();
-                    logout();
-                    replace("/");
+                    replace("/").then(() => logout());
                     break;
                 }
               }}

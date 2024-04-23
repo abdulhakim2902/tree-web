@@ -32,12 +32,13 @@ import {
   readNotification,
   readAllNotification,
 } from "@tree/src/lib/services/notification";
-import { useRouter } from "next/router";
+import { handleDeleteNodeRequest } from "@tree/src/lib/services/node";
 
 /* Hooks */
 import { useAuthContext } from "@tree/src/context/auth";
 import { useSnackbar } from "notistack";
 import { useSocketContext } from "@tree/src/context/socket";
+import { useRouter } from "next/router";
 
 /* Icons */
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
@@ -205,8 +206,7 @@ const Notifications: FC = () => {
           message: action === "accept" ? "Invitation is accepted. Please sign in again" : "Invitation is rejected",
         });
         if (action === "accept") {
-          logout();
-          router.replace("/");
+          router.replace("/").then(() => logout());
         }
       } catch (err: any) {
         enqueueSnackbar({
@@ -229,6 +229,44 @@ const Notifications: FC = () => {
 
       try {
         const response = await handleUserRegistration(referenceId, action);
+        setCount((prev) => {
+          if (!prev) return prev;
+          return prev - 1;
+        });
+        setNotifications((prev) =>
+          prev.map((e) => {
+            if (e._id === notification._id) {
+              Object.assign(e, { read: true, action: false });
+            }
+
+            return e;
+          }),
+        );
+        enqueueSnackbar({
+          variant: "success",
+          message: response.message,
+        });
+      } catch (err: any) {
+        enqueueSnackbar({
+          variant: "error",
+          message: err.message,
+        });
+      }
+
+      buttonRef.current.disabled = false;
+    }
+  };
+
+  const onHandleDeleteNodeRequest = async (action: string, notification: Notification) => {
+    const referenceId = notification.referenceId;
+    if (!referenceId) return;
+
+    const buttonRef = buttonRefs[notification._id];
+    if (buttonRef.current && !buttonRef.current.disabled) {
+      buttonRef.current.disabled = true;
+
+      try {
+        const response = await handleDeleteNodeRequest(referenceId, action);
         setCount((prev) => {
           if (!prev) return prev;
           return prev - 1;
@@ -297,6 +335,10 @@ const Notifications: FC = () => {
 
     if (notification.type === NotificationType.REGISTRATION) {
       onHandleUserRegistration(action, notification);
+    }
+
+    if (notification.type === NotificationType.REMOVE_NODE) {
+      onHandleDeleteNodeRequest(action, notification);
     }
   };
 

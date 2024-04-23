@@ -333,7 +333,7 @@ export const updateImageNode = async (id: string, fileId = "") => {
   await response.json();
 };
 
-export const deleteNode = async (id: string) => {
+export const createDeleteNodeRequest = async (id: string) => {
   const token = getCookie(TOKEN_KEY)?.toString();
   if (!token) {
     throw new Error("Token not found");
@@ -343,11 +343,30 @@ export const deleteNode = async (id: string) => {
     throw new Error("Invalid node id");
   }
 
-  const response = await fetch(`${API_URL}/nodes/${id}`, {
-    method: "DELETE",
+  const response = await fetch(`${API_URL}/nodes/${id}/delete-request`, {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token.toString()}`,
+    },
+  });
+
+  const result = await response.json();
+
+  if (result?.statusCode) {
+    throw result;
+  }
+
+  return result;
+};
+
+export const handleDeleteNodeRequest = async (token: string, action: string) => {
+  const accessToken = getCookie(TOKEN_KEY)?.toString();
+  const response = await fetch(`${API_URL}/nodes/delete-request/${token}/${action}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken?.toString()}`,
     },
   });
 
