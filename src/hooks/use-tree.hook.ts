@@ -230,9 +230,9 @@ export const useTree = (init?: InitData) => {
     del(NODE_FAMILIES_KEY);
   };
 
-  const removeNode = async (id: string) => {
+  const removeNode = async (id: string, data: { reason: string }) => {
     try {
-      await createDeleteNodeRequest(id);
+      await createDeleteNodeRequest({ ...data, nodeId: id });
       enqueueSnackbar({
         variant: "success",
         message: user?.role !== Role.SUPERADMIN ? "Node delete request is sent" : "Successfully delete node",

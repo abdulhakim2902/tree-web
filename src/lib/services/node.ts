@@ -10,6 +10,11 @@ type NodeResponse = {
   nodes: TreeNode[];
 };
 
+export type DeleteNodeRequestDto = {
+  nodeId: string;
+  reason: string;
+};
+
 export type Relative = "parents" | "children" | "siblings" | "spouses";
 
 export const sampleNodes = async (): Promise<NodeResponse> => {
@@ -333,22 +338,19 @@ export const updateImageNode = async (id: string, fileId = "") => {
   await response.json();
 };
 
-export const createDeleteNodeRequest = async (id: string) => {
+export const createDeleteNodeRequest = async (data: DeleteNodeRequestDto) => {
   const token = getCookie(TOKEN_KEY)?.toString();
   if (!token) {
     throw new Error("Token not found");
   }
 
-  if (!id) {
-    throw new Error("Invalid node id");
-  }
-
-  const response = await fetch(`${API_URL}/nodes/${id}/delete-request`, {
+  const response = await fetch(`${API_URL}/nodes/delete-request`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token.toString()}`,
     },
+    body: JSON.stringify(data),
   });
 
   const result = await response.json();

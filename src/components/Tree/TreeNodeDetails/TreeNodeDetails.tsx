@@ -46,7 +46,7 @@ type TreeNodeDetailsProps = {
 
   addNode: (id: string, data: any, type: string) => Promise<void>;
   editNode: (id: string, data: any) => Promise<void>;
-  removeNode: (id: string) => Promise<void>;
+  removeNode: (id: string, data: any) => Promise<void>;
   expandNode: (id: string, relative: Relative) => Promise<void>;
   editImageNode: (id: string, data?: File) => Promise<void>;
 };
