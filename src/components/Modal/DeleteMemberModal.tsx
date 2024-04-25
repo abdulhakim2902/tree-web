@@ -144,16 +144,23 @@ const DeleteMemberModal: FC<DeleteMemberModalProps> = ({ node, open, onClose, on
         <Typography id="modal-modal-description" sx={{ mt: 2, fontSize: "15px" }}>
           You are requesting to delete this people.
         </Typography>
-        <TextField
-          multiline
+        <textarea
+          required
           value={reason}
-          fullWidth
           placeholder="State your reason"
           rows={4}
-          maxRows={4}
           onChange={(event) => setReason(event.target.value)}
-          sx={{ marginTop: "10px" }}
-          InputProps={{ inputProps: { style: { color: "whitesmoke" } } }}
+          // style={{
+          //   marginTop: "10px",
+          //   resize: "none",
+          //   width: "100%",
+          //   backgroundColor: "var(--background-color)",
+          //   color: "whitesmoke",
+          //   padding: 10,
+          //   borderWidth: 1,
+          //   borderColor: "grey",
+          //   borderRadius: 8,
+          // }}
         />
         <Box sx={{ mt: "30px" }} textAlign="end">
           <Button

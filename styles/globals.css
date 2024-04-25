@@ -72,6 +72,19 @@ button {
   background-color: unset;
   padding: 0;
 }
+
+textarea {
+  margin-top: 10px;
+  resize: "none";
+  width: 100%;
+  background-color: var('--background-color');
+  color: "whitesmoke";
+  padding: 10;
+  border-width: 1;
+  border-color: "grey";
+  border-radius: 8;
+}
+
 @media (max-width: 700px) {
   html {
     font-size: 8px;
