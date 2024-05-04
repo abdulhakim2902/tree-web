@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import TreeNodeDetails from "@tree/src/components/Tree/TreeNodeDetails/TreeNodeDetails";
 import TreeWithNavigation from "@tree/src/components/Tree/TreeWithNavigation/TreeWithNavigation";
 import { NavigationContextProvider } from "@tree/src/context/navigation";
@@ -13,6 +13,8 @@ import { rootNodes, sampleNodes, searchNodes } from "@tree/src/lib/services/node
 import { Root, TreeNode } from "@tree/src/types/tree";
 import { me } from "@tree/src/lib/services/user";
 import { useTree } from "@tree/src/hooks/use-tree.hook";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/router";
 
 type TreeProps = {
   root: Root;
@@ -21,8 +23,19 @@ type TreeProps = {
 
 const Tree: NextPage<TreeProps> = (props: TreeProps) => {
   const { tree, addNode, removeNode, editNode, editProfileImageNode, expandNode } = useTree(props);
-
   const { root, nodes, nodeMap } = tree;
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const search = searchParams.get("search");
+  const nodeId = searchParams.get("nodeId");
+
+  useEffect(() => {
+    if (search || nodeId) {
+      router.replace("/tree", undefined, { shallow: true });
+    }
+    /* eslint-disable react-hooks/exhaustive-deps */
+  }, [search, nodeId])
 
   return (
     <React.Fragment>
